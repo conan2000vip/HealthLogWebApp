@@ -1,8 +1,8 @@
--- MySQL dump 10.13  Distrib 8.4.2, for Win64 (x86_64)
+-- MySQL dump 10.13  Distrib 8.4.10, for Linux (x86_64)
 --
 -- Host: localhost    Database: healthlog
 -- ------------------------------------------------------
--- Server version	8.4.2
+-- Server version	8.4.10
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -45,36 +45,6 @@ CREATE TABLE `auth_tokens` (
 LOCK TABLES `auth_tokens` WRITE;
 /*!40000 ALTER TABLE `auth_tokens` DISABLE KEYS */;
 /*!40000 ALTER TABLE `auth_tokens` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `health_feedbacks`
---
-
-DROP TABLE IF EXISTS `health_feedbacks`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `health_feedbacks` (
-  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
-  `profile_id` bigint unsigned NOT NULL,
-  `level` int NOT NULL,
-  `feedback_type` varchar(50) DEFAULT NULL,
-  `message` varchar(255) DEFAULT NULL,
-  `generated_at` datetime NOT NULL,
-  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
-  KEY `idx_feedback_profile_date` (`profile_id`,`generated_at`),
-  CONSTRAINT `fk_feedback_profile` FOREIGN KEY (`profile_id`) REFERENCES `profiles` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `health_feedbacks`
---
-
-LOCK TABLES `health_feedbacks` WRITE;
-/*!40000 ALTER TABLE `health_feedbacks` DISABLE KEYS */;
-/*!40000 ALTER TABLE `health_feedbacks` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -311,4 +281,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-07-15 11:23:44
+-- Dump completed on 2026-07-15  8:37:52
