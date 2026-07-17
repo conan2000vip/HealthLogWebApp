@@ -56,6 +56,7 @@ CREATE TABLE `profiles` (
   `target_weight` decimal(5,1) DEFAULT NULL,
   `water_goal_ml` int NOT NULL DEFAULT '1500',
   `step_goal` int NOT NULL DEFAULT '8000',
+  `daily_sleep_goal` int NOT NULL DEFAULT '480',
   `profile_color` varchar(20) DEFAULT NULL,
   `is_primary` tinyint(1) NOT NULL DEFAULT '0',
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -64,23 +65,6 @@ CREATE TABLE `profiles` (
   KEY `idx_profiles_user_id` (`user_id`),
   KEY `idx_profiles_user_primary` (`user_id`,`is_primary`),
   CONSTRAINT `fk_profiles_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
--- --------------------------------------------
--- Table: health_feedbacks
--- --------------------------------------------
-DROP TABLE IF EXISTS `health_feedbacks`;
-CREATE TABLE `health_feedbacks` (
-  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
-  `profile_id` bigint unsigned NOT NULL,
-  `level` int NOT NULL,
-  `feedback_type` varchar(50) DEFAULT NULL,
-  `message` varchar(255) DEFAULT NULL,
-  `generated_at` datetime NOT NULL,
-  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
-  KEY `idx_feedback_profile_date` (`profile_id`,`generated_at`),
-  CONSTRAINT `fk_feedback_profile` FOREIGN KEY (`profile_id`) REFERENCES `profiles` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------
