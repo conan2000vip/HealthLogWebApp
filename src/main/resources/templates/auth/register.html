@@ -1,30 +1,108 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-	<head>
-		<meta charset="UTF-8">
-		<title>Register</title>
-	</head>
-	<body>
-		<h2>Register</h2>
-		<form th:action="@{/auth/register}" th:object="${registerRequest}" method="post">
-			<div>
-				<label>Account Name</label>
-				<input type="text" th:field="*{accountName}">
-			</div>
-			<br>
-			<div>
-				<label>Email</label>
-				<input type="email" th:field="*{email}">
-			</div>
-			<br>
-			<div>
-				<label>Password</label>
-				<input type="password" th:field="*{password}">
-			</div>
-			<br>
-			<button type="submit">Register</button>
-		</form>
-		<p th:text="${message}"></p>
-		<a th:href="@{/auth/login}">Login</a>
-	</body>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HealthLog - Register</title>
+    <link rel="stylesheet" th:href="@{/css/auth.css}" />
+</head>
+
+<body>
+    <div class="auth-container">
+        <!-- Background -->
+        <div class="background">
+            <img th:src="@{/image/background.jpg}" alt="Background" />
+            <div class="overlay"></div>
+        </div>
+
+        <div class="auth-box">
+            <!-- Logo -->
+            <div class="logo-area">
+                <img th:src="@{/image/logo.png}" alt="HealthLog Logo" />
+                <h1>HealthLog</h1>
+                <p>家族みんなの健康を、ひとつに。</p>
+            </div>
+
+            <!-- Card -->
+            <div class="card">
+                <!-- Tab -->
+                <div class="tabs">
+                    <a th:href="@{/auth/login}" class="tab">ログイン</a>
+                    <a th:href="@{/auth/register}" class="tab active">新規登録</a>
+                </div>
+
+                <!-- Business Error -->
+                <div class="error-message" th:if="${error}">
+                    <i data-lucide="alert-circle"></i><span th:text="${error}"></span>
+                </div>
+
+                <!-- Success Message -->
+                <div class="success-message" th:if="${message}">
+                    <span th:text="${message}"></span>
+                </div>
+
+                <!-- Register Form -->
+                <form th:action="@{/auth/register}" th:object="${registerRequest}" method="post" class="form">
+                    <!-- Account Name -->
+                    <div class="input-group">
+                        <label for="accountName">お名前</label>
+                        <input id="accountName" type="text" th:field="*{accountName}" placeholder="山田　太郎" />
+                        <small class="validation-error" th:if="${#fields.hasErrors('accountName')}"
+                            th:errors="*{accountName}"></small>
+                    </div>
+
+                    <!-- Email -->
+                    <div class="input-group">
+                        <label for="email">メールアドレス</label>
+                        <input id="email" type="email" th:field="*{email}" placeholder="example@email.com" />
+                        <small class="validation-error" th:if="${#fields.hasErrors('email')}"
+                            th:errors="*{email}"></small>
+                    </div>
+
+                    <!-- Password -->
+                    <div class="input-group">
+                        <label for="password">パスワード</label>
+                        <div class="password-box">
+                            <input id="password" type="password" th:field="*{password}" placeholder="パスワード" />
+                            <button id="togglePassword" type="button">
+                                <i data-lucide="eye" id="eye"></i>
+                            </button>
+                        </div>
+                        <small class="validation-error" th:if="${#fields.hasErrors('password')}"
+                            th:errors="*{password}"></small>
+                    </div>
+
+                    <!-- Submit -->
+                    <button class="submit-btn" type="submit">
+                        <i data-lucide="activity"></i>登録する
+                    </button>
+
+                    <!-- Security message -->
+                    <p class="security">健康データは安全に暗号化されて保存されます</p>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        lucide.createIcons();
+        const password = document.getElementById("password");
+        const button = document.getElementById("togglePassword");
+
+        button.addEventListener("click", function () {
+            if (password.type === "password") {
+                password.type = "text";
+                button.innerHTML = '<i data-lucide="eye-off" id="eye"></i>';
+            } else {
+                password.type = "password";
+                button.innerHTML = '<i data-lucide="eye" id="eye"></i>';
+            }
+
+            lucide.createIcons();
+        });
+    </script>
+</body>
+
 </html>

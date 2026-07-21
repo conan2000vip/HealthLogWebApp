@@ -45,7 +45,7 @@ public class Profile {
 	@Column(name = "name", length = 100, nullable = false)
 	private String name;
 
-	@Column(name = "birth_date", nullable = false)
+	@Column(name = "birth_date")
 	private LocalDate birthDate;
 
 	@Column(name = "relationship", length = 20, nullable = false)

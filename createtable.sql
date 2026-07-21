@@ -49,7 +49,7 @@ CREATE TABLE `profiles` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `user_id` bigint unsigned NOT NULL,
   `name` varchar(100) NOT NULL,
-  `birth_date` date NOT NULL,
+  `birth_date` date DEFAULT NULL,
   `relationship` varchar(20) NOT NULL,
   `gender` varchar(10) DEFAULT NULL,
   `height` decimal(5,1) DEFAULT NULL,

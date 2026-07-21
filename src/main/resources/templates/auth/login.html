@@ -2,89 +2,103 @@
 <html lang="ja" xmlns:th="http://www.thymeleaf.org">
 
 	<head>
-		<meta charset="UTF-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<title>HealthLog - Login</title>
-		<link rel="stylesheet" th:href="@{/css/auth.css}">
+		<link rel="stylesheet" th:href="@{/css/auth.css}" />
 	</head>
 
 	<body>
 		<div class="auth-container">
-
 			<!-- Background -->
 			<div class="background">
-				<img src="/image/background.jpg" alt="Background Image">
+				<img th:src="@{/image/background.jpg}" alt="Background" />
 				<div class="overlay"></div>
 			</div>
 
 			<div class="auth-box">
-
 				<!-- Logo -->
 				<div class="logo-area">
-					<img src="/image/logo.png" alt="HealthLog Logo">
+					<img th:src="@{/image/logo.png}" alt="HealthLog Logo" />
 					<h1>HealthLog</h1>
 					<p>家族みんなの健康を、ひとつに。</p>
 				</div>
 
-				<!-- Card -->
+				<!-- Login Card -->
 				<div class="card">
-
-					<!-- Tab -->
+					<!-- Tabs -->
 					<div class="tabs">
-						<a th:href="@{/login}" class="tab active">ログイン</a>
-						<a th:href="@{/register}" class="tab">新規登録</a>
+						<a th:href="@{/auth/login}" class="tab active">ログイン</a>
+						<a th:href="@{/auth/register}" class="tab">新規登録</a>
+					</div>
+
+					<!-- Business Error -->
+					<div class="error-message" th:if="${error}">
+						<i data-lucide="alert-circle"></i><span th:text="${error}"></span>
+					</div>
+
+					<!-- Success Message -->
+					<div class="success-message" th:if="${message}">
+						<span th:text="${message}"></span>
 					</div>
 
 					<!-- Login Form -->
-					<form th:action="@{/auth/login}" method="post" class="form">
-
-						<!-- Error -->
-						<div th:if="${error}" class="error">
-							<i data-lucide="alert-circle"></i>
-							<span th:text="${error}">エラー</span>
-						</div>
-
+					<form th:action="@{/auth/login}" th:object="${loginRequest}" method="post" class="form">
 						<!-- Email -->
 						<div class="input-group">
-							<label>メールアドレス</label>
-							<input type="email" name="email" placeholder="example@email.com" required>
-						</div>
+							<label for="email">メールアドレス</label>
+							<input id="email" type="email" th:field="*{email}" placeholder="example@email.com"
+								autocomplete="email" />
+							<small class="validation-error" th:if="${#fields.hasErrors('email')}"
+                            th:errors="*{email}"></small>
+                    </div>
 
-						<!-- Password -->
-						<div class="input-group">
-							<label>パスワード</label>
-							<div class="password-box">
-								<input id="password" type="password" name="password" placeholder="パスワード" required>
-								<button type="button" onclick="togglePassword()">
-									<i data-lucide="eye" id="eye"></i>
-								</button>
-							</div>
-						</div>
+                    <!-- Password -->
+                    <div class="input-group">
+                        <label for="password">パスワード</label>
+                        <div class="password-box">
+                            <input id="password" type="password" th:field="*{password}" placeholder="パスワード"
+                                autocomplete="current-password" />
+                            <button id="togglePassword" type="button">
+                                <i data-lucide="eye"></i>
+                            </button>
+                        </div>
+                        <small class="validation-error" th:if="${#fields.hasErrors('password')}"
+                            th:errors="*{password}"></small>
+                    </div>
 
-						<!-- Submit -->
-						<button class="submit-btn" type="submit">
-							<i data-lucide="activity"></i>ログイン
-						</button>
+                    <!-- Submit -->
+                    <button class="submit-btn" type="submit">
+                        <i data-lucide="activity"></i>ログイン
+                    </button>
 
-						<!-- Forgot -->
-						<a class="forgot" th:href="@{/password-reset}">
-							パスワードをお忘れですか？
-						</a>
+                    <!-- Forgot Password -->
+                    <a class="forgot" th:href="@{/auth/forgot-password}">パスワードをお忘れですか？</a>
 
-						<!-- Security message-->
-						<p class="security">健康データは安全に暗号化されて保存されます</p>
+                    <!-- Security -->
+                    <p class="security">健康データは安全に暗号化されて保存されます</p>
+                </form>
+            </div>
+        </div>
+    </div>
 
-					</form>
-				</div>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+		lucide.createIcons();
+		const password = document.getElementById("password");
+		const button = document.getElementById("togglePassword");
 
-			</div>
-		</div>
-
-		<script src="https://unpkg.com/lucide@latest"></script>
-		<script>
+		button.addEventListener("click", function () {
+			if (password.type === "password") {
+				password.type = "text";
+				button.innerHTML = '<i data-lucide="eye-off"></i>';
+			} else {
+				password.type = "password";
+				button.innerHTML = '<i data-lucide="eye"></i>';
+			}
 			lucide.createIcons();
-		</script>
-
-	</body>
+		});
+	</script>
+</body>
 
 </html>
