@@ -205,6 +205,11 @@ body {
 	color: #4caf50;
 }
 
+input::-ms-reveal,
+input::-ms-clear {
+	display: none;
+}
+
 /* ===== Validation Error ===== */
 
 .validation-error {
@@ -219,25 +224,26 @@ body {
 /* ===== Business Error ===== */
 
 .field-error {
-    display: none;
-    color: #d32f2f;
-    font-size: 13px;
-    margin-top: 5px;
+	display: none;
+	color: #d32f2f;
+	font-size: 13px;
+	margin-top: 5px;
 }
 
 .field-error.show {
-    display: flex;
-    align-items: center;
-    gap: 5px;
+	display: flex;
+	align-items: center;
+	gap: 5px;
 }
 
 .field-error i,
 .field-error svg {
-    display: none;
+	display: none;
 }
 
 .error-message {
 	display: flex;
+	flex-direction: column;
 	align-items: center;
 	gap: 8px;
 	background: #ffebee;
@@ -249,8 +255,33 @@ body {
 	text-align: left;
 }
 
-/* ===== Success Message ===== */
+.error-message__text {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
 
+.resend-form {
+	display: flex;
+	justify-content: center;
+}
+
+.resend-btn {
+	border: none;
+	background: transparent;
+	color: #4caf50;
+	font-size: 14px;
+	font-weight: 600;
+	cursor: pointer;
+	text-decoration: underline;
+	transition: color .2s;
+}
+
+.resend-btn:hover {
+	color: rgb(0, 128, 0);
+}
+
+/* ===== Success Message ===== */
 .success-message {
 	background: #e8f5e9;
 	color: #2e7d32;
@@ -262,7 +293,6 @@ body {
 }
 
 /* ===== Submit Button ===== */
-
 .submit-btn {
 	background: #4caf50;
 	color: white;
@@ -283,7 +313,6 @@ body {
 }
 
 /* ===== Forgot Password ===== */
-
 .forgot {
 	margin-top: 8px;
 	font-size: 0.9rem;
@@ -307,23 +336,23 @@ body {
 }
 
 /* ===== Logo Animation ===== */
-
 @keyframes logoPop {
 	0% {
 		opacity: 0;
 		transform: scale(0.7);
 	}
+
 	50% {
 		opacity: 1;
 		transform: scale(1.12);
 	}
+
 	100% {
 		transform: scale(1);
 	}
 }
 
 /* ===== Responsive: Desktop lớn (làm to hơn 1 chút cho cân đối) ===== */
-
 @media (min-width: 1200px) {
 	.auth-box {
 		width: min(94%, 520px);
@@ -335,22 +364,25 @@ body {
 }
 
 /* ===== Responsive: Tablet / Mobile ===== */
-
 @media (max-width: 480px) {
 	.auth-box {
 		width: 100%;
 		padding: 24px 12px;
 	}
+
 	.card {
 		padding: 24px 18px;
 		border-radius: 10px;
 	}
+
 	.logo-area h1 {
 		font-size: 1.5rem;
 	}
+
 	.card h2 {
 		font-size: 1.2rem;
 	}
+
 	.tabs {
 		gap: 12px;
 	}

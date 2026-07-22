@@ -34,6 +34,8 @@ public class EmailService {
 		String verifyUrl = frontendUrl
 				+ "/auth/verify-email?token="
 				+ token;
+		log.info("Verification URL: {}", verifyUrl);
+
 		SimpleMailMessage message = new SimpleMailMessage();
 		message.setFrom(from);
 		message.setTo(email);

@@ -1,0 +1,117 @@
+/* =========================================================
+   Sleep Page
+   ========================================================= */
+
+.sleep-page {
+	min-height: calc(100vh - 72px);
+}
+
+.sleep-page__inner {
+	max-width: 1080px;
+	margin: 0 auto;
+	padding: 32px 24px 64px;
+}
+
+/* ---------- Page Header ---------- */
+
+.sleep-page__header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 16px;
+	margin-bottom: 24px;
+}
+
+.sleep-page__heading {
+	display: flex;
+	align-items: center;
+	gap: 14px;
+}
+
+.sleep-page__icon {
+	display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 40px;
+		height: 40px;
+		border-radius: var(--wp-radius-sm);
+		background: var(--wp-primary-light);
+		color: var(--wp-primary-dark);
+}
+
+.sleep-page__icon i {
+	width: 22px;
+	height: 22px;
+}
+
+.sleep-page__heading h1 {
+	margin: 0;
+	font-size: 22px;
+	font-weight: 800;
+}
+
+.sleep-page__heading p {
+	margin: 2px 0 0;
+	font-size: 13px;
+	color: var(--wp-text-muted);
+}
+
+/* =========================================================
+   Sleep Table Only
+   ========================================================= */
+
+.sleep-table__duration {
+	font-weight: 700;
+}
+
+.sleep-table__memo {
+	max-width: 200px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	color: var(--wp-text-muted);
+}
+
+.sleep-table__actions {
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+	gap: 6px;
+}
+
+.sleep-table__actions-col {
+	width: 90px;
+}
+
+body {
+    background: var(--wp-bg-gradient);
+}
+
+.modal .form {
+	padding: 20px 24px 24px;
+}
+
+/* =========================================================
+   Responsive
+   ========================================================= */
+
+@media (max-width: 560px) {
+
+	.sleep-page__inner {
+		padding: 20px 14px 48px;
+	}
+
+	.sleep-page__header {
+		flex-direction: column;
+		align-items: flex-start;
+	}
+
+	.sleep-table {
+		font-size: 13px;
+	}
+
+	.sleep-table__memo {
+		display: none;
+	}
+
+}

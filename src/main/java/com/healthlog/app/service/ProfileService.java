@@ -56,4 +56,10 @@ public class ProfileService {
 				.orElseThrow(() -> new RuntimeException("Profile not found"));
 		session.setAttribute("CURRENT_PROFILE_ID", profile.getId());
 	}
+
+	public Profile findByIdAndUser(Long profileId, Long userId) {
+		return profileRepository
+				.findByIdAndUser_Id(profileId, userId)
+				.orElseThrow(() -> new RuntimeException("Profile not found"));
+	}
 }

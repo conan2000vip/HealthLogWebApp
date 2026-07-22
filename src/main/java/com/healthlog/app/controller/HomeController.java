@@ -16,7 +16,7 @@ public class HomeController {
 		this.authService = authService;
 	}
 
-	@GetMapping("/home")
+	@GetMapping("/profile/{profileId}/home")
 	public String home(Model model) {
 		User user = authService.getCurrentUser();
 		model.addAttribute("user", user);

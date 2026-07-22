@@ -17,6 +17,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -41,6 +42,9 @@ public class Weight {
 	@Column(name = "recorded_date", nullable = false)
 	private LocalDate recordedDate;
 
+	@Column(name = "measured_at", nullable = false)
+	private LocalDateTime measuredAt;
+
 	@Column(name = "weight", precision = 5, scale = 1, nullable = false)
 	private BigDecimal weight; // kg
 
@@ -55,6 +59,15 @@ public class Weight {
 
 	@Column(name = "updated_at", nullable = false)
 	private LocalDateTime updatedAt = LocalDateTime.now();
+
+	@Transient
+	private BigDecimal bmi;
+
+	@Transient
+	private String bmiStatus;
+
+	@Transient
+	private String bmiStatusCode;
 
 	@PrePersist
 	protected void onCreate() {

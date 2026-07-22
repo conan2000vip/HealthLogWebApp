@@ -6,16 +6,6 @@
 	</head>
 
 	<body>
-		<!-- ===== Header Fragment =====
-         Sử dụng ở các trang khác bằng:
-         <div th:replace="~{layout/header :: header(activePage='home')}"></div>
-
-         Tham số activePage nhận 1 trong: home, weight, sleep, water, step, memo, profile
-         dùng để tô sáng tab đang chọn.
-
-         Biến currentProfile (nếu có set vào Model ở Controller) sẽ hiển thị tên/avatar
-         người dùng đang chọn; nếu chưa có, sẽ hiện fallback "ゲスト".
-    -->
 		<header th:fragment="header(activePage)" class="app-header">
 			<div class="app-header__inner">
 				<!-- Logo -->
@@ -28,34 +18,49 @@
 
 				<!-- Nav -->
 				<nav class="app-header__nav">
-					<a th:href="@{/home}" class="app-header__nav-item"
-						th:classappend="${activePage == 'home'} ? 'is-active'">
-						<i data-lucide="home"></i><span>Home</span>
+
+					<a th:href="@{/profile/{profileId}/home(profileId=${currentProfile.id})}"
+						class="app-header__nav-item" th:classappend="${activePage == 'home'} ? ' is-active' : ''">
+						<i data-lucide="home"></i>
+						<span>Home</span>
 					</a>
-					<a th:href="@{/weight}" class="app-header__nav-item"
-						th:classappend="${activePage == 'weight'} ? 'is-active'">
-						<i data-lucide="scale"></i><span>体重</span>
+
+					<a th:href="@{/profile/{profileId}/weight(profileId=${currentProfile.id})}"
+						class="app-header__nav-item" th:classappend="${activePage == 'weight'} ? ' is-active' : ''">
+						<i data-lucide="scale"></i>
+						<span>体重</span>
 					</a>
-					<a th:href="@{/sleep}" class="app-header__nav-item"
-						th:classappend="${activePage == 'sleep'} ? 'is-active'">
-						<i data-lucide="moon"></i><span>睡眠</span>
+
+					<a th:href="@{/profile/{profileId}/sleep(profileId=${currentProfile.id})}"
+						class="app-header__nav-item" th:classappend="${activePage == 'sleep'} ? ' is-active' : ''">
+						<i data-lucide="moon"></i>
+						<span>睡眠</span>
 					</a>
-					<a th:href="@{/water}" class="app-header__nav-item"
-						th:classappend="${activePage == 'water'} ? 'is-active'">
-						<i data-lucide="droplet"></i><span>水分</span>
+
+					<a th:href="@{/profile/{profileId}/water(profileId=${currentProfile.id})}"
+						class="app-header__nav-item" th:classappend="${activePage == 'water'} ? ' is-active' : ''">
+						<i data-lucide="droplet"></i>
+						<span>水分</span>
 					</a>
-					<a th:href="@{/step}" class="app-header__nav-item"
-						th:classappend="${activePage == 'step'} ? 'is-active'">
-						<i data-lucide="footprints"></i><span>歩数</span>
+
+					<a th:href="@{/profile/{profileId}/step(profileId=${currentProfile.id})}"
+						class="app-header__nav-item" th:classappend="${activePage == 'step'} ? ' is-active' : ''">
+						<i data-lucide="footprints"></i>
+						<span>歩数</span>
 					</a>
-					<a th:href="@{/memo}" class="app-header__nav-item"
-						th:classappend="${activePage == 'memo'} ? 'is-active'">
-						<i data-lucide="file-text"></i><span>健康メモ</span>
+
+					<a th:href="@{/profile/{profileId}/memo(profileId=${currentProfile.id})}"
+						class="app-header__nav-item" th:classappend="${activePage == 'memo'} ? ' is-active' : ''">
+						<i data-lucide="file-text"></i>
+						<span>健康メモ</span>
 					</a>
+
 					<a th:href="@{/profile/select-profile}" class="app-header__nav-item"
-						th:classappend="${activePage == 'profile'} ? 'is-active'">
-						<i data-lucide="users"></i><span>プロフィール</span>
+						th:classappend="${activePage == 'profile'} ? ' is-active' : ''">
+						<i data-lucide="users"></i>
+						<span>プロフィール</span>
 					</a>
+
 				</nav>
 
 				<!-- User -->
@@ -64,7 +69,7 @@
 						<button type="button" class="app-header__user" id="userMenuToggle" aria-haspopup="true"
 							aria-expanded="false">
 							<span class="app-header__avatar" th:text="${#strings.substring(currentProfile?.name ?: '?', 0, 1)}">山</span>
-                        <span class="app-header__user-info">
+                        <span class="app-header__user-info"></span>
                             <span class="app-header__user-name"
                                 th:text="${currentProfile?.name ?: 'ゲスト'}">山田 太郎</span>
 								<span class="app-header__user-badge"

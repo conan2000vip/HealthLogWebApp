@@ -6,6 +6,8 @@ import java.time.LocalTime;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.ForeignKey;
 import jakarta.persistence.GeneratedValue;
@@ -52,8 +54,9 @@ public class Sleep {
 	@Column(name = "end_time")
 	private LocalTime endTime; // nullable, 起床時刻
 
-	@Column(name = "sleep_type", length = 20, nullable = false)
-	private String sleepType = "NIGHT"; // 夜間睡眠/NAP(昼寝)
+	@Enumerated(EnumType.STRING)
+	@Column(name = "sleep_type", nullable = false)
+	private SleepType sleepType = SleepType.NIGHT;
 
 	@Column(name = "sleep_minutes")
 	private Integer sleepMinutes; // nullable, 分単位で自動計算
