@@ -2,23 +2,17 @@ package com.healthlog.app.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.validation.Valid;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import com.healthlog.app.dto.ForgotPasswordRequest;
-import com.healthlog.app.dto.LoginRequest;
-import com.healthlog.app.dto.RegisterRequest;
-import com.healthlog.app.dto.ResetPasswordRequest;
 import com.healthlog.app.service.AuthService;
 
 @Controller
@@ -31,204 +25,161 @@ public class AuthController {
 		this.authService = authService;
 	}
 
-	// AuthServiceが投げるResponseStatusExceptionは、getMessage()を使うと
-	// "400 BAD_REQUEST \"...\"" のようにステータスコードまで含まれてしまうため、
-	// getReason()から純粋なメッセージ部分だけを取り出す
-	private String extractErrorMessage(Exception e) {
-		if (e instanceof ResponseStatusException rse && rse.getReason() != null) {
-			return rse.getReason();
-		}
-		return e.getMessage();
-	}
-
-	// Register
+	// ===== 登録 =====
 
 	@GetMapping("/register")
-	public String showRegisterForm(Model model) {
-		model.addAttribute("registerRequest", new RegisterRequest());
+	public String registerForm() {
 		return "auth/register";
 	}
 
 	@PostMapping("/register")
 	public String register(
-			@Valid @ModelAttribute("registerRequest") RegisterRequest registerRequest,
-			BindingResult bindingResult,
-			Model model,
+			@RequestParam String accountName,
+			@RequestParam String email,
+			@RequestParam String password,
 			RedirectAttributes redirectAttributes) {
-		if (bindingResult.hasErrors()) {
-			return "auth/register";
-		}
 		try {
-			authService.register(registerRequest);
+			authService.register(accountName, email, password);
 			redirectAttributes.addFlashAttribute(
 					"message",
-					"登録が完了しました。メールをご確認ください。");
+					"登録が完了しました。確認メールをご確認のうえ、メール認証を行ってください。");
 			return "redirect:/auth/login";
-		} catch (Exception e) {
-			// リダイレクトすると入力内容が失われるため、登録画面に留まる
-			model.addAttribute("error", extractErrorMessage(e));
-			return "auth/register";
+		} catch (ResponseStatusException e) {
+			redirectAttributes.addFlashAttribute("error", e.getReason());
+			// 入力値を保持してユーザーの再入力負担を軽減（パスワードは保持しない）
+			redirectAttributes.addFlashAttribute("accountName", accountName);
+			redirectAttributes.addFlashAttribute("email", email);
+			return "redirect:/auth/register";
 		}
 	}
 
-	// Login
+	// ===== ログイン / ログアウト =====
 
 	@GetMapping("/login")
-	public String showLoginForm(Model model) {
-		model.addAttribute("loginRequest", new LoginRequest());
+	public String loginForm() {
 		return "auth/login";
 	}
 
 	@PostMapping("/login")
 	public String login(
-			@Valid @ModelAttribute("loginRequest") LoginRequest loginRequest,
-			BindingResult bindingResult,
+			@RequestParam String email,
+			@RequestParam String password,
 			HttpServletRequest request,
 			HttpServletResponse response,
-			Model model) {
-
-		if (bindingResult.hasErrors()) {
-			return "auth/login";
-		}
+			RedirectAttributes redirectAttributes) {
 		try {
-			authService.login(loginRequest, request, response);
-			return "redirect:/profile/select-profile";
-		} catch (Exception e) {
-			// リダイレクトしないため Model で問題ない
-			model.addAttribute("error", extractErrorMessage(e));
-			return "auth/login";
+			authService.login(email, password, request, response);
+			return "redirect:/";
+		} catch (ResponseStatusException e) {
+			redirectAttributes.addFlashAttribute("error", e.getReason());
+			redirectAttributes.addFlashAttribute("email", email);
+			// login.html はこのフラグを見て「確認メールを再送する」ボタンの表示を切り替える
+			if (e.getStatusCode() == HttpStatus.FORBIDDEN) {
+				redirectAttributes.addFlashAttribute("emailNotVerified", true);
+			}
+			return "redirect:/auth/login";
 		}
 	}
 
-	// Logout
-
 	@PostMapping("/logout")
-	public String logout(
-			HttpServletRequest request,
-			HttpServletResponse response) {
-
+	public String logout(HttpServletRequest request, HttpServletResponse response) {
 		authService.logout(request, response);
-
 		return "redirect:/auth/login";
 	}
 
-	// Email Verification
+	// ===== メール認証 =====
 
 	@GetMapping("/verify-email")
 	public String verifyEmail(
-			@RequestParam(required = false) String token,
+			@RequestParam String token,
 			RedirectAttributes redirectAttributes) {
 		try {
 			authService.verifyEmail(token);
 			redirectAttributes.addFlashAttribute(
 					"message",
-					"メール認証が完了しました。");
-			return "redirect:/auth/login";
-		} catch (Exception e) {
-			redirectAttributes.addFlashAttribute(
-					"error",
-					extractErrorMessage(e));
-			return "redirect:/auth/login";
+					"メール認証が完了しました。ログインしてください。");
+		} catch (ResponseStatusException e) {
+			redirectAttributes.addFlashAttribute("error", e.getReason());
 		}
+		return "redirect:/auth/login";
 	}
 
-	// Resend Verification
-
+	// 専用ページは持たず、login.html 上の「確認メールを再送する」ボタンから呼び出す
 	@PostMapping("/resend-verification")
 	public String resendVerification(
 			@RequestParam String email,
 			RedirectAttributes redirectAttributes) {
 		try {
 			authService.resendVerification(email);
-			redirectAttributes.addFlashAttribute(
-					"message",
-					"認証メールを送信しました。");
-		} catch (Exception e) {
-			redirectAttributes.addFlashAttribute(
-					"error",
-					extractErrorMessage(e));
+		} catch (ResponseStatusException e) {
+			// 入力形式エラー（空欄・不正な形式）のみユーザーに表示
+			redirectAttributes.addFlashAttribute("error", e.getReason());
+			return "redirect:/auth/login";
 		}
+		// メール存在有無・認証済み有無に関わらず同一メッセージを表示（列挙攻撃対策）
+		redirectAttributes.addFlashAttribute(
+				"message",
+				"確認メールを送信しました。届いていない場合は迷惑メールフォルダもご確認ください。");
 		return "redirect:/auth/login";
 	}
 
-	// Forgot Password
+	// ===== パスワードリセット =====
 
 	@GetMapping("/forgot-password")
-	public String showForgotPasswordPage(Model model) {
-		model.addAttribute(
-				"forgotPasswordRequest",
-				new ForgotPasswordRequest());
+	public String forgotPasswordForm() {
 		return "auth/forgot-password";
 	}
 
 	@PostMapping("/forgot-password")
 	public String requestPasswordReset(
-			@Valid @ModelAttribute("forgotPasswordRequest") ForgotPasswordRequest request,
-			BindingResult bindingResult,
-			Model model,
+			@RequestParam String email,
 			RedirectAttributes redirectAttributes) {
-		// バリデーションエラーがある場合は、元のページに戻す
-		if (bindingResult.hasErrors()) {
-			return "auth/forgot-password";
-		}
 		try {
-			authService.requestPasswordReset(
-					request.getEmail());
-			redirectAttributes.addFlashAttribute(
-					"message",
-					"パスワードリセットメールを送信しました。");
-			return "redirect:/auth/forgot-password";
-		} catch (Exception e) {
-			redirectAttributes.addFlashAttribute(
-					"error",
-					extractErrorMessage(e));
+			authService.requestPasswordReset(email);
+		} catch (ResponseStatusException e) {
+			redirectAttributes.addFlashAttribute("error", e.getReason());
+			redirectAttributes.addFlashAttribute("email", email);
 			return "redirect:/auth/forgot-password";
 		}
+		// メール存在有無に関わらず同一メッセージを表示（列挙攻撃対策）
+		redirectAttributes.addFlashAttribute(
+				"message",
+				"パスワード再設定用のメールを送信しました。");
+		return "redirect:/auth/login";
 	}
 
-	// Reset Password
-
 	@GetMapping("/password-reset")
-	public String showResetPasswordPage(
+	public String resetPasswordForm(
 			@RequestParam String token,
 			Model model) {
-		ResetPasswordRequest request = new ResetPasswordRequest();
-		request.setToken(token);
-		model.addAttribute(
-				"resetPasswordRequest",
-				request);
+		model.addAttribute("token", token);
 		return "auth/reset-password";
 	}
 
 	@PostMapping("/password-reset")
 	public String confirmPasswordReset(
-			@Valid @ModelAttribute("resetPasswordRequest") ResetPasswordRequest request,
-			BindingResult bindingResult,
-			Model model,
+			@RequestParam String token,
+			@RequestParam String newPassword,
+			@RequestParam String confirmPassword,
 			RedirectAttributes redirectAttributes) {
-		if (bindingResult.hasErrors()) {
-			return "auth/reset-password";
+		// 画面側の入力確認チェック（newPassword と confirmPassword の一致）
+		// ※ AuthService.confirmPasswordReset() は newPassword のみ扱うため、ここで確認する
+		if (!newPassword.equals(confirmPassword)) {
+			redirectAttributes.addFlashAttribute("error", "パスワードが一致しません");
+			redirectAttributes.addFlashAttribute("token", token);
+			return "redirect:/auth/password-reset?token=" + token;
 		}
-		if (!request.getNewPassword().equals(request.getConfirmPassword())) {
-			bindingResult.rejectValue(
-					"confirmPassword",
-					"password.mismatch",
-					"パスワードが一致しません。");
-			return "auth/reset-password";
-		}
+
 		try {
-			authService.confirmPasswordReset(
-					request.getToken(),
-					request.getNewPassword());
+			authService.confirmPasswordReset(token, newPassword);
 			redirectAttributes.addFlashAttribute(
 					"message",
-					"パスワードを変更しました。");
+					"パスワードを変更しました。新しいパスワードでログインしてください。");
 			return "redirect:/auth/login";
-		} catch (Exception e) {
-			redirectAttributes.addFlashAttribute(
-					"error",
-					extractErrorMessage(e));
-			return "redirect:/auth/login";
+		} catch (ResponseStatusException e) {
+			redirectAttributes.addFlashAttribute("error", e.getReason());
+			redirectAttributes.addFlashAttribute("token", token);
+			return "redirect:/auth/password-reset?token=" + token;
 		}
 	}
 }

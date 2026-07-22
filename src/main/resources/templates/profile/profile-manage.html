@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+	<head>
+		<meta charset="UTF-8">
+		<title>
+			Profile Manage
+		</title>
+
+	</head>
+	<body>
+		<h1>
+			プロフィール管理
+		</h1>
+		<a href="/profiles/new">
+			新規プロフィール作成
+		</a>
+
+		<div th:each="profile : ${profiles}">
+			<hr>
+			<h3 th:text="${profile.name}">
+				Name
+			</h3>
+			<p>
+				続柄:
+				<span th:text="${profile.relationship}">
+					SELF
+				</span>
+			</p>
+			<a th:href="@{/profiles/{id}/edit(id=${profile.id})}">
+				編集
+			</a>
+			<form th:action="@{/profiles/{id}/delete(id=${profile.id})}" method="post">
+				<button type="submit">
+					削除
+				</button>
+			</form>
+		</div>
+	</body>
+</html>

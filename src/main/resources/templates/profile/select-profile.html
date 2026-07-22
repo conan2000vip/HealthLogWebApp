@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>HealthLog - Select-Profile</title>
+		<link rel="stylesheet" th:href="@{/css/auth.css}" />
+	</head>
+
+	<body>
+		<div class="auth-container">
+			<!-- Background -->
+			<div class="background">
+				<img th:src="@{/image/background.jpg}" alt="Background" />
+				<div class="overlay"></div>
+			</div>
+
+			<div class="auth-box">
+				<!-- Logo -->
+				<div class="logo-area">
+					<img th:src="@{/image/logo.png}" alt="HealthLog Logo" />
+					<h1>プロフィールを選択</h1>
+					<p>記録を確認するプロフィールを選んでください</p>
+				</div>
+
+				<h1>プロフィールを選択してください</h1>
+				<div th:if="${profiles.isEmpty()}">
+					<p>プロフィールがありません</p>
+				</div>
+
+				<div th:each="profile : ${profiles}">
+					<div>
+						<h3 th:text="${profile.name}">
+							Profile Name
+						</h3>
+						<p>続柄:
+							<span th:text="${profile.relationship}">SELF</span>
+						</p>
+						<form th:action="@{/profiles/select/{id}(id=${profile.id})}" method="post">
+							<button type="submit">
+								このプロフィールを使用する
+							</button>
+						</form>
+					</div>
+				</div>
+			</div>
+		</div>
+	</body>
+
+</html>

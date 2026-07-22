@@ -218,6 +218,24 @@ body {
 
 /* ===== Business Error ===== */
 
+.field-error {
+    display: none;
+    color: #d32f2f;
+    font-size: 13px;
+    margin-top: 5px;
+}
+
+.field-error.show {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.field-error i,
+.field-error svg {
+    display: none;
+}
+
 .error-message {
 	display: flex;
 	align-items: center;

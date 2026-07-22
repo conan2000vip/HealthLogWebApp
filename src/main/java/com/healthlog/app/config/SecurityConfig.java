@@ -11,14 +11,27 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
 
 	@Bean
-	SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 		http
-				.csrf(csrf -> csrf.disable()) // Tắt CSRF để form POST hoạt động
+				.csrf(csrf -> csrf.disable())
 				.authorizeHttpRequests(auth -> auth
-						.anyRequest().permitAll() // Cho phép tất cả URL
-				)
-				.formLogin(login -> login.disable()) // Tắt trang login mặc định
-				.logout(logout -> logout.disable()); // Tắt logout mặc định
+						.requestMatchers(
+								"/login",
+								"/auth/**",
+								"/css/**",
+								"/js/**",
+								"/image/**")
+						.permitAll()
+						.anyRequest().authenticated())
+				.formLogin(form -> form
+						.loginPage("/login")
+						.loginProcessingUrl("/doLogin")
+						.defaultSuccessUrl("/home", true)
+						.failureUrl("/login?error=true")
+						.permitAll())
+				.logout(logout -> logout
+						.logoutUrl("/logout")
+						.logoutSuccessUrl("/login?logout=true"));
 
 		return http.build();
 	}
