@@ -1,4 +1,3 @@
-//IIFE (Immediately Invoked Function Expression) dropdown menu
 (function () {
     const toggle = document.getElementById("userMenuToggle");
     const dropdown = document.getElementById("userMenuDropdown");

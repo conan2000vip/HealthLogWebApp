@@ -135,10 +135,10 @@ public class AuthService {
 					HttpStatus.BAD_REQUEST,
 					"名前は3〜50文字で入力してください");
 		}
-		if (!value.matches("^[a-zA-Z0-9_]+$")) {
+		if (!value.matches("^[a-zA-Z0-9_ぁ-んァ-ヶー一-龯]+$")) {
 			throw new ResponseStatusException(
 					HttpStatus.BAD_REQUEST,
-					"英数字とアンダースコアのみ使用できます");
+					"名前は英数字、アンダースコア、日本語のみ使用できます");
 		}
 	}
 
