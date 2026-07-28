@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://thymeleaf.org">
+
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>HealthLog - Login</title>
+		<link rel="stylesheet" th:href="@{/css/auth.css}" />
+	</head>
+
+	<body>
+		<div class="auth-container">
+			<!-- Background -->
+			<div class="background">
+				<img th:src="@{/image/background.jpg}" alt="Background" />
+				<div class="overlay"></div>
+			</div>
+
+			<div class="auth-box">
+				<!-- Logo -->
+				<div class="logo-area">
+					<img th:src="@{/image/logo.png}" alt="HealthLog Logo" />
+					<h1>HealthLog</h1>
+					<p>家族みんなの健康を、ひとつに。</p>
+				</div>
+
+				<!-- Card -->
+				<div class="card">
+					<!-- Tabs -->
+					<div class="tabs">
+						<a th:href="@{/auth/login}" class="tab active">ログイン</a>
+						<a th:href="@{/auth/register}" class="tab">新規登録</a>
+					</div>
+
+					<!-- Business Error -->
+					<div class="error-message" th:if="${error}">
+						<i data-lucide="alert-circle"></i><span th:text="${error}"></span>
+					</div>
+
+					<!-- Success Message -->
+					<div class="success-message" th:if="${message}">
+						<span th:text="${message}"></span>
+					</div>
+
+					<!-- 確認メール再送（メール未認証でログイン失敗した時だけ表示） -->
+					<form th:if="${emailNotVerified}" th:action="@{/auth/resend-verification}" method="post"
+						class="resend-form">
+						<input type="hidden" name="email" th:value="${email}" />
+						<button type="submit" class="resend-btn">確認メールを再送する</button>
+					</form>
+
+					<!-- Login Form -->
+					<form id="loginForm" th:action="@{/auth/login}" method="post" class="form" novalidate>
+
+						<!-- Email -->
+						<div class="input-group">
+							<label for="email">メールアドレス</label>
+							<input id="email" name="email" type="email" th:value="${email}"
+								placeholder="example@email.com" autocomplete="email" />
+							<div id="emailError" class="field-error">
+								<i data-lucide="alert-circle"></i>
+								<span></span>
+							</div>
+						</div>
+
+						<!-- Password -->
+						<div class="input-group">
+							<label for="password">パスワード</label>
+							<div class="password-box">
+								<input id="password" name="password" type="password" placeholder="パスワード"
+									autocomplete="current-password" />
+								<button id="togglePassword" type="button">
+									<i data-lucide="eye" id="eye"></i>
+								</button>
+							</div>
+							<div id="passwordError" class="field-error">
+								<i data-lucide="alert-circle"></i>
+								<span></span>
+							</div>
+						</div>
+
+						<!-- Forgot Password -->
+						<a class="forgot" th:href="@{/auth/forgot-password}">パスワードをお忘れですか？</a>
+
+						<!-- Submit -->
+						<button class="submit-btn" type="submit">
+							<i data-lucide="activity"></i>ログイン
+						</button>
+
+						<!-- Security -->
+						<p class="security">健康データは安全に暗号化されて保存されます</p>
+					</form>
+				</div>
+			</div>
+		</div>
+
+		<script src="https://unpkg.com/lucide@latest"></script>
+		<script th:src="@{/js/login.js}"></script>
+	</body>
+
+</html>
