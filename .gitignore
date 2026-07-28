@@ -44,3 +44,6 @@ docker-data/
 target/
 bin/
 *.class
+
+.metadata/
+Servers/
