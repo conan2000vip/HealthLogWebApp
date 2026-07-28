@@ -41,3 +41,4 @@ build/
 docker-data/
 *.pid
 /bin/
+/bin/

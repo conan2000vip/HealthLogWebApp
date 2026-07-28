@@ -18,6 +18,37 @@
     });
 })();
 
+(function () {
+
+    const menuToggle = document.getElementById("menuToggle");
+    const nav = document.querySelector(".app-header__nav");
+
+    if (!menuToggle || !nav) return;
+
+    menuToggle.addEventListener("click", function (e) {
+        e.stopPropagation();
+        nav.classList.toggle("open");
+    });
+
+    document.addEventListener("click", function (e) {
+        if (!nav.contains(e.target) && !menuToggle.contains(e.target)) {
+            nav.classList.remove("open");
+        }
+    });
+
+    document.querySelectorAll(".app-header__nav-item").forEach(item => {
+        item.addEventListener("click", function () {
+            nav.classList.remove("open");
+        });
+    });
+
+    window.addEventListener("resize", function () {
+        if (window.innerWidth > 1100) {
+            nav.classList.remove("open");
+        }
+    });
+})();
+
 /* =========================================================
    汎用: 削除確認モーダル（全画面共通）
    使い方: HTML側で class="delete-form" を持つ form があれば自動的に有効化

@@ -2,7 +2,6 @@ package com.healthlog.app.service;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -64,46 +63,47 @@ public class SleepService {
 	// list()
 	// ---------------------------------------------------------
 	public Map<String, Object> list(Long profileId, Long currentUserId, LocalDate from, LocalDate to, int page) {
+		// FIX: trước đây findProfile() bị gọi lặp lại 2 lần liên tiếp
+		// (dòng thứ 2 dư thừa, gây thêm 1 query DB không cần thiết) -> đã xóa
 		Profile profile = findProfile(profileId, currentUserId);
-		findProfile(profileId, currentUserId);
 		if (from != null && to != null && from.isAfter(to)) {
-			throw new BusinessException(HttpStatus.BAD_REQUEST, "検索期間が不正です");
+			throw new BusinessException(HttpStatus.BAD_REQUEST, "開始日が終了日より後になっているため、期間指定が正しくありません。");
 		}
 
-		// 今月の統計
+		// 今月の統計（未フィルタ時のデフォルト範囲）
 		LocalDate firstDay = LocalDate.now().withDayOfMonth(1);
 		LocalDate lastDay = firstDay.withDayOfMonth(firstDay.lengthOfMonth());
-		List<Sleep> monthLogs = sleepRepository
-				.findByProfile_IdAndRecordedDateBetweenOrderByRecordedDateDesc(profileId, firstDay, lastDay);
 		boolean hasAnyLog = sleepRepository.existsByProfile_Id(profileId);
 
-		// 最新
+		// FIX: nếu người dùng có lọc theo from/to, thống kê phải tính theo
+		// đúng khoảng đó thay vì luôn cố định theo tháng hiện tại.
+		// Nếu không lọc gì (from/to đều null) -> mặc định dùng tháng hiện tại.
+		LocalDate statsFrom = (from == null && to == null) ? firstDay : from;
+		LocalDate statsTo = (from == null && to == null) ? lastDay : to;
+		List<Sleep> statsLogs = fetchLogs(profileId, statsFrom, statsTo);
+
+		// 最新（フィルタに関係なく、全期間の最新記録）
 		Sleep latestLog = sleepRepository.findTopByProfile_IdOrderByRecordedDateDesc(profileId).orElse(null);
 		Integer latest = latestLog != null ? latestLog.getSleepMinutes() : null;
 
-		// 今月平均
-		Integer monthlyAverage = null;
-		if (!monthLogs.isEmpty()) {
-			monthlyAverage = (int) Math.round(monthLogs.stream()
-					.filter(s -> s.getSleepMinutes() != null)
-					.mapToInt(Sleep::getSleepMinutes)
-					.average()
-					.orElse(0));
-		}
+		// FIX: 同じ日に昼寝(NAP)と夜間睡眠(NIGHT)を両方記録した場合、
+		// 従来は record 単位（昼寝レコード・夜間レコードを別々の値）として
+		// 平均/最短/最長を計算していたため、昼寝の短い時間に引っ張られて
+		// 数値がおかしくなっていた。
+		// -> まず日付ごとに合算(昼寝+夜間)してから、その「1日分の合計」を
+		//    単位として平均/最短/最長を計算するように修正。
+		Map<LocalDate, Integer> dailyTotals = computeDailyTotals(statsLogs);
+		List<Integer> dailyValues = new ArrayList<>(dailyTotals.values());
 
-		// 最短
-		Integer shortest = monthLogs.stream()
-				.filter(s -> s.getSleepMinutes() != null)
-				.mapToInt(Sleep::getSleepMinutes)
-				.min()
-				.orElse(0);
+		// 平均（選択期間 or 今月、1日単位で算出）
+		Integer periodAverage = dailyValues.isEmpty() ? null
+				: (int) Math.round(dailyValues.stream().mapToInt(Integer::intValue).average().orElse(0));
 
-		// 最長
-		Integer longest = monthLogs.stream()
-				.filter(s -> s.getSleepMinutes() != null)
-				.mapToInt(Sleep::getSleepMinutes)
-				.max()
-				.orElse(0);
+		// 最短（選択期間 or 今月、1日単位で算出）
+		Integer shortest = dailyValues.stream().mapToInt(Integer::intValue).min().orElse(0);
+
+		// 最長（選択期間 or 今月、1日単位で算出）
+		Integer longest = dailyValues.stream().mapToInt(Integer::intValue).max().orElse(0);
 		Pageable pageable = PageRequest.of(page, 20);
 		Page<Sleep> logPage = fetchLogsPage(profileId, from, to, pageable);
 		List<Sleep> pageLogs = logPage.getContent();
@@ -111,9 +111,11 @@ public class SleepService {
 		// Stats
 		Map<String, Object> stats = new HashMap<>();
 		stats.put("latest", latest);
-		stats.put("monthlyAverage", monthlyAverage);
+		stats.put("monthlyAverage", periodAverage);
 		stats.put("shortest", shortest);
 		stats.put("longest", longest);
+		// フラグ: 現在表示中の統計が「今月固定」か「検索期間ベース」かをテンプレート側で判定できるように
+		stats.put("isCustomRange", !(from == null && to == null));
 
 		// グラフ用データ（日付ごとの合計睡眠時間）
 		List<Sleep> allLogs = fetchLogs(profileId, from, to);
@@ -135,17 +137,31 @@ public class SleepService {
 	}
 
 	// ---------------------------------------------------------
+	// computeDailyTotals()共通: 日付ごとに睡眠時間(分)を合算する
+	// （同じ日の昼寝(NAP)＋夜間睡眠(NIGHT)は合算して1日分として扱う）
+	// buildChartData() と stats（平均/最短/最長）の両方で使用
+	// ---------------------------------------------------------
+	private Map<LocalDate, Integer> computeDailyTotals(List<Sleep> logs) {
+		return logs.stream()
+				.collect(Collectors.groupingBy(Sleep::getRecordedDate, TreeMap::new,
+						Collectors.summingInt(s -> s.getSleepMinutes() == null ? 0 : s.getSleepMinutes())));
+	}
+
+	// ---------------------------------------------------------
 	// buildChartData()共通: 日付ごとに睡眠時間(分)を合計してグラフ用データを作る
 	// （list/chart 共通化）
 	// ---------------------------------------------------------
 	private Map<String, Object> buildChartData(List<Sleep> logs) {
-		Map<LocalDate, Integer> dailySleep = logs.stream()
-				.collect(Collectors.groupingBy(Sleep::getRecordedDate, TreeMap::new,
-						Collectors.summingInt(s -> s.getSleepMinutes() == null ? 0 : s.getSleepMinutes())));
+		Map<LocalDate, Integer> dailySleep = computeDailyTotals(logs);
 		List<String> labels = new ArrayList<>();
 		List<Integer> values = new ArrayList<>();
 		dailySleep.forEach((date, minutes) -> {
-			labels.add(date.format(DateTimeFormatter.ofPattern("M/d")));
+			// FIX: trước đây dùng format "M/d" (VD: "7/28"), không đồng nhất với
+			// WeightService (dùng LocalDate.toString() -> "2026-07-28").
+			// Vì frontend (formatShortDate trong sleep.js/weight.js) parse theo
+			// chuẩn ISO "yyyy-MM-dd" để rút gọn hiển thị, format "M/d" khiến hàm
+			// đó không hoạt động đúng và hiển thị style ngày khác nhau giữa 2 trang.
+			labels.add(date.toString());
 			values.add(minutes);
 		});
 		Map<String, Object> result = new HashMap<>();
@@ -208,18 +224,6 @@ public class SleepService {
 		Sleep log = findSleep(logId);
 		validateProfileOwner(log, profileId);
 		sleepRepository.delete(log);
-	}
-
-	// ---------------------------------------------------------
-	// chart()
-	// ---------------------------------------------------------
-	public Map<String, Object> chart(Long profileId, Long currentUserId, LocalDate from, LocalDate to) {
-		findProfile(profileId, currentUserId);
-		if (from != null && to != null && from.isAfter(to)) {
-			throw new BusinessException(HttpStatus.BAD_REQUEST, "開始日は終了日より前の日付を選択してください");
-		}
-		List<Sleep> logs = fetchLogs(profileId, from, to);
-		return buildChartData(logs);
 	}
 
 	// ---------------------------------------------------------

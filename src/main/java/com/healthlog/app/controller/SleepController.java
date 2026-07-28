@@ -59,8 +59,12 @@ public class SleepController {
 			@RequestParam(defaultValue = "0") int page,
 			Model model) {
 		Long currentUserId = currentUserId();
-		Map<String, Object> result = sleepService.list(profileId, currentUserId, startDate, endDate, page);
-		model.addAllAttributes(result);
+		try {
+			Map<String, Object> result = sleepService.list(profileId, currentUserId, startDate, endDate, page);
+			model.addAllAttributes(result);
+		} catch (BusinessException e) {
+			model.addAttribute("error", e.getMessage());
+		}
 		model.addAttribute("profileId", profileId);
 		model.addAttribute("filterStartDate", startDate);
 		model.addAttribute("filterEndDate", endDate);

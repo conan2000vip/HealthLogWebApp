@@ -84,6 +84,15 @@ body {
 }
 
 /* ===== Nav ===== */
+.menu-toggle {
+    display: none;
+    background: transparent;
+    border: none;
+    font-size: 28px;
+    cursor: pointer;
+    padding: 8px;
+    color: #2c3e50;
+}
 
 .app-header__nav {
 	display: flex;
@@ -94,7 +103,6 @@ body {
 	padding: 4px;
 	flex: 1;
 	justify-content: center;
-	overflow-x: auto;
 }
 
 .app-header__nav-item {
