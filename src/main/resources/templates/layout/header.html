@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+
+	<head>
+		<meta charset="UTF-8" />
+	</head>
+
+	<body>
+		<header th:fragment="header(activePage)" class="app-header">
+			<div class="app-header__inner">
+				<!-- Logo -->
+				<a th:href="@{/home}" class="app-header__brand">
+					<span class="app-header__logo-icon">
+						<i data-lucide="heart"></i>
+					</span>
+					<span class="app-header__brand-name">HealthLog</span>
+				</a>
+
+				<!-- Nav -->
+				<nav class="app-header__nav">
+
+				    <a th:href="@{/profile/{profileId}/home(profileId=${currentProfile.id})}"
+				       class="app-header__nav-item"
+				       th:classappend="${activePage == 'home'} ? ' is-active' : ''">
+				        <i data-lucide="home"></i>
+				        <span>Home</span>
+				    </a>
+
+				    <a th:href="@{/profile/{profileId}/weight(profileId=${currentProfile.id})}"
+				       class="app-header__nav-item"
+				       th:classappend="${activePage == 'weight'} ? ' is-active' : ''">
+				        <i data-lucide="scale"></i>
+				        <span>体重</span>
+				    </a>
+
+				    <a th:href="@{/profile/{profileId}/sleep(profileId=${currentProfile.id})}"
+				       class="app-header__nav-item"
+				       th:classappend="${activePage == 'sleep'} ? ' is-active' : ''">
+				        <i data-lucide="moon"></i>
+				        <span>睡眠</span>
+				    </a>
+
+				    <a th:href="@{/profile/{profileId}/water(profileId=${currentProfile.id})}"
+				       class="app-header__nav-item"
+				       th:classappend="${activePage == 'water'} ? ' is-active' : ''">
+				        <i data-lucide="droplet"></i>
+				        <span>水分</span>
+				    </a>
+
+				    <a th:href="@{/profile/{profileId}/step(profileId=${currentProfile.id})}"
+				       class="app-header__nav-item"
+				       th:classappend="${activePage == 'step'} ? ' is-active' : ''">
+				        <i data-lucide="footprints"></i>
+				        <span>歩数</span>
+				    </a>
+
+				    <a th:href="@{/profile/{profileId}/memo(profileId=${currentProfile.id})}"
+				       class="app-header__nav-item"
+				       th:classappend="${activePage == 'memo'} ? ' is-active' : ''">
+				        <i data-lucide="file-text"></i>
+				        <span>健康メモ</span>
+				    </a>
+
+				    <a th:href="@{/profile/select-profile}"
+				       class="app-header__nav-item"
+				       th:classappend="${activePage == 'profile'} ? ' is-active' : ''">
+				        <i data-lucide="users"></i>
+				        <span>プロフィール</span>
+				    </a>
+
+				</nav>
+
+				<!-- User -->
+				<div class="app-header__right">
+					<div class="app-header__user-wrap">
+						<button type="button" class="app-header__user" id="userMenuToggle" aria-haspopup="true"
+							aria-expanded="false">
+							<span class="app-header__avatar" th:text="${#strings.substring(currentProfile?.name ?: '?', 0, 1)}">山</span>
+                        <span class="app-header__user-info"></span>
+                            <span class="app-header__user-name"
+                                th:text="${currentProfile?.name ?: 'ゲスト'}">山田 太郎</span>
+								<span class="app-header__user-badge"
+								    th:text="${currentProfile != null? (currentProfile.isPrimary ? '本人' : currentProfile.relationship): 'ゲスト'}">本人</span>
+                        <i data-lucide="chevron-down" class="app-header__chevron"></i>
+                    </button>
+
+                    <!-- Dropdown: 切り替え可能なプロフィール一覧 -->
+                    <div class="app-header__dropdown" id="userMenuDropdown">
+                        <ul class="app-header__profile-list">
+                            <li th:each="p : ${profileList}">
+                                <form th:action="@{/profile/switch/{id}(id=${p.id})}" method="post">
+                                    <button type="submit" class="app-header__profile-item"
+                                        th:classappend="${currentProfile != null and p.id == currentProfile.id} ? 'is-current'">
+                                        <span class="app-header__profile-check">
+                                            <i data-lucide="check"
+                                                th:if="${currentProfile != null and p.id == currentProfile.id}"></i>
+                                        </span>
+                                        <span class="app-header__profile-name" th:text="${p.name}">山田 太郎</span>
+                                        <span class="app-header__profile-relation"
+                                            th:text="${p.isPrimary} ? '本人' : ${p.relationship}">本人</span>
+                                    </button>
+                                </form>
+                            </li>
+                        </ul>
+
+                        <div class="app-header__dropdown-divider"></div>
+
+						<a th:href="@{/profile/manage}"
+						       class="app-header__manage-link">
+						        <i data-lucide="settings"></i>
+						        <span>プロフィール管理</span>
+						    </a>
+                    </div>
+                </div>
+
+                <div class="app-header__divider"></div>
+
+                <form th:action="@{/auth/logout}" method="post" class="app-header__logout-form">
+                    <button type="submit" class="app-header__logout">
+                        <i data-lucide="log-out"></i><span>ログアウト</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </header>
+
+   <script th:src="@{/js/common.js}"></script>
+
+</body>
+</html>
