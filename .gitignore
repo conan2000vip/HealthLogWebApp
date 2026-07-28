@@ -40,3 +40,7 @@ build/
 ### Docker ###
 docker-data/
 *.pid
+
+target/
+bin/
+*.class
