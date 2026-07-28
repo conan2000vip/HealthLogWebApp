@@ -40,5 +40,7 @@ build/
 ### Docker ###
 docker-data/
 *.pid
-/bin/
-/bin/
+
+bin/
+.metadata/
+Servers/

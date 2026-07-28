@@ -89,7 +89,7 @@ public class WeightService {
 	public Map<String, Object> list(Long profileId, Long currentUserId, LocalDate from, LocalDate to, int page) {
 		Profile profile = findProfile(profileId, currentUserId);
 		if (from != null && to != null && from.isAfter(to)) {
-			throw new BusinessException(HttpStatus.BAD_REQUEST, "検索期間が不正です");
+			throw new BusinessException(HttpStatus.BAD_REQUEST, "開始日が終了日より後になっているため、期間指定が正しくありません。");
 		}
 
 		// ---- 1) 全件（ページングなし）: 最新/最小/最大/BMI + グラフ用 ----
@@ -209,28 +209,6 @@ public class WeightService {
 		Weight log = findWeight(logId);
 		validateProfileOwner(log, profileId);
 		weightRepository.delete(log);
-	}
-
-	// ---------------------------------------------------------
-	// chart()
-	// ---------------------------------------------------------
-	public Map<String, Object> chart(Long profileId, Long currentUserId, LocalDate from, LocalDate to) {
-		findProfile(profileId, currentUserId);
-		if (from != null && to != null && from.isAfter(to)) {
-			throw new BusinessException(HttpStatus.BAD_REQUEST, "開始日は終了日より前の日付を選択してください");
-		}
-		List<Weight> logs = fetchLogs(profileId, from, to);
-		List<Weight> chartLogs = latestPerDate(logs);
-		List<String> labels = new ArrayList<>();
-		List<BigDecimal> values = new ArrayList<>();
-		chartLogs.forEach(w -> {
-			labels.add(w.getRecordedDate().toString());
-			values.add(w.getWeight());
-		});
-		Map<String, Object> result = new HashMap<>();
-		result.put("labels", labels);
-		result.put("values", values);
-		return result;
 	}
 
 	// ---------------------------------------------------------

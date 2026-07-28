@@ -27,7 +27,6 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/profile/{profileId}/weight")
 @RequiredArgsConstructor
 public class WeightController {
-
 	private final WeightService weightService;
 	private final AuthService authService;
 
@@ -58,8 +57,22 @@ public class WeightController {
 			@RequestParam(defaultValue = "0") int page,
 			Model model) {
 		Long currentUserId = currentUserId();
-		Map<String, Object> result = weightService.list(profileId, currentUserId, startDate, endDate, page);
-		model.addAllAttributes(result);
+		// tránh exception bay thẳng lên gây whitelabel error page (500)
+		try {
+			Map<String, Object> result = weightService.list(profileId, currentUserId, startDate, endDate, page);
+			model.addAllAttributes(result);
+		} catch (BusinessException e) {
+			model.addAttribute("error", e.getMessage());
+			// Giá trị mặc định để template không bị null (VD: logs, totalPages...)
+			model.addAttribute("logs", java.util.Collections.emptyList());
+			model.addAttribute("stats", null);
+			model.addAttribute("totalPages", 0);
+			model.addAttribute("currentPage", 0);
+			model.addAttribute("hasPrevious", false);
+			model.addAttribute("hasNext", false);
+			model.addAttribute("labels", java.util.Collections.emptyList());
+			model.addAttribute("values", java.util.Collections.emptyList());
+		}
 		model.addAttribute("profileId", profileId);
 		model.addAttribute("filterStartDate", startDate);
 		model.addAttribute("filterEndDate", endDate);
