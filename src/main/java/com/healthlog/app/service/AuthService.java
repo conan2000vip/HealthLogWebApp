@@ -43,7 +43,8 @@ public class AuthService {
 	private static final String TOKEN_TYPE_EMAIL_VERIFICATION = "email_verification";
 	private static final String TOKEN_TYPE_PASSWORD_RESET = "password_reset";
 
-	private static final Pattern EMAIL_PATTERN = Pattern.compile("^[\\w.+-]+@[\\w-]+\\.[a-zA-Z]{2,}$");
+	private static final Pattern EMAIL_PATTERN = Pattern
+			.compile("^[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(\\.[A-Za-z0-9-]+)*\\.[A-Za-z]{2,}$");
 	private static final Pattern PASSWORD_PATTERN = Pattern
 			// @, $, !, %, \*, ?, #, &
 			.compile("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&#]).{8,}$");

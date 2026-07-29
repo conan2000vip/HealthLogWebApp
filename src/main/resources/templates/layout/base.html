@@ -6,16 +6,7 @@
 	</head>
 
 	<body>
-		<!-- ===== Header Fragment =====
-         Sử dụng ở các trang khác bằng:
-         <div th:replace="~{layout/header :: header(activePage='home')}"></div>
-
-         Tham số activePage nhận 1 trong: home, weight, sleep, water, step, memo, profile
-         dùng để tô sáng tab đang chọn.
-
-         Biến currentProfile (nếu có set vào Model ở Controller) sẽ hiển thị tên/avatar
-         người dùng đang chọn; nếu chưa có, sẽ hiện fallback "ゲスト".
-    -->
+		<!-- ===== Header Fragment ===== -->
 		<header th:fragment="header(activePage)" class="app-header">
 			<div class="app-header__inner">
 				<!-- Logo -->

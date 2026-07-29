@@ -115,10 +115,26 @@ document.addEventListener("DOMContentLoaded", () => {
             showError("password", "パスワードを入力してください");
             return false;
         }
-        if (!PASSWORD_PATTERN.test(value)) {
-            showError("password", "パスワードは8〜100文字で、大文字・小文字・数字・特殊記号をそれぞれ1文字以上含めてください");
-            return false;
-        }
+		if (value.length < 8 || value.length > 100) {
+			        showError("password", "パスワードは8〜100文字で入力してください");
+			        return false;
+			    }
+			    if (!/[A-Z]/.test(value)) {
+			        showError("password", "英大文字を1文字以上含めてください");
+			        return false;
+			    }
+			    if (!/[a-z]/.test(value)) {
+			        showError("password", "英小文字を1文字以上含めてください");
+			        return false;
+			    }
+			    if (!/\d/.test(value)) {
+			        showError("password", "数字を1文字以上含めてください");
+			        return false;
+			    }
+			    if (!/[@$!%*?&#]/.test(value)) {
+			        showError("password", "特殊記号（@$!%*?&#）を1文字以上含めてください");
+			        return false;
+			    }
         clearError("password");
         return true;
     }
