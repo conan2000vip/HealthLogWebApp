@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+
+	<head>
+		<meta charset="UTF-8">
+		<title th:text="${profile.id != null} ? 'プロフィール編集' : 'プロフィール作成'">プロフィール作成</title>
+		<link rel="stylesheet" th:href="@{/css/common.css}">
+		<link rel="stylesheet" th:href="@{/css/profile.css}">
+		<script src="https://unpkg.com/lucide@latest"></script>
+	</head>
+
+	<body>
+
+		<header th:if="${!isFirstProfile}" th:replace="~{fragments/header :: header(activePage='profile')}"></header>
+
+		<main class="profile-form-page">
+			<div class="profile-form-page__box">
+
+				<div class="profile-form-page__top">
+					<h1 th:if="${isFirstProfile}">最初のプロフィールを作成</h1>
+					<h1 th:if="${!isFirstProfile and profile.id == null}">新規プロフィール作成</h1>
+					<h1 th:if="${profile.id != null}">プロフィールを編集</h1>
+
+					<p th:if="${isFirstProfile}" class="profile-form-page__subtitle">
+						健康記録を始めるには、まずプロフィールを作成してください
+					</p>
+				</div>
+
+				<div class="alert alert--error" th:if="${errorMessage}">
+					<i data-lucide="alert-circle"></i>
+					<span th:text="${errorMessage}">エラーが発生しました</span>
+				</div>
+
+				<form th:object="${profile}"
+					th:action="${profile.id != null} ? @{/profile/{id}/edit(id=${profile.id})} : @{/profile/new}"
+					method="post" class="profile-form">
+
+					<!-- ===== 基本情報 ===== -->
+					<fieldset class="profile-form__section">
+						<legend>基本情報</legend>
+
+						<div class="input-group">
+							<label for="name">名前 <span class="required">*</span></label>
+							<input type="text" id="name" th:field="*{name}" placeholder="例：山田 太郎" />
+							<span class="validation-error" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></span>
+                </div>
+
+                <div class="input-row">
+                    <div class="input-group">
+                        <label for="birthDate">生年月日</label>
+                        <input type="date" id="birthDate" th:field="*{birthDate}" />
+                    </div>
+
+                    <div class="input-group">
+                        <label for="gender">性別</label>
+                        <select id="gender" th:field="*{gender}">
+                            <option value="">選択しない</option>
+                            <option value="MALE">男性</option>
+                            <option value="FEMALE">女性</option>
+                            <option value="OTHER">その他</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="input-row">
+                    <div class="input-group" th:unless="${isFirstProfile}">
+                        <label for="relationship">続柄 <span class="required">*</span></label>
+                        <select id="relationship" th:field="*{relationship}">
+                            <option value="">選択してください</option>
+                            <option value="父">父</option>
+                            <option value="母">母</option>
+                            <option value="配偶者">配偶者</option>
+                            <option value="子ども">子ども</option>
+                            <option value="祖父">祖父</option>
+                            <option value="祖母">祖母</option>
+                            <option value="その他">その他</option>
+                        </select>
+                        <span class="validation-error" th:if="${#fields.hasErrors('relationship')}" th:errors="*{relationship}"></span>
+                    </div>
+
+                    <!-- Profile đầu tiên luôn là 本人, không cho chọn -->
+                    <input type="hidden" th:if="${isFirstProfile}" th:field="*{relationship}" value="本人" />
+
+                    <div class="input-group">
+                        <label for="height">身長 (cm)</label>
+                        <input type="number" step="0.1" id="height" th:field="*{height}" placeholder="170.0" />
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="profileColor">プロフィールカラー</label>
+                    <div class="color-picker">
+                        <label class="color-option" th:each="c : ${{'#4a7fe0','#2ec4a0','#f5a623','#e85d75','#9b6dd6'}}">
+                            <input type="radio" th:field="*{profileColor}" th:value="${c}" />
+                            <span class="color-swatch" th:style="'background:' + ${c}"></span>
+                        </label>
+                    </div>
+                </div>
+            </fieldset>
+
+            <!-- ===== 健康目標 ===== -->
+            <fieldset class="profile-form__section">
+                <legend>健康目標</legend>
+
+                <div class="input-row">
+                    <div class="input-group">
+                        <label for="targetWeight">目標体重 (kg)</label>
+                        <input type="number" step="0.1" id="targetWeight" th:field="*{targetWeight}" placeholder="65.0" />
+                    </div>
+
+                    <div class="input-group">
+                        <label for="waterGoalMl">水分目標 (ml/日)</label>
+                        <input type="number" id="waterGoalMl" th:field="*{waterGoalMl}" />
+                    </div>
+                </div>
+
+                <div class="input-row">
+                    <div class="input-group">
+                        <label for="stepGoal">歩数目標 (歩/日)</label>
+                        <input type="number" id="stepGoal" th:field="*{stepGoal}" />
+                    </div>
+
+                    <div class="input-group">
+                        <label for="sleepGoalHours">睡眠目標 (時間/日)</label>
+                        <input type="number" step="0.5" id="sleepGoalHours" th:field="*{sleepGoalHours}" />
+                    </div>
+                </div>
+            </fieldset>
+
+            <div class="profile-form__actions">
+                <a th:unless="${isFirstProfile}" th:href="@{/profile/manage}" class="btn btn--ghost">キャンセル</a>
+                <button type="submit" class="btn btn--primary btn--block">
+                    <i data-lucide="check"></i>
+                    <span th:text="${profile.id != null} ? '更新する' : '作成する'">作成する</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</main>
+
+<script th:src="@{/js/common.js}"></script>
+</body>
+</html>

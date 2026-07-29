@@ -10,6 +10,12 @@ import org.springframework.web.server.ResponseStatusException;
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
+	@ExceptionHandler(BusinessException.class)
+	public String handleBusinessException(BusinessException ex, Model model) {
+		model.addAttribute("error", ex.getMessage());
+		return "error/error";
+	}
+
 	@ExceptionHandler(ResponseStatusException.class)
 	public String handleResponseStatusException(
 			ResponseStatusException ex,
@@ -20,11 +26,8 @@ public class GlobalExceptionHandler {
 	}
 
 	@ExceptionHandler(Exception.class)
-	public String handleException(
-			Exception ex,
-			Model model) {
+	public String handleException(Exception ex, Model model) {
 		model.addAttribute("error", "システムエラーが発生しました。");
 		return "error/error";
 	}
-
 }

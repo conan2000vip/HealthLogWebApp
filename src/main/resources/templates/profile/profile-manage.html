@@ -1,39 +1,100 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-	<head>
-		<meta charset="UTF-8">
-		<title>
-			Profile Manage
-		</title>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>プロフィール管理</title>
+	<link rel="stylesheet" th:href="@{/css/common.css}">
+	<link rel="stylesheet" th:href="@{/css/profile.css}">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
 
-	</head>
-	<body>
-		<h1>
-			プロフィール管理
-		</h1>
-		<a href="/profiles/new">
-			新規プロフィール作成
+<header th:replace="~{fragments/header :: header(activePage='profile')}"></header>
+
+<main class="profile-manage">
+    <div class="profile-manage__top">
+        <div>
+            <h1 class="profile-manage__title">プロフィール管理</h1>
+            <p class="profile-manage__subtitle">本人・家族のプロフィールを管理します</p>
+        </div>
+		<a th:if="${#lists.size(profiles) < 10}" th:href="@{/profile/new}" class="btn btn--primary">
+		    <i data-lucide="plus"></i>
+		    <span>追加</span>
 		</a>
+		<!-- Khi đủ 10, hiện thông báo thay vì nút -->
+		<p th:if="${#lists.size(profiles) >= 10}" style="color:#999; font-size:0.85rem;">
+		    プロフィールは最大10件までです
+		</p>
+    </div>
+	
+	<div class="alert alert--error" th:if="${errorMessage}">
+	    <i data-lucide="alert-circle"></i>
+	    <span th:text="${errorMessage}">エラーが発生しました</span>
+	</div>
 
-		<div th:each="profile : ${profiles}">
-			<hr>
-			<h3 th:text="${profile.name}">
-				Name
-			</h3>
-			<p>
-				続柄:
-				<span th:text="${profile.relationship}">
-					SELF
-				</span>
-			</p>
-			<a th:href="@{/profiles/{id}/edit(id=${profile.id})}">
-				編集
-			</a>
-			<form th:action="@{/profiles/{id}/delete(id=${profile.id})}" method="post">
-				<button type="submit">
-					削除
-				</button>
-			</form>
-		</div>
-	</body>
+    <!-- ===== Empty state ===== -->
+    <div class="profile-manage__empty" th:if="${#lists.isEmpty(profiles)}">
+        <i data-lucide="user" class="profile-manage__empty-icon"></i>
+        <p class="profile-manage__empty-text">プロフィールがありません</p>
+        <a th:href="@{/profile/new}" class="profile-manage__empty-link">最初のプロフィールを追加する</a>
+    </div>
+
+    <!-- ===== List ===== -->
+    <div class="profile-manage__list" th:if="${!#lists.isEmpty(profiles)}">
+        <div class="profile-manage__card" th:each="p : ${profiles}"
+             th:classappend="${currentProfile != null and p.id == currentProfile.id} ? ' is-current'">
+
+            <span class="profile-manage__avatar" th:text="${#strings.substring(p.name,0,1)}">山</span>
+
+            <div class="profile-manage__info">
+                <div class="profile-manage__name-row">
+                    <span class="profile-manage__name" th:text="${p.name}">山田 太郎</span>
+
+                    <span class="badge badge--primary" th:if="${p.isPrimary}">本人</span>
+                    <span class="badge badge--relation" th:unless="${p.isPrimary}" th:text="${p.relationship}">父</span>
+
+                    <i data-lucide="shield" class="profile-manage__admin-icon" th:if="${p.isPrimary}"></i>
+
+                    <span class="badge badge--selected"
+                          th:if="${currentProfile != null and p.id == currentProfile.id}">選択中</span>
+                </div>
+                <div class="profile-manage__meta">
+                    <span th:text="${#temporals.format(p.birthDate, 'yyyy-MM-dd')}">1974-01-01</span>
+                    (<span th:text="${p.age}">52</span>歳)
+                    / 身長: <span th:text="${p.height}">175</span>cm
+                </div>
+            </div>
+
+            <div class="profile-manage__actions">
+                <form th:if="${currentProfile == null or p.id != currentProfile.id}"
+                      th:action="@{/profile/switch/{id}(id=${p.id})}" method="post">
+                    <button type="submit" class="btn btn--outline btn--sm">
+                        選択 <i data-lucide="chevron-right"></i>
+                    </button>
+                </form>
+
+                <a th:href="@{/profile/{id}/edit(id=${p.id})}" class="icon-btn" aria-label="編集">
+                    <i data-lucide="pencil"></i>
+                </a>
+
+                <button type="button" class="icon-btn icon-btn--danger delete-profile-btn"
+                        th:if="${!p.isPrimary}"
+                        th:attr="data-profile-id=${p.id},data-profile-name=${p.name}"
+                        aria-label="削除">
+                    <i data-lucide="trash-2"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</main>
+
+<div th:replace="~{fragments/modal :: deleteModal}"></div>
+
+<form id="deleteProfileForm" method="post" th:action="@{/profile/delete}" style="display:none;">
+    <input type="hidden" name="profileId" id="deleteProfileId">
+</form>
+
+<script th:src="@{/js/common.js}"></script>
+<script th:src="@{/js/profile-manage.js}"></script>
+</body>
 </html>

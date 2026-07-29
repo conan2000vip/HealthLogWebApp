@@ -1,51 +1,66 @@
 <!DOCTYPE html>
-<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>プロフィールを選択</title>
+	<link rel="stylesheet" th:href="@{/css/common.css}">
+	<link rel="stylesheet" th:href="@{/css/profile.css}">
+</head>
+<body>
+<div class="auth-container">
+    <!-- Background -->
+    <div class="background">
+        <img th:src="@{/image/background.jpg}" alt="Background" />
+        <div class="overlay"></div>
+    </div>
 
-	<head>
-		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<title>HealthLog - Select-Profile</title>
-		<link rel="stylesheet" th:href="@{/css/auth.css}" />
-	</head>
+    <div class="auth-box">
+        <!-- Logo -->
+        <div class="logo-area">
+            <img th:src="@{/image/logo.png}" alt="HealthLog Logo" />
+            <h1>HealthLog</h1>
+            <p>家族みんなの健康を、ひとつに。</p>
+        </div>
 
-	<body>
-		<div class="auth-container">
-			<!-- Background -->
-			<div class="background">
-				<img th:src="@{/image/background.jpg}" alt="Background" />
-				<div class="overlay"></div>
-			</div>
+        <!-- Select icon -->
+        <div class="select-icon">
+            <svg viewBox="0 0 24 24">
+                <path d="M12 21s-7.5-4.6-10-9C.2 8.5 1.6 5 5 5c2 0 3.4 1 4 2.3C9.6 6 11 5 13 5c3.4 0 4.8 3.5 3 7-2.5 4.4-10 9-10 9z"/>
+            </svg>
+        </div>
 
-			<div class="auth-box">
-				<!-- Logo -->
-				<div class="logo-area">
-					<img th:src="@{/image/logo.png}" alt="HealthLog Logo" />
-					<h1>プロフィールを選択</h1>
-					<p>記録を確認するプロフィールを選んでください</p>
-				</div>
+        <h2 style="font-size:1.35rem;font-weight:700;margin-bottom:6px;">プロフィールを選択</h2>
+        <p style="font-size:0.9rem;opacity:0.9;margin-bottom:10px;">記録を確認するプロフィールを選んでください</p>
 
-				<h1>プロフィールを選択してください</h1>
-				<div th:if="${profiles.isEmpty()}">
-					<p>プロフィールがありません</p>
-				</div>
+        <!-- Profile list -->
+        <div class="profile-list">
+            <a th:each="profile : ${profiles}"
+               th:href="@{/profiles/{id}/select(id=${profile.id})}"
+               class="profile-card">
 
-				<div th:each="profile : ${profiles}">
-					<div>
-						<h3 th:text="${profile.name}">
-							Profile Name
-						</h3>
-						<p>続柄:
-							<span th:text="${profile.relationship}">SELF</span>
-						</p>
-						<form th:action="@{/profiles/select/{id}(id=${profile.id})}" method="post">
-							<button type="submit">
-								このプロフィールを使用する
-							</button>
-						</form>
-					</div>
-				</div>
-			</div>
-		</div>
-	</body>
+                <div class="avatar" th:text="${#strings.substring(profile.name,0,1)}">山</div>
 
+                <div class="profile-info">
+                    <div class="name-row">
+                        <span class="name" th:text="${profile.name}">山田 太郎</span>
+                        <span class="gender-badge"
+                              th:classappend="${profile.gender == 'FEMALE'} ? 'female' : ''"
+                              th:text="${profile.gender == 'FEMALE'} ? '女性' : '男性'">
+                            男性
+                        </span>
+                    </div>
+                    <div class="meta">
+                        <span th:text="${#temporals.format(profile.birthDate, 'yyyy-MM-dd')}">1974-01-01</span>
+                        (<span th:text="${profile.age}">52</span>歳)
+                    </div>
+                </div>
+
+                <span class="chevron">&#8250;</span>
+            </a>
+        </div>
+
+        <a th:href="@{/profiles/manage}" class="add-profile-link">プロフィールを管理・追加する</a>
+    </div>
+</div>
+</body>
 </html>

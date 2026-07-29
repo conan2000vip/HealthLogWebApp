@@ -3,6 +3,7 @@ package com.healthlog.app.entity;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Period;
 import java.util.List;
 
 import jakarta.persistence.CascadeType;
@@ -20,6 +21,9 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
+
+import org.springframework.format.annotation.DateTimeFormat;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -46,6 +50,7 @@ public class Profile {
 	private String name;
 
 	@Column(name = "birth_date")
+	@DateTimeFormat(pattern = "yyyy-MM-dd")
 	private LocalDate birthDate;
 
 	@Column(name = "relationship", length = 20, nullable = false)
@@ -107,5 +112,14 @@ public class Profile {
 	@PreUpdate
 	protected void onUpdate() {
 		this.updatedAt = LocalDateTime.now();
+	}
+
+	//Age form datebirth
+	@Transient
+	public Integer getAge() {
+		if (birthDate == null) {
+			return null;
+		}
+		return Period.between(birthDate, LocalDate.now()).getYears();
 	}
 }
