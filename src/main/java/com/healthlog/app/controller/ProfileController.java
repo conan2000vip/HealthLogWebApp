@@ -52,7 +52,7 @@ public class ProfileController {
 		return "profile/select-profile";
 	}
 
-	@GetMapping("/manage")
+	@GetMapping("/profile-manage")
 	public String manageProfile(Model model) {
 		User user = getLoginUser();
 		model.addAttribute("profiles", profileService.getProfiles(user.getId()));
@@ -83,7 +83,7 @@ public class ProfileController {
 	}
 
 	@PostMapping("/new")
-	public String createProfile(@ModelAttribute("profile") Profile profile,
+	public String createProfile(@ModelAttribute() Profile profile,
 			BindingResult bindingResult, Model model, HttpSession session) {
 
 		User user = getLoginUser();
@@ -156,7 +156,7 @@ public class ProfileController {
 			return "profile/profile-form";
 		}
 
-		return "redirect:/profile/manage";
+		return "redirect:/profile/profile-manage";
 	}
 
 	// ===== Delete =====
@@ -170,7 +170,7 @@ public class ProfileController {
 		} catch (BusinessException e) {
 			redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
 		}
-		return "redirect:/profile/manage";
+		return "redirect:/profile/profile-manage";
 	}
 
 	// ===== helpers =====

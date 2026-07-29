@@ -134,48 +134,88 @@
    SELECT PROFILE
 =================================================== */
 
-.select-icon {
-	width: 56px;
-	height: 56px;
-	background: #2ec4a0;
-	border-radius: 16px;
+.select-container {
+	position: relative;
+	min-height: 100vh;
 	display: flex;
-	align-items: center;
+	align-items: flex-start;
 	justify-content: center;
-	margin: 0 auto 10px;
+	padding: 80px 20px 40px;
 }
 
-.select-icon svg {
-	width: 28px;
-	height: 28px;
-	fill: #fff;
+.select-bg {
+	position: fixed;
+	inset: 0;
+	z-index: -1;
+}
+
+.select-bg img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+.select-bg__overlay {
+	position: absolute;
+	inset: 0;
+	background: linear-gradient(180deg, rgba(20, 40, 50, 0.55), rgba(10, 50, 60, 0.7));
+}
+
+.select-content {
+	position: relative;
+	width: 100%;
+	max-width: 480px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	text-align: center;
+}
+
+.select-logo {
+	width: 88px;
+	height: 88px;
+	margin-bottom: 4px;
+}
+
+.select-title {
+	font-size: 1.6rem;
+	font-weight: 700;
+	color: #fff;
+	margin-top: 0;
+}
+
+.select-subtitle {
+	font-size: 0.9rem;
+	color: rgba(255, 255, 255, 0.85);
+	margin-top: 6px;
+	margin-bottom: 28px;
 }
 
 .profile-list {
+	width: 100%;
 	display: flex;
 	flex-direction: column;
 	gap: 14px;
-	margin-top: 15px;
 }
 
 .profile-card {
 	display: flex;
 	align-items: center;
 	gap: 14px;
-	background: white;
+	background: #fff;
 	border-radius: 14px;
-	padding: 14px 18px;
+	padding: 16px 20px;
 	text-decoration: none;
-	box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+	box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
 	transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .profile-card:hover {
 	transform: translateY(-2px);
-	box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+	box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22);
 }
 
-.avatar {
+.profile-avatar {
 	flex-shrink: 0;
 	width: 48px;
 	height: 48px;
@@ -194,33 +234,39 @@
 	text-align: left;
 }
 
-.profile-info .name-row {
+.profile-name-row {
 	display: flex;
 	align-items: center;
 	gap: 8px;
 	margin-bottom: 2px;
 }
 
-.profile-info .name {
+.profile-name {
 	font-size: 16px;
 	font-weight: 700;
 	color: #1a1a1a;
 }
 
-.gender-badge {
+.badge--primary,
+.badge--relation {
+	display: inline-block;
 	font-size: 11px;
+	font-weight: 600;
 	padding: 2px 8px;
 	border-radius: 20px;
+}
+
+.badge--primary {
 	background: #e6f0ff;
 	color: #3a6fd8;
 }
 
-.gender-badge.female {
-	background: #ffe6f0;
-	color: #d83a7a;
+.badge--relation {
+	background: #f0f0f0;
+	color: #666;
 }
 
-.profile-info .meta {
+.profile-meta {
 	font-size: 13px;
 	color: #888;
 }
@@ -229,14 +275,6 @@
 	flex-shrink: 0;
 	color: #bbb;
 	font-size: 20px;
-}
-
-.add-profile-link {
-	display: inline-block;
-	margin-top: 20px;
-	color: #666;
-	font-size: 0.9rem;
-	text-decoration: underline;
 }
 
 /* ===================================================

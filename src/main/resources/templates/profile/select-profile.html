@@ -1,66 +1,46 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+
 <head>
-    <meta charset="UTF-8">
-    <title>プロフィールを選択</title>
-	<link rel="stylesheet" th:href="@{/css/common.css}">
+	<meta charset="UTF-8">
+	<title>プロフィールを選択</title>
 	<link rel="stylesheet" th:href="@{/css/profile.css}">
 </head>
+
 <body>
-<div class="auth-container">
-    <!-- Background -->
-    <div class="background">
-        <img th:src="@{/image/background.jpg}" alt="Background" />
-        <div class="overlay"></div>
-    </div>
+	<div class="select-container">
 
-    <div class="auth-box">
-        <!-- Logo -->
-        <div class="logo-area">
-            <img th:src="@{/image/logo.png}" alt="HealthLog Logo" />
-            <h1>HealthLog</h1>
-            <p>家族みんなの健康を、ひとつに。</p>
-        </div>
+		<div class="select-bg">
+			<img th:src="@{/image/background.jpg}" alt="Background">
+			<div class="select-bg__overlay"></div>
+		</div>
 
-        <!-- Select icon -->
-        <div class="select-icon">
-            <svg viewBox="0 0 24 24">
-                <path d="M12 21s-7.5-4.6-10-9C.2 8.5 1.6 5 5 5c2 0 3.4 1 4 2.3C9.6 6 11 5 13 5c3.4 0 4.8 3.5 3 7-2.5 4.4-10 9-10 9z"/>
-            </svg>
-        </div>
+		<div class="select-content">
 
-        <h2 style="font-size:1.35rem;font-weight:700;margin-bottom:6px;">プロフィールを選択</h2>
-        <p style="font-size:0.9rem;opacity:0.9;margin-bottom:10px;">記録を確認するプロフィールを選んでください</p>
+			<img th:src="@{/image/logo.png}" alt="HealthLog Logo" class="select-logo">
 
-        <!-- Profile list -->
-        <div class="profile-list">
-            <a th:each="profile : ${profiles}"
-               th:href="@{/profiles/{id}/select(id=${profile.id})}"
-               class="profile-card">
+			<h1 class="select-title">プロフィールを選択</h1>
+			<p class="select-subtitle">記録を確認するプロフィールを選んでください</p>
 
-                <div class="avatar" th:text="${#strings.substring(profile.name,0,1)}">山</div>
+			<div class="profile-list">
+				<a th:each="profile : ${profiles}" th:href="@{/profile/{id}/select(id=${profile.id})}" class="profile-card">
+					<div class="profile-avatar" th:text="${#strings.substring(profile.name,0,1)}"></div>
+					<div class="profile-info">
+						<div class="profile-name-row">
+							<span class="profile-name" th:text="${profile.name}">山田 太郎</span>
+							<span class="badge badge--primary" th:if="${profile.isPrimary}">本人</span>
+							<span class="badge badge--relation" th:unless="${profile.isPrimary}" th:text="${profile.relationship}">父</span>
+						</div>
+						<div class="profile-meta">
+							<span th:text="${#temporals.format(profile.birthDate,'yyyy-MM-dd')}">1974-01-01</span>
+							(<span th:text="${profile.age}">52</span>歳)
+						</div>
+					</div>
+					<span class="chevron">&#8250;</span>
+				</a>
+			</div>
 
-                <div class="profile-info">
-                    <div class="name-row">
-                        <span class="name" th:text="${profile.name}">山田 太郎</span>
-                        <span class="gender-badge"
-                              th:classappend="${profile.gender == 'FEMALE'} ? 'female' : ''"
-                              th:text="${profile.gender == 'FEMALE'} ? '女性' : '男性'">
-                            男性
-                        </span>
-                    </div>
-                    <div class="meta">
-                        <span th:text="${#temporals.format(profile.birthDate, 'yyyy-MM-dd')}">1974-01-01</span>
-                        (<span th:text="${profile.age}">52</span>歳)
-                    </div>
-                </div>
-
-                <span class="chevron">&#8250;</span>
-            </a>
-        </div>
-
-        <a th:href="@{/profiles/manage}" class="add-profile-link">プロフィールを管理・追加する</a>
-    </div>
-</div>
+		</div>
+	</div>
 </body>
 </html>
