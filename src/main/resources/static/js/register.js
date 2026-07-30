@@ -39,8 +39,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // username@domain.extension
 	//*@, $, !, %, , ?, &, #
-    const EMAIL_PATTERN = /^[\w.+-]+@[\w-]+\.[a-zA-Z]{2,}$/;
-    const PASSWORD_PATTERN = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#]).{8,100}$/;
+    const EMAIL_PATTERN = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}$/;
 
     // Các hàm hiển thị và xóa thông báo lỗi
     function showError(inputId, message) {
@@ -78,7 +77,7 @@ document.addEventListener("DOMContentLoaded", () => {
             );
             return false;
         }
-        if (!/^[a-zA-Z0-9_ぁ-んァ-ヶー一-龯]+$/.test(value)) {
+        if (!/^[a-zA-Z0-9_ぁ-んァ-ヶー一-龯\s]+$/.test(value)) {
             showError(
                 "accountName",
                 "名前は英数字、アンダースコア、日本語のみ使用できます"
@@ -115,10 +114,26 @@ document.addEventListener("DOMContentLoaded", () => {
             showError("password", "パスワードを入力してください");
             return false;
         }
-        if (!PASSWORD_PATTERN.test(value)) {
-            showError("password", "パスワードは8〜100文字で、大文字・小文字・数字・特殊記号をそれぞれ1文字以上含めてください");
-            return false;
-        }
+		if (value.length < 8 || value.length > 100) {
+			        showError("password", "パスワードは8〜100文字で入力してください");
+			        return false;
+			    }
+			    if (!/[A-Z]/.test(value)) {
+			        showError("password", "英大文字を1文字以上含めてください");
+			        return false;
+			    }
+			    if (!/[a-z]/.test(value)) {
+			        showError("password", "英小文字を1文字以上含めてください");
+			        return false;
+			    }
+			    if (!/\d/.test(value)) {
+			        showError("password", "数字を1文字以上含めてください");
+			        return false;
+			    }
+			    if (!/[@$!%*?&#]/.test(value)) {
+			        showError("password", "特殊記号（@$!%*?&#）を1文字以上含めてください");
+			        return false;
+			    }
         clearError("password");
         return true;
     }

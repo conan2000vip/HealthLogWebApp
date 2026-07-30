@@ -27,7 +27,6 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.healthlog.app.entity.AuthToken;
-import com.healthlog.app.entity.Profile;
 import com.healthlog.app.entity.User;
 import com.healthlog.app.repository.AuthTokenRepository;
 import com.healthlog.app.repository.ProfileRepository;
@@ -43,7 +42,8 @@ public class AuthService {
 	private static final String TOKEN_TYPE_EMAIL_VERIFICATION = "email_verification";
 	private static final String TOKEN_TYPE_PASSWORD_RESET = "password_reset";
 
-	private static final Pattern EMAIL_PATTERN = Pattern.compile("^[\\w.+-]+@[\\w-]+\\.[a-zA-Z]{2,}$");
+	private static final Pattern EMAIL_PATTERN = Pattern
+			.compile("^[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(\\.[A-Za-z0-9-]+)*\\.[A-Za-z]{2,}$");
 	private static final Pattern PASSWORD_PATTERN = Pattern
 			// @, $, !, %, \*, ?, #, &
 			.compile("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&#]).{8,}$");
@@ -75,8 +75,8 @@ public class AuthService {
 	}
 
 	// register
-	@Transactional
 	// ユーザー登録処理（新規ユーザーの作成とメール認証トークンの発行）
+	@Transactional
 	public void register(
 			String accountName,
 			String email,
@@ -101,18 +101,10 @@ public class AuthService {
 		try {
 			userRepository.save(user);
 		} catch (DataIntegrityViolationException e) {
-			// 同時リクエストによる一意制約違反を業務エラーに変換
 			throw new ResponseStatusException(
 					HttpStatus.CONFLICT,
 					"メールが既に登録されています");
 		}
-
-		Profile profile = new Profile();
-		profile.setUser(user);
-		profile.setName(accountName.trim());
-		profile.setRelationship("SELF");
-		profile.setIsPrimary(true);
-		profileRepository.save(profile);
 
 		AuthToken token = issueAuthToken(
 				user,
@@ -135,7 +127,7 @@ public class AuthService {
 					HttpStatus.BAD_REQUEST,
 					"名前は3〜50文字で入力してください");
 		}
-		if (!value.matches("^[a-zA-Z0-9_ぁ-んァ-ヶー一-龯]+$")) {
+		if (!value.matches("^[a-zA-Z0-9_ぁ-んァ-ヶー一-龯\\s]+$")) {
 			throw new ResponseStatusException(
 					HttpStatus.BAD_REQUEST,
 					"名前は英数字、アンダースコア、日本語のみ使用できます");

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+
+	<head>
+		<meta charset="UTF-8">
+		<title>プロフィールを選択</title>
+		<link rel="stylesheet" th:href="@{/css/profile.css}">
+	</head>
+
+	<body>
+		<div class="select-container">
+
+			<div class="select-bg">
+				<img th:src="@{/image/background.jpg}" alt="Background">
+				<div class="select-bg__overlay"></div>
+			</div>
+
+			<div class="select-content">
+
+				<img th:src="@{/image/logo.png}" alt="HealthLog Logo" class="select-logo">
+
+				<h1 class="select-title">プロフィールを選択</h1>
+				<p class="select-subtitle">記録を確認するプロフィールを選んでください</p>
+
+				<div class="profile-list">
+					<a th:each="profile : ${profiles}" th:href="@{/profile/{id}/select(id=${profile.id})}"
+						class="profile-card">
+						<div class="profile-avatar" th:text="${#strings.substring(profile.name,0,1)}"></div>
+					<div class="profile-info">
+						<div class="profile-name-row">
+							<span class="profile-name" th:text="${profile.name}">山田 太郎</span>
+							<span class="badge badge--primary" th:if="${profile.isPrimary}">本人</span>
+							<span class="badge badge--relation" th:unless="${profile.isPrimary}" th:text="${profile.relationship}">父</span>
+						</div>
+						<div class="profile-meta">
+							<span th:text="${#temporals.format(profile.birthDate,'yyyy-MM-dd')}">1974-01-01</span>
+							(<span th:text="${profile.age}">52</span>歳)
+						</div>
+					</div>
+					<span class="chevron">&#8250;</span>
+				</a>
+			</div>
+
+		</div>
+	</div>
+</body>
+</html>

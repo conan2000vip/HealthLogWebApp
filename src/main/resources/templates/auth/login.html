@@ -43,10 +43,15 @@
 					</div>
 
 					<!-- 確認メール再送（メール未認証でログイン失敗した時だけ表示） -->
-					<form th:if="${emailNotVerified}" th:action="@{/auth/resend-verification}" method="post"
-						class="resend-form">
-						<input type="hidden" name="email" th:value="${email}" />
-						<button type="submit" class="resend-btn">確認メールを再送する</button>
+					<form th:if="${emailNotVerified}"
+					      th:action="@{/auth/resend-verification}"
+					      method="post"
+					      class="resend-form">
+					    <input type="hidden" name="email" th:value="${email}" />
+					    <button type="submit" class="submit-btn resend-btn">
+					        <i data-lucide="mail"></i>
+					        確認メールを再送する
+					    </button>
 					</form>
 
 					<!-- Login Form -->

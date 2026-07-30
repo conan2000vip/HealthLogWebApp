@@ -41,6 +41,9 @@ build/
 docker-data/
 *.pid
 
+target/
+bin/
+*.class
+
 .metadata/
 Servers/
-target/

@@ -14,15 +14,19 @@ import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.healthlog.app.service.AuthService;
+import com.healthlog.app.service.ProfileService;
 
 @Controller
 @RequestMapping("/auth")
 public class AuthController {
 
 	private final AuthService authService;
+	private final ProfileService profileService;
 
-	public AuthController(AuthService authService) {
+	public AuthController(AuthService authService,
+			ProfileService profileService) {
 		this.authService = authService;
+		this.profileService = profileService;
 	}
 
 	// ===== 登録 =====
@@ -69,7 +73,11 @@ public class AuthController {
 			RedirectAttributes redirectAttributes) {
 		try {
 			authService.login(email, password, request, response);
-			return "redirect:/";
+			Long userId = authService.getCurrentUser().getId();
+			if (!profileService.hasAnyProfile(userId)) {
+				return "redirect:/profile/new";
+			}
+			return "redirect:/profile/select-profile";
 		} catch (ResponseStatusException e) {
 			redirectAttributes.addFlashAttribute("error", e.getReason());
 			redirectAttributes.addFlashAttribute("email", email);
