@@ -13,7 +13,6 @@
 	</head>
 
 	<body>
-
 		<!-- ===== Header ===== -->
 		<div th:replace="~{layout/header :: header(activePage='sleep')}"></div>
 
@@ -139,7 +138,8 @@
 									</td>
 									<td class="sleep-table__actions">
 										<button type="button" class="icon-btn edit-btn" th:data-id="${record.id}"
-											th:data-date="${record.recordedDate}" th:data-start-time="${record.startTime}"
+											th:data-date="${record.recordedDate}"
+											th:data-start-time="${record.startTime}"
 											th:data-end-time="${record.endTime}"
 											th:data-sleep-type="${record.sleepType != null ? record.sleepType.name() : 'NIGHT'}"
 											th:data-memo="${record.memo}" title="編集">

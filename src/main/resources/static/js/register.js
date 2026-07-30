@@ -77,7 +77,7 @@ document.addEventListener("DOMContentLoaded", () => {
             );
             return false;
         }
-        if (!/^[a-zA-Z0-9_ぁ-んァ-ヶー一-龯]+$/.test(value)) {
+        if (!/^[a-zA-Z0-9_ぁ-んァ-ヶー一-龯\s]+$/.test(value)) {
             showError(
                 "accountName",
                 "名前は英数字、アンダースコア、日本語のみ使用できます"

@@ -13,7 +13,6 @@
 	</head>
 
 	<body>
-
 		<!-- ===== Header ===== -->
 		<div th:replace="~{layout/header :: header(activePage='weight')}"></div>
 
@@ -151,7 +150,7 @@
 							</tbody>
 						</table>
 					</div>
-					
+
 					<div class="pagination" th:if="${totalPages > 1}">
 						<a th:if="${hasPrevious}"
 							th:href="@{/profile/{profileId}/weight(profileId=${profileId}, startDate=${filterStartDate}, endDate=${filterEndDate}, page=${currentPage - 1})}"

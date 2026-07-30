@@ -1,6 +1,4 @@
 document.addEventListener('DOMContentLoaded', () => {
-    lucide.createIcons();
-
     const overlay = document.getElementById('deleteModalOverlay');
     if (!overlay) return; // trang không có modal (vd: empty state) thì bỏ qua
 

@@ -1,100 +1,97 @@
 <!DOCTYPE html>
 <html lang="ja" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <title>プロフィール管理</title>
-	<link rel="stylesheet" th:href="@{/css/common.css}">
-	<link rel="stylesheet" th:href="@{/css/profile.css}">
-    <script src="https://unpkg.com/lucide@latest"></script>
-</head>
-<body>
 
-<header th:replace="~{fragments/header :: header(activePage='profile')}"></header>
+	<head>
+		<meta charset="UTF-8">
+		<title>プロフィール管理</title>
+		<link rel="stylesheet" th:href="@{/css/common.css}">
+		<link rel="stylesheet" th:href="@{/css/profile.css}">
+	</head>
 
-<main class="profile-manage">
-    <div class="profile-manage__top">
-        <div>
-            <h1 class="profile-manage__title">プロフィール管理</h1>
-            <p class="profile-manage__subtitle">本人・家族のプロフィールを管理します</p>
-        </div>
-		<a th:if="${#lists.size(profiles) < 10}" th:href="@{/profile/new}" class="btn btn--primary">
-		    <i data-lucide="plus"></i>
-		    <span>追加</span>
-		</a>
-		<!-- Khi đủ 10, hiện thông báo thay vì nút -->
-		<p th:if="${#lists.size(profiles) >= 10}" style="color:#999; font-size:0.85rem;">
-		    プロフィールは最大10件までです
-		</p>
-    </div>
-	
-	<div class="alert alert--error" th:if="${errorMessage}">
-	    <i data-lucide="alert-circle"></i>
-	    <span th:text="${errorMessage}">エラーが発生しました</span>
-	</div>
+	<body>
+		<header th:replace="~{layout/header :: header(activePage='profile')}"></header>
 
-    <!-- ===== Empty state ===== -->
-    <div class="profile-manage__empty" th:if="${#lists.isEmpty(profiles)}">
-        <i data-lucide="user" class="profile-manage__empty-icon"></i>
-        <p class="profile-manage__empty-text">プロフィールがありません</p>
-        <a th:href="@{/profile/new}" class="profile-manage__empty-link">最初のプロフィールを追加する</a>
-    </div>
+		<main class="profile-manage">
+			<div class="profile-manage__top">
+				<div>
+					<h1 class="profile-manage__title">プロフィール管理</h1>
+					<p class="profile-manage__subtitle">本人・家族のプロフィールを管理します</p>
+				</div>
+				
+				<a th:if="${#lists.size(profiles) < 10}" th:href="@{/profile/new}" class="btn btn--primary">
+					<img th:src="@{/image/plus.png}" alt="" class="btn-icon" />
+					<span>追加</span>
+				</a>
+				<p th:if="${#lists.size(profiles) >= 10}" style="color:#999; font-size:0.85rem;">プロフィールは最大10件までです</p>
+			</div>
 
-    <!-- ===== List ===== -->
-    <div class="profile-manage__list" th:if="${!#lists.isEmpty(profiles)}">
-        <div class="profile-manage__card" th:each="p : ${profiles}"
-             th:classappend="${currentProfile != null and p.id == currentProfile.id} ? ' is-current'">
+			<div class="alert alert--error" th:if="${errorMessage}">
+				<img th:src="@{/image/warning.png}" alt="" class="alert-icon" />
+				<span th:text="${errorMessage}">エラーが発生しました</span>
+			</div>
 
-            <span class="profile-manage__avatar" th:text="${#strings.substring(p.name,0,1)}">山</span>
+			<!-- ===== Empty state ===== -->
+			<div class="profile-manage__empty" th:if="${#lists.isEmpty(profiles)}">
+				<img th:src="@{/image/user.png}" alt="" class="profile-manage__empty-icon" />
+				<p class="profile-manage__empty-text">プロフィールがありません</p>
+				<a th:href="@{/profile/new}" class="profile-manage__empty-link">最初のプロフィールを追加する</a>
+			</div>
 
-            <div class="profile-manage__info">
-                <div class="profile-manage__name-row">
-                    <span class="profile-manage__name" th:text="${p.name}">山田 太郎</span>
+			<!-- ===== List ===== -->
+			<div class="profile-manage__list" th:if="${!#lists.isEmpty(profiles)}">
+				<div class="profile-manage__card" th:each="p : ${profiles}"
+					 th:classappend="${currentProfile != null and p.id == currentProfile.id} ? ' is-current'">
+					<span class="profile-manage__avatar"
+						th:style="'background:' + (${p.profileColor} ?: '#94a3b8')"
+						th:text="${#strings.substring(p.name,0,1)}">山</span>
+					<div class="profile-manage__info">
+						<div class="profile-manage__name-row">
+							<span class="profile-manage__name" th:text="${p.name}">山田 太郎</span>
 
-                    <span class="badge badge--primary" th:if="${p.isPrimary}">本人</span>
-                    <span class="badge badge--relation" th:unless="${p.isPrimary}" th:text="${p.relationship}">父</span>
+							<span class="badge badge--primary" th:if="${p.isPrimary}">本人</span>
+							<span class="badge badge--relation" th:unless="${p.isPrimary}" th:text="${p.relationship}">父</span>
+							<img th:src="@{/image/shield.png}" alt="" class="profile-manage__admin-icon" th:if="${p.isPrimary}" />
+							<span class="badge badge--selected"
+								  th:if="${currentProfile != null and p.id == currentProfile.id}">選択中</span>
+						</div>
+						<div class="profile-manage__meta">
+							<span th:text="${#temporals.format(p.birthDate, 'yyyy-MM-dd')}">1974-01-01</span>
+							(<span th:text="${p.age}">52</span>歳)
+							/ 身長: <span th:text="${p.height}">175</span>cm
+						</div>
+					</div>
 
-                    <i data-lucide="shield" class="profile-manage__admin-icon" th:if="${p.isPrimary}"></i>
+					<div class="profile-manage__actions">
+						<form th:if="${currentProfile == null or p.id != currentProfile.id}"
+							  th:action="@{/profile/switch/{id}(id=${p.id})}" method="post">
+							  <button type="submit" class="btn btn--outline btn--sm">選択
+								<img th:src="@{/image/check.png}" alt="" class="btn-icon" />
+							  </button>
+						</form>
 
-                    <span class="badge badge--selected"
-                          th:if="${currentProfile != null and p.id == currentProfile.id}">選択中</span>
-                </div>
-                <div class="profile-manage__meta">
-                    <span th:text="${#temporals.format(p.birthDate, 'yyyy-MM-dd')}">1974-01-01</span>
-                    (<span th:text="${p.age}">52</span>歳)
-                    / 身長: <span th:text="${p.height}">175</span>cm
-                </div>
-            </div>
+						<a th:href="@{/profile/{id}/edit(id=${p.id})}" class="icon-btn" aria-label="編集">
+							<img th:src="@{/image/edit.png}" alt="編集" class="icon-btn-img" />
+						</a>
 
-            <div class="profile-manage__actions">
-                <form th:if="${currentProfile == null or p.id != currentProfile.id}"
-                      th:action="@{/profile/switch/{id}(id=${p.id})}" method="post">
-                    <button type="submit" class="btn btn--outline btn--sm">
-                        選択 <i data-lucide="chevron-right"></i>
-                    </button>
-                </form>
+						<button type="button" class="icon-btn icon-btn--danger delete-profile-btn"
+								th:if="${!p.isPrimary}"
+								th:attr="data-profile-id=${p.id},data-profile-name=${p.name}"
+								aria-label="削除">
+							<img th:src="@{/image/delete.png}" alt="削除" class="icon-btn-img" />
+						</button>
+					</div>
+				</div>
+			</div>
+		</main>
 
-                <a th:href="@{/profile/{id}/edit(id=${p.id})}" class="icon-btn" aria-label="編集">
-                    <i data-lucide="pencil"></i>
-                </a>
+		<div th:replace="~{layout/confirm-modal :: deleteModal}"></div>
 
-                <button type="button" class="icon-btn icon-btn--danger delete-profile-btn"
-                        th:if="${!p.isPrimary}"
-                        th:attr="data-profile-id=${p.id},data-profile-name=${p.name}"
-                        aria-label="削除">
-                    <i data-lucide="trash-2"></i>
-                </button>
-            </div>
-        </div>
-    </div>
-</main>
+		<form id="deleteProfileForm" method="post" th:action="@{/profile/delete}" style="display:none;">
+			<input type="hidden" name="profileId" id="deleteProfileId">
+		</form>
 
-<div th:replace="~{fragments/modal :: deleteModal}"></div>
+		<script th:src="@{/js/common.js}"></script>
+		<script th:src="@{/js/profile-manage.js}"></script>
+	</body>
 
-<form id="deleteProfileForm" method="post" th:action="@{/profile/delete}" style="display:none;">
-    <input type="hidden" name="profileId" id="deleteProfileId">
-</form>
-
-<script th:src="@{/js/common.js}"></script>
-<script th:src="@{/js/profile-manage.js}"></script>
-</body>
 </html>

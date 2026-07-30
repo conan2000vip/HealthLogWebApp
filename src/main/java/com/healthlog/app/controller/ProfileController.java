@@ -1,5 +1,7 @@
 package com.healthlog.app.controller;
 
+import java.util.List;
+
 import jakarta.servlet.http.HttpSession;
 
 import org.springframework.http.HttpStatus;
@@ -27,6 +29,10 @@ import com.healthlog.app.service.ProfileService;
 @Controller
 @RequestMapping("/profile")
 public class ProfileController {
+
+	private static final List<String> PROFILE_COLORS = List.of(
+			"#4a7fe0", "#2ec4a0", "#f5a623", "#e85d75", "#9b6dd6",
+			"#5cc9f5", "#f2994a", "#6fcf97", "#eb5757", "#bb6bd9");
 
 	private final ProfileService profileService;
 	private final UserRepository userRepository;
@@ -74,42 +80,49 @@ public class ProfileController {
 	}
 
 	// ===== Create =====
+
 	@GetMapping("/new")
 	public String newProfileForm(Model model) {
 		User user = getLoginUser();
 		model.addAttribute("profile", new Profile());
 		model.addAttribute("isFirstProfile", !profileService.hasAnyProfile(user.getId()));
+		model.addAttribute("profileColors", PROFILE_COLORS);
 		return "profile/profile-form";
 	}
 
 	@PostMapping("/new")
 	public String createProfile(@ModelAttribute() Profile profile,
 			BindingResult bindingResult, Model model, HttpSession session) {
-
 		User user = getLoginUser();
-		validate(profile, bindingResult);
-
+		boolean isFirstProfile = !profileService.hasAnyProfile(user.getId());
+		validate(profile, bindingResult, isFirstProfile);
 		if (bindingResult.hasErrors()) {
-			model.addAttribute("isFirstProfile", !profileService.hasAnyProfile(user.getId()));
+			model.addAttribute("isFirstProfile", isFirstProfile);
+			model.addAttribute("profileColors", PROFILE_COLORS);
 			return "profile/profile-form";
 		}
-
 		profile.setId(null);
 		profile.setUser(user);
 
+		// 最初のプロフィールは続柄を強制的に「本人」にする（クライアント入力を信用しない）
+		// isPrimary は ProfileService.create() 内で自動判定される
+		if (isFirstProfile) {
+			profile.setRelationship("本人");
+		}
 		try {
 			profile = profileService.create(profile);
 		} catch (BusinessException e) {
 			model.addAttribute("errorMessage", e.getMessage());
-			model.addAttribute("isFirstProfile", !profileService.hasAnyProfile(user.getId()));
+			model.addAttribute("isFirstProfile", isFirstProfile);
+			model.addAttribute("profileColors", PROFILE_COLORS);
 			return "profile/profile-form";
 		}
-
 		session.setAttribute(SessionConstants.CURRENT_PROFILE_ID, profile.getId());
 		return "redirect:/profile/" + profile.getId() + "/home";
 	}
 
 	// ===== Update =====
+
 	@GetMapping("/{id}/edit")
 	public String editProfileForm(@PathVariable Long id, Model model) {
 		User user = getLoginUser();
@@ -121,6 +134,7 @@ public class ProfileController {
 			return "profile/profile-manage";
 		}
 		model.addAttribute("isFirstProfile", false);
+		model.addAttribute("profileColors", PROFILE_COLORS);
 		return "profile/profile-form";
 	}
 
@@ -128,15 +142,13 @@ public class ProfileController {
 	public String updateProfile(@PathVariable Long id,
 			@ModelAttribute("profile") Profile formProfile,
 			BindingResult bindingResult, Model model) {
-
 		User user = getLoginUser();
-		validate(formProfile, bindingResult);
-
+		validate(formProfile, bindingResult, false);
 		if (bindingResult.hasErrors()) {
 			model.addAttribute("isFirstProfile", false);
+			model.addAttribute("profileColors", PROFILE_COLORS);
 			return "profile/profile-form";
 		}
-
 		try {
 			Profile profile = profileService.getProfile(user.getId(), id);
 			profile.setName(formProfile.getName());
@@ -153,17 +165,17 @@ public class ProfileController {
 		} catch (BusinessException e) {
 			model.addAttribute("errorMessage", e.getMessage());
 			model.addAttribute("isFirstProfile", false);
+			model.addAttribute("profileColors", PROFILE_COLORS);
 			return "profile/profile-form";
 		}
-
 		return "redirect:/profile/profile-manage";
 	}
 
 	// ===== Delete =====
+
 	@PostMapping("/delete")
 	public String deleteProfile(@RequestParam Long profileId, HttpSession session,
 			RedirectAttributes redirectAttributes) {
-
 		User user = getLoginUser();
 		try {
 			profileService.delete(user.getId(), profileId, session);
@@ -175,11 +187,11 @@ public class ProfileController {
 
 	// ===== helpers =====
 
-	private void validate(Profile profile, BindingResult bindingResult) {
+	private void validate(Profile profile, BindingResult bindingResult, boolean isFirstProfile) {
 		if (profile.getName() == null || profile.getName().isBlank()) {
 			bindingResult.rejectValue("name", "required", "名前を入力してください");
 		}
-		if (profile.getRelationship() == null || profile.getRelationship().isBlank()) {
+		if (!isFirstProfile && (profile.getRelationship() == null || profile.getRelationship().isBlank())) {
 			bindingResult.rejectValue("relationship", "required", "続柄を選択してください");
 		}
 		if (profile.getWaterGoalMl() == null) {
