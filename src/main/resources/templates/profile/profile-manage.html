@@ -17,7 +17,7 @@
 					<h1 class="profile-manage__title">プロフィール管理</h1>
 					<p class="profile-manage__subtitle">本人・家族のプロフィールを管理します</p>
 				</div>
-				
+
 				<a th:if="${#lists.size(profiles) < 10}" th:href="@{/profile/new}" class="btn btn--primary">
 					<img th:src="@{/image/plus.png}" alt="" class="btn-icon" />
 					<span>追加</span>
@@ -73,12 +73,14 @@
 							<img th:src="@{/image/edit.png}" alt="編集" class="icon-btn-img" />
 						</a>
 
-						<button type="button" class="icon-btn icon-btn--danger delete-profile-btn"
-								th:if="${!p.isPrimary}"
-								th:attr="data-profile-id=${p.id},data-profile-name=${p.name}"
-								aria-label="削除">
-							<img th:src="@{/image/delete.png}" alt="削除" class="icon-btn-img" />
-						</button>
+						<form th:if="${!p.isPrimary}" th:action="@{/profile/delete}" method="post"
+						      class="delete-form" style="display:inline"
+						      th:attr="data-confirm-message='「' + ${p.name} + '」のプロフィールを削除しますか？'">
+						    <input type="hidden" name="profileId" th:value="${p.id}" />
+						    <button type="submit" class="icon-btn icon-btn--danger" aria-label="削除">
+						        <img th:src="@{/image/delete.png}" alt="削除" class="icon-btn-img" />
+						    </button>
+						</form>
 					</div>
 				</div>
 			</div>
@@ -86,12 +88,7 @@
 
 		<div th:replace="~{layout/confirm-modal :: deleteModal}"></div>
 
-		<form id="deleteProfileForm" method="post" th:action="@{/profile/delete}" style="display:none;">
-			<input type="hidden" name="profileId" id="deleteProfileId">
-		</form>
-
 		<script th:src="@{/js/common.js}"></script>
-		<script th:src="@{/js/profile-manage.js}"></script>
 	</body>
 
 </html>

@@ -45,11 +45,26 @@ public class ProfileService {
 			throw new BusinessException(HttpStatus.BAD_REQUEST, "プロフィールは最大" + MAX_PROFILES + "件までです");
 		}
 		profile.setIsPrimary(count == 0);
+		if (count == 0) {
+			profile.setIsPrimary(true);
+			profile.setRelationship("本人");
+		} else {
+			profile.setIsPrimary(false);
+		}
 		return profileRepository.save(profile);
 	}
 
 	@Transactional
 	public Profile update(Profile profile) {
+
+		Profile dbProfile = profileRepository.findById(profile.getId())
+				.orElseThrow(() -> new BusinessException(
+						HttpStatus.NOT_FOUND,
+						"プロフィールが見つかりません"));
+
+		if (Boolean.TRUE.equals(dbProfile.getIsPrimary())) {
+			profile.setRelationship(dbProfile.getRelationship());
+		}
 		return profileRepository.save(profile);
 	}
 

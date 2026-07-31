@@ -105,7 +105,6 @@ public class ProfileController {
 		profile.setUser(user);
 
 		// 最初のプロフィールは続柄を強制的に「本人」にする（クライアント入力を信用しない）
-		// isPrimary は ProfileService.create() 内で自動判定される
 		if (isFirstProfile) {
 			profile.setRelationship("本人");
 		}
@@ -127,7 +126,9 @@ public class ProfileController {
 	public String editProfileForm(@PathVariable Long id, Model model) {
 		User user = getLoginUser();
 		try {
-			model.addAttribute("profile", profileService.getProfile(user.getId(), id));
+			Profile profile = profileService.getProfile(user.getId(), id);
+			model.addAttribute("profile", profile);
+			model.addAttribute("isPrimary", Boolean.TRUE.equals(profile.getIsPrimary()));
 		} catch (BusinessException e) {
 			model.addAttribute("errorMessage", e.getMessage());
 			model.addAttribute("profiles", profileService.getProfiles(user.getId()));
@@ -151,9 +152,11 @@ public class ProfileController {
 		}
 		try {
 			Profile profile = profileService.getProfile(user.getId(), id);
+			if (!Boolean.TRUE.equals(profile.getIsPrimary())) {
+				profile.setRelationship(formProfile.getRelationship());
+			}
 			profile.setName(formProfile.getName());
 			profile.setBirthDate(formProfile.getBirthDate());
-			profile.setRelationship(formProfile.getRelationship());
 			profile.setGender(formProfile.getGender());
 			profile.setHeight(formProfile.getHeight());
 			profile.setTargetWeight(formProfile.getTargetWeight());
@@ -185,23 +188,49 @@ public class ProfileController {
 		return "redirect:/profile/profile-manage";
 	}
 
-	// ===== helpers =====
+	// ===== Validation check =====
 
 	private void validate(Profile profile, BindingResult bindingResult, boolean isFirstProfile) {
 		if (profile.getName() == null || profile.getName().isBlank()) {
 			bindingResult.rejectValue("name", "required", "名前を入力してください");
 		}
+
+		if (profile.getBirthDate() == null) {
+			bindingResult.rejectValue("birthDate", "required", "生年月日を入力してください");
+		} else if (profile.getBirthDate().isAfter(java.time.LocalDate.now())) {
+			bindingResult.rejectValue("birthDate", "invalid", "生年月日には未来の日付を指定できません");
+		}
+
+		if (profile.getHeight() == null) {
+			bindingResult.rejectValue("height", "required", "身長を入力してください");
+		} else if (profile.getHeight().compareTo(java.math.BigDecimal.ZERO) <= 0) {
+			bindingResult.rejectValue("height", "invalid", "身長は0より大きい値を入力してください");
+		} else if (profile.getHeight().compareTo(java.math.BigDecimal.valueOf(300)) > 0) {
+			bindingResult.rejectValue("height", "invalid", "身長の値が正しくありません");
+		}
+
 		if (!isFirstProfile && (profile.getRelationship() == null || profile.getRelationship().isBlank())) {
 			bindingResult.rejectValue("relationship", "required", "続柄を選択してください");
 		}
-		if (profile.getWaterGoalMl() == null) {
-			bindingResult.rejectValue("waterGoalMl", "required", "水分目標を入力してください");
+
+		// ===== 健康目標: すべて任意項目。入力された場合のみ0以上をチェック =====
+		if (profile.getTargetWeight() != null
+				&& profile.getTargetWeight().compareTo(java.math.BigDecimal.ZERO) <= 0) {
+			bindingResult.rejectValue("targetWeight", "invalid", "目標体重は0より大きい値を入力してください");
 		}
-		if (profile.getStepGoal() == null) {
-			bindingResult.rejectValue("stepGoal", "required", "歩数目標を入力してください");
+
+		if (profile.getWaterGoalMl() != null && profile.getWaterGoalMl() < 0) {
+			bindingResult.rejectValue("waterGoalMl", "invalid", "水分目標は0以上の値を入力してください");
 		}
-		if (profile.getSleepGoalHours() == null) {
-			bindingResult.rejectValue("sleepGoalHours", "required", "睡眠目標を入力してください");
+
+		if (profile.getStepGoal() != null && profile.getStepGoal() < 0) {
+			bindingResult.rejectValue("stepGoal", "invalid", "歩数目標は0以上の値を入力してください");
+		}
+
+		if (profile.getSleepGoalHours() != null
+				&& (profile.getSleepGoalHours().compareTo(java.math.BigDecimal.ZERO) < 0
+						|| profile.getSleepGoalHours().compareTo(java.math.BigDecimal.valueOf(24)) > 0)) {
+			bindingResult.rejectValue("sleepGoalHours", "invalid", "睡眠目標は0〜24の範囲で入力してください");
 		}
 	}
 

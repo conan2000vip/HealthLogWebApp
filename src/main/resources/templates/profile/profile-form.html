@@ -42,102 +42,118 @@
 							<label for="name">名前 <span class="required">*</span></label>
 							<input type="text" id="name" th:field="*{name}" placeholder="例：山田 太郎" />
 							<span class="field-error show" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></span>
-                </div>
+						</div>
 
-                <div class="input-row">
-                    <div class="input-group">
-                        <label for="birthDate">生年月日<span class="required">*</span></label>
-                        <input type="date" id="birthDate" th:field="*{birthDate}" />
-						<span class="field-error show" th:if="${#fields.hasErrors('birthDate')}" th:errors="*{birthDate}"></span>
-                    </div>
+						<div class="input-row">
+							<div class="input-group">
+								<label for="birthDate">生年月日<span class="required">*</span></label>
+								<input type="date" id="birthDate" th:field="*{birthDate}" th:max="${#temporals.format(#temporals.createNow(), 'yyyy-MM-dd')}" />
+								<span class="field-error show" th:if="${#fields.hasErrors('birthDate')}" th:errors="*{birthDate}"></span>
+							</div>
 
-                    <div class="input-group">
-                        <label for="gender">性別</label>
-                        <select id="gender" th:field="*{gender}">
-                            <option value="">選択しない</option>
-                            <option value="MALE">男性</option>
-                            <option value="FEMALE">女性</option>
-                            <option value="OTHER">その他</option>
-                        </select>
-                    </div>
-                </div>
+							<div class="input-group">
+								<label for="gender">性別</label>
+								<select id="gender" th:field="*{gender}">
+									<option value="">選択しない</option>
+									<option value="MALE">男性</option>
+									<option value="FEMALE">女性</option>
+									<option value="OTHER">その他</option>
+								</select>
+							</div>
+						</div>
 
-                <div class="input-row">
-                    <div class="input-group" th:unless="${isFirstProfile}">
-                        <label for="relationship">続柄 <span class="required">*</span></label>
-                        <select id="relationship" th:field="*{relationship}">
-                            <option value="">選択してください</option>
-                            <option value="父">父</option>
-                            <option value="母">母</option>
-                            <option value="配偶者">配偶者</option>
-                            <option value="子ども">子ども</option>
-                            <option value="祖父">祖父</option>
-                            <option value="祖母">祖母</option>
-                            <option value="その他">その他</option>
-                        </select>
-                        <span class="field-error show" th:if="${#fields.hasErrors('relationship')}" th:errors="*{relationship}"></span>
-                    </div>
+						<div class="input-row">
+							<div class="input-group" th:unless="${isFirstProfile}">
+							    <label for="relationship"> 続柄 <span class="required">*</span></label>
 
-                    <!-- Profile đầu tiên luôn là 本人, không cho chọn -->
-                    <input type="hidden" th:if="${isFirstProfile}" th:field="*{relationship}" value="本人" />
+							    <!-- Profile chính -->
+							    <th:block th:if="${isPrimary}">
+							        <input type="text" value="本人" readonly />
+							        <input type="hidden" th:field="*{relationship}" />
+							    </th:block>
 
-                    <div class="input-group">
-                        <label for="height">身長 (cm)<span class="required">*</span></label>
-                        <input type="number" step="0.1" id="height" th:field="*{height}" placeholder="170.0" />
-						<span class="field-error show" th:if="${#fields.hasErrors('height')}" th:errors="*{height}"></span>
-                    </div>
-                </div>
+							    <!-- Các profile khác -->
+							    <th:block th:unless="${isPrimary}">
+							        <select id="relationship" th:field="*{relationship}">
+							            <option value="">選択してください</option>
+							            <option value="父">父</option>
+							            <option value="母">母</option>
+							            <option value="配偶者">配偶者</option>
+							            <option value="子ども">子ども</option>
+							            <option value="祖父">祖父</option>
+							            <option value="祖母">祖母</option>
+							            <option value="その他">その他</option>
+							        </select>
+							    </th:block>
+							    <span class="field-error show" th:if="${#fields.hasErrors('relationship')}" th:errors="*{relationship}">
+							    </span>
+							</div>
 
-                <div class="input-group">
-                    <label for="profileColor">プロフィールカラー</label>
-					<div class="color-picker">
-						<label class="color-option" th:each="c : ${profileColors}">
-							<input type="radio" th:field="*{profileColor}" th:value="${c}" />
-							<span class="color-swatch" th:style="'background:' + ${c}"></span>
-						</label>
+							<!-- Profile 最初は本人, 選択権限与えない -->
+							<input type="hidden" th:if="${isFirstProfile}" th:field="*{relationship}" value="本人" />
+							<input type="hidden" th:if="${isPrimary}" th:field="*{relationship}" />
+							<div class="input-group">
+								<label for="height">身長 (cm)<span class="required">*</span></label>
+								<input type="number" step="0.1" min="0" max="300" id="height" th:field="*{height}" placeholder="170.0" />
+								<span class="field-error show" th:if="${#fields.hasErrors('height')}" th:errors="*{height}"></span>
+							</div>
+						</div>
+
+						<div class="input-group">
+							<label for="profileColor">プロフィールカラー</label>
+							<div class="color-picker">
+								<label class="color-option" th:each="c : ${profileColors}">
+									<input type="radio" th:field="*{profileColor}" th:value="${c}" />
+									<span class="color-swatch" th:style="'background:' + ${c}"></span>
+								</label>
+							</div>
+						</div>
+					</fieldset>
+
+					<!-- ===== 健康目標 ===== -->
+					<fieldset class="profile-form__section">
+						<legend>健康目標</legend>
+
+						<div class="input-row">
+							<div class="input-group">
+								<label for="targetWeight">目標体重 (kg)</label>
+								<input type="number" step="0.1" min="0" id="targetWeight" th:field="*{targetWeight}" placeholder="65.0" />
+								<span class="field-error show" th:if="${#fields.hasErrors('targetWeight')}" th:errors="*{targetWeight}"></span>
+							</div>
+
+							<div class="input-group">
+								<label for="waterGoalMl">水分目標 (ml/日)</label>
+								<input type="number" min="0" id="waterGoalMl" th:field="*{waterGoalMl}" placeholder="2000" />
+								<span class="field-error show" th:if="${#fields.hasErrors('waterGoalMl')}" th:errors="*{waterGoalMl}"></span>
+							</div>
+						</div>
+
+						<div class="input-row">
+							<div class="input-group">
+								<label for="stepGoal">歩数目標 (歩/日)</label>
+								<input type="number" min="0" id="stepGoal" th:field="*{stepGoal}" placeholder="8000"/>
+								<span class="field-error show" th:if="${#fields.hasErrors('stepGoal')}" th:errors="*{stepGoal}"></span>
+							</div>
+
+							<div class="input-group">
+								<label for="sleepGoalHours">睡眠目標 (時間/日)</label>
+								<input type="number" step="0.5" min="0" max="24" id="sleepGoalHours" th:field="*{sleepGoalHours}" placeholder="8.0" />
+								<span class="field-error show" th:if="${#fields.hasErrors('sleepGoalHours')}" th:errors="*{sleepGoalHours}"></span>
+							</div>
+						</div>
+					</fieldset>
+
+					<div class="profile-form__actions">
+						<a th:unless="${isFirstProfile}" th:href="@{/profile/profile-manage}" class="btn btn--ghost">キャンセル</a>
+						<button type="submit" class="btn btn--primary btn--block">
+							<span th:text="${profile.id != null} ? '更新する' : '作成する'">作成する</span>
+						</button>
 					</div>
-                </div>
-            </fieldset>
+				</form>
+			</div>
+		</main>
 
-            <!-- ===== 健康目標 ===== -->
-            <fieldset class="profile-form__section">
-                <legend>健康目標</legend>
+		<script th:src="@{/js/common.js}"></script>
+	</body>
 
-                <div class="input-row">
-                    <div class="input-group">
-                        <label for="targetWeight">目標体重 (kg)</label>
-                        <input type="number" step="0.1" id="targetWeight" th:field="*{targetWeight}" placeholder="65.0" />
-                    </div>
-
-                    <div class="input-group">
-                        <label for="waterGoalMl">水分目標 (ml/日)</label>
-                        <input type="number" id="waterGoalMl" th:field="*{waterGoalMl}" />
-                    </div>
-                </div>
-
-                <div class="input-row">
-                    <div class="input-group">
-                        <label for="stepGoal">歩数目標 (歩/日)</label>
-                        <input type="number" id="stepGoal" th:field="*{stepGoal}" />
-                    </div>
-
-                    <div class="input-group">
-                        <label for="sleepGoalHours">睡眠目標 (時間/日)</label>
-                        <input type="number" step="0.5" id="sleepGoalHours" th:field="*{sleepGoalHours}" />
-                    </div>
-                </div>
-            </fieldset>
-
-            <div class="profile-form__actions">
-                <a th:unless="${isFirstProfile}" th:href="@{/profile/profile-manage}" class="btn btn--ghost">キャンセル</a>
-                <button type="submit" class="btn btn--primary btn--block">
-                    <span th:text="${profile.id != null} ? '更新する' : '作成する'">作成する</span>
-                </button>
-            </div>
-        </form>
-    </div>
-</main>
-
-<script th:src="@{/js/common.js}"></script>
-</body>
 </html>
