@@ -208,6 +208,55 @@ HealthLogWebApp/
 ---
 
 ## 7. 関連ドキュメント
+## Local Email Testing (MailHog)
 
-* [Docker.md](./Docker.md) — Docker環境構築の詳細手順（トラブルシューティング含む）
-* [ブランチ計画](./ブランチ計画.docx) — 開発ブランチ運用ルール
+This project uses MailHog for local email testing.
+
+### 1. Start MailHog
+
+Run MailHog before starting the application.
+
+- SMTP: localhost:1025
+- Web UI: http://localhost:8025
+
+### 2. Spring Mail Configuration
+
+```properties
+spring.mail.host=localhost
+spring.mail.port=1025
+spring.mail.properties.mail.smtp.auth=false
+spring.mail.properties.mail.smtp.starttls.enable=false
+```
+
+### 3. Test
+
+## Local Email Testing (MailHog)
+
+This project uses MailHog for local email testing.
+
+### 1. Start MailHog
+
+Run MailHog before starting the application.
+
+- SMTP: localhost:1025
+- Web UI: http://localhost:8025
+
+### 2. Spring Mail Configuration
+
+```properties
+spring.mail.host=localhost
+spring.mail.port=1025
+spring.mail.properties.mail.smtp.auth=false
+spring.mail.properties.mail.smtp.starttls.enable=false
+```
+
+### 3. Test
+
+Open http://localhost:8025 and use:
+
+- Register
+- Email Verification
+- Forgot Password
+
+All emails will appear in the MailHog inbox.
+
