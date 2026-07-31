@@ -8,7 +8,6 @@
 <body>
 	<header th:fragment="header(activePage)" class="app-header">
 		<div class="app-header__inner">
-
 			<a th:href="@{/profile/{profileId}/home(profileId=${currentProfile?.id})}" class="app-header__brand">
 				<span class="app-header__logo-icon">
 					<img th:src="@{/image/logo.png}" alt="HealthLog Logo" class="app-header__logo-img" />
@@ -17,61 +16,53 @@
 			</a>
 
 			<nav class="app-header__nav">
-
-				<a th:href="@{/profile/{profileId}/home(profileId=${currentProfile?.id})}"
-				   class="app-header__nav-item"
-				   th:classappend="${activePage == 'home'} ? ' is-active' : ''">
+				<a th:href="@{/profile/{profileId}/home(profileId=${currentProfile?.id})}" class="app-header__nav-item"
+					th:classappend="${activePage == 'home'} ? ' is-active' : ''">
 					<img th:src="@{/image/home.png}" alt="" class="app-header__nav-icon" />
 					<span>Home</span>
 				</a>
 
 				<a th:href="@{/profile/{profileId}/weight(profileId=${currentProfile?.id})}"
-				   class="app-header__nav-item"
-				   th:classappend="${activePage == 'weight'} ? ' is-active' : ''">
+					class="app-header__nav-item" th:classappend="${activePage == 'weight'} ? ' is-active' : ''">
 					<img th:src="@{/image/scales.png}" alt="" class="app-header__nav-icon" />
 					<span>体重</span>
 				</a>
 
-				<a th:href="@{/profile/{profileId}/sleep(profileId=${currentProfile?.id})}"
-				   class="app-header__nav-item"
-				   th:classappend="${activePage == 'sleep'} ? ' is-active' : ''">
+				<a th:href="@{/profile/{profileId}/sleep(profileId=${currentProfile?.id})}" class="app-header__nav-item"
+					th:classappend="${activePage == 'sleep'} ? ' is-active' : ''">
 					<img th:src="@{/image/sleep.png}" alt="" class="app-header__nav-icon" />
 					<span>睡眠</span>
 				</a>
 
-				<a th:href="@{/profile/{profileId}/water(profileId=${currentProfile?.id})}"
-				   class="app-header__nav-item"
-				   th:classappend="${activePage == 'water'} ? ' is-active' : ''">
+				<a th:href="@{/profile/{profileId}/water(profileId=${currentProfile?.id})}" class="app-header__nav-item"
+					th:classappend="${activePage == 'water'} ? ' is-active' : ''">
 					<img th:src="@{/image/water.png}" alt="" class="app-header__nav-icon" />
 					<span>水分</span>
 				</a>
 
-				<a th:href="@{/profile/{profileId}/step(profileId=${currentProfile?.id})}"
-				   class="app-header__nav-item"
-				   th:classappend="${activePage == 'step'} ? ' is-active' : ''">
+				<a th:href="@{/profile/{profileId}/step(profileId=${currentProfile?.id})}" class="app-header__nav-item"
+					th:classappend="${activePage == 'step'} ? ' is-active' : ''">
 					<img th:src="@{/image/footstep.png}" alt="" class="app-header__nav-icon" />
 					<span>歩数</span>
 				</a>
 
-				<a th:href="@{/profile/{profileId}/memo(profileId=${currentProfile?.id})}"
-				   class="app-header__nav-item"
-				   th:classappend="${activePage == 'memo'} ? ' is-active' : ''">
+				<a th:href="@{/profile/{profileId}/memo(profileId=${currentProfile?.id})}" class="app-header__nav-item"
+					th:classappend="${activePage == 'memo'} ? ' is-active' : ''">
 					<img th:src="@{/image/notes.png}" alt="" class="app-header__nav-icon" />
 					<span>健康メモ</span>
 				</a>
 
-				<a th:href="@{/profile/profile-manage}"
-				   class="app-header__nav-item"
-				   th:classappend="${activePage == 'profile'} ? ' is-active' : ''">
+				<a th:href="@{/profile/profile-manage}" class="app-header__nav-item"
+					th:classappend="${activePage == 'profile'} ? ' is-active' : ''">
 					<img th:src="@{/image/profile.png}" alt="" class="app-header__nav-icon" />
 					<span>プロファイル</span>
 				</a>
-
 			</nav>
 
 			<div class="app-header__right">
 				<div class="app-header__user-wrap">
-					<button type="button" class="app-header__user" id="userMenuToggle" aria-haspopup="true" aria-expanded="false">
+					<button type="button" class="app-header__user" id="userMenuToggle" aria-haspopup="true"
+						aria-expanded="false">
 						<span class="app-header__avatar"
 							th:style="'background:' + (${currentProfile?.profileColor} ?: '#94a3b8')"
 							th:text="${#strings.substring(currentProfile?.name ?: '?', 0, 1)}">山</span>
@@ -94,10 +85,12 @@
 											th:text="${#strings.substring(p.name,0,1)}">山</span>
 										<span class="app-header__profile-name-wrap">
 											<span class="app-header__profile-name" th:text="${p.name}">山田 太郎</span>
-											<span class="app-header__profile-relation" th:text="${p.isPrimary} ? '本人' : ${p.relationship}">本人</span>
+											<span class="app-header__profile-relation"
+												th:text="${p.isPrimary} ? '本人' : ${p.relationship}">本人</span>
 										</span>
 										<span class="app-header__profile-check">
-											<img th:src="@{/image/check.png}" alt="" th:if="${currentProfile != null and p.id == currentProfile.id}" />
+											<img th:src="@{/image/check.png}" alt=""
+												th:if="${currentProfile != null and p.id == currentProfile.id}" />
 										</span>
 									</button>
 								</form>
@@ -124,6 +117,6 @@
 	</header>
 
 	<script th:src="@{/js/common.js}"></script>
-
 </body>
+
 </html>

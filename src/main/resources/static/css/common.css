@@ -28,14 +28,7 @@ body {
 	min-height: 100vh;
 	position: relative;
 	font-family: var(--wp-font);
-
-	background:
-		radial-gradient(circle at top,
-			rgba(76, 175, 80, .06),
-			transparent 35%),
-		linear-gradient(180deg,
-			#FCFCFD,
-			#F7F8FA);
+	background: var(--wp-bg-gradient);
 }
 
 /* ===== Header ===== */
@@ -778,6 +771,15 @@ body {
 .icon-btn i {
 	width: 16px;
 	height: 16px;
+}
+
+.icon-btn-img {
+	width: 20px;
+	height: 20px;
+	max-width: 20px;
+	max-height: 20px;
+	object-fit: contain;
+	display: block;
 }
 
 .icon-btn:hover {

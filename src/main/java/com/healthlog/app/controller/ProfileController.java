@@ -75,8 +75,33 @@ public class ProfileController {
 			profileService.switchProfile(session, user.getId(), id);
 		} catch (BusinessException e) {
 			redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+			return "redirect:" + (referer != null ? referer : "/home");
 		}
-		return "redirect:" + (referer != null ? referer : "/home");
+
+		String redirectUrl = buildRedirectUrl(referer, id);
+		return "redirect:" + redirectUrl;
+	}
+
+	// referer が "/profile/{任意の数字}/xxx" の形なら、その数字部分を新しい id に置き換える
+	private String buildRedirectUrl(String referer, Long newProfileId) {
+		if (referer == null || referer.isBlank()) {
+			return "/profile/" + newProfileId + "/home";
+		}
+		// URL から path 部分だけ取り出す（クエリパラメータは除く）
+		String path;
+		try {
+			java.net.URI uri = java.net.URI.create(referer);
+			path = uri.getPath();
+		} catch (Exception e) {
+			return "/profile/" + newProfileId + "/home";
+		}
+
+		// "/profile/{数字}/..." のパターンなら数字を置き換える
+		if (path.matches("^/profile/\\d+(/.*)?$")) {
+			return path.replaceFirst("^/profile/\\d+", "/profile/" + newProfileId);
+		}
+		// profileId を含まないページ（/home など）ならそのまま
+		return path;
 	}
 
 	// ===== Create =====
@@ -117,7 +142,7 @@ public class ProfileController {
 			return "profile/profile-form";
 		}
 		session.setAttribute(SessionConstants.CURRENT_PROFILE_ID, profile.getId());
-		return "redirect:/profile/" + profile.getId() + "/home";
+		return "redirect:/profile/profile-manage";
 	}
 
 	// ===== Update =====
@@ -142,7 +167,8 @@ public class ProfileController {
 	@PostMapping("/{id}/edit")
 	public String updateProfile(@PathVariable Long id,
 			@ModelAttribute("profile") Profile formProfile,
-			BindingResult bindingResult, Model model) {
+			BindingResult bindingResult, Model model,
+			RedirectAttributes redirectAttributes) {
 		User user = getLoginUser();
 		validate(formProfile, bindingResult, false);
 		if (bindingResult.hasErrors()) {
@@ -154,6 +180,7 @@ public class ProfileController {
 			Profile profile = profileService.getProfile(user.getId(), id);
 			if (!Boolean.TRUE.equals(profile.getIsPrimary())) {
 				profile.setRelationship(formProfile.getRelationship());
+				redirectAttributes.addFlashAttribute("message", "プロフィールを更新しました");
 			}
 			profile.setName(formProfile.getName());
 			profile.setBirthDate(formProfile.getBirthDate());
@@ -182,6 +209,7 @@ public class ProfileController {
 		User user = getLoginUser();
 		try {
 			profileService.delete(user.getId(), profileId, session);
+			redirectAttributes.addFlashAttribute("message", "プロフィールを削除しました");
 		} catch (BusinessException e) {
 			redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
 		}

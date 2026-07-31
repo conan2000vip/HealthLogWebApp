@@ -1,0 +1,122 @@
+/* =========================================================
+   Sleep Page
+   ========================================================= */
+
+.sleep-page {
+	min-height: calc(100vh - 72px);
+}
+
+.sleep-page__inner {
+	max-width: 1080px;
+	margin: 0 auto;
+	padding: 32px 24px 64px;
+}
+
+/* ---------- Page Header ---------- */
+
+.sleep-page__header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 16px;
+	margin-bottom: 24px;
+}
+
+.sleep-page__heading {
+	display: flex;
+	align-items: center;
+	gap: 14px;
+}
+
+.sleep-page__icon-img {
+	width: 35px;
+	height: 35px;
+	max-width: 35px;
+	max-height: 35px;
+	object-fit: contain;
+	display: block;
+}
+
+.sleep-page__heading h1 {
+	margin: 0;
+	font-size: 22px;
+	font-weight: 800;
+}
+
+.sleep-page__heading p {
+	margin: 2px 0 0;
+	font-size: 13px;
+	color: var(--wp-text-muted);
+}
+
+/* =========================================================
+   Sleep Table Only
+   ========================================================= */
+
+.sleep-table__duration {
+	font-weight: 700;
+}
+
+.sleep-table__memo {
+	max-width: 200px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	color: var(--wp-text-muted);
+}
+
+.sleep-table__actions {
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+	gap: 6px;
+}
+
+.sleep-table__actions-col {
+	width: 90px;
+}
+
+.stats-period-note {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	margin-top: -8px;
+	margin-bottom: 16px;
+	font-size: 0.8rem;
+	color: #888;
+}
+
+.stats-period-note i {
+	width: 14px;
+	height: 14px;
+	flex-shrink: 0;
+}
+
+.modal .form {
+	padding: 20px 24px 24px;
+}
+
+/* =========================================================
+   Responsive
+   ========================================================= */
+
+@media (max-width: 560px) {
+
+	.sleep-page__inner {
+		padding: 20px 14px 48px;
+	}
+
+	.sleep-page__header {
+		flex-direction: column;
+		align-items: flex-start;
+	}
+
+	.sleep-table {
+		font-size: 13px;
+	}
+
+	.sleep-table__memo {
+		display: none;
+	}
+
+}

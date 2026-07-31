@@ -1,15 +1,6 @@
 /* ===================================================
    PROFILE MANAGE
 =================================================== */
-.icon-btn-img {
-	width: 25px;
-	height: 25px;
-	max-width: 25px;
-	max-height: 25px;
-	object-fit: contain;
-	display: block;
-}
-
 .btn-icon {
 	width: 14px;
 	height: 14px;
@@ -32,7 +23,7 @@
 .btn--primary {
 	font-size: 15px;
 	font-weight: 700;
-	padding: 12px 22px;
+	padding: 10px 18px;
 	border-radius: 10px;
 	text-decoration: none;
 }
@@ -49,7 +40,7 @@
 
 .btn--sm {
 	font-size: 14px;
-	padding: 10px 18px;
+	padding: 6px 10px;
 }
 
 .profile-manage {

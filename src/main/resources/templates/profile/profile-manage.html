@@ -19,15 +19,24 @@
 				</div>
 
 				<a th:if="${#lists.size(profiles) < 10}" th:href="@{/profile/new}" class="btn btn--primary">
-					<img th:src="@{/image/plus.png}" alt="" class="btn-icon" />
+					<i data-lucide="plus"></i>
 					<span>追加</span>
 				</a>
 				<p th:if="${#lists.size(profiles) >= 10}" style="color:#999; font-size:0.85rem;">プロフィールは最大10件までです</p>
 			</div>
 
-			<div class="alert alert--error" th:if="${errorMessage}">
-				<img th:src="@{/image/warning.png}" alt="" class="alert-icon" />
-				<span th:text="${errorMessage}">エラーが発生しました</span>
+			<!-- Business Error / Success -->
+			<div class="alert alert--error" th:if="${error}" id="errorAlert">
+				<i data-lucide="alert-circle"></i><span th:text="${error}"></span>
+				<button type="button" class="alert__close" onclick="this.closest('.alert').remove()">
+					<i data-lucide="x"></i>
+				</button>
+			</div>
+			<div class="alert alert--success" th:if="${message}" id="successAlert">
+				<i data-lucide="check-circle"></i><span th:text="${message}"></span>
+				<button type="button" class="alert__close" onclick="this.closest('.alert').remove()">
+					<i data-lucide="x"></i>
+				</button>
 			</div>
 
 			<!-- ===== Empty state ===== -->
@@ -88,6 +97,7 @@
 
 		<div th:replace="~{layout/confirm-modal :: deleteModal}"></div>
 
+		<script src="https://unpkg.com/lucide@latest"></script>
 		<script th:src="@{/js/common.js}"></script>
 	</body>
 
