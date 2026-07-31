@@ -65,7 +65,6 @@ document.addEventListener("DOMContentLoaded", () => {
             showError("newPassword", "新しいパスワードを入力してください");
             return false;
         }
-        // FIX 2: inputId phải là "newPassword" (không phải "password"),
         // vì input thực tế có id="newPassword"
         if (value.length < 8 || value.length > 100) {
             showError("newPassword", "パスワードは8〜100文字で入力してください");

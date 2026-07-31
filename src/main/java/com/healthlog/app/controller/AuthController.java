@@ -10,9 +10,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.healthlog.app.exception.BusinessException;
 import com.healthlog.app.service.AuthService;
 import com.healthlog.app.service.ProfileService;
 
@@ -48,8 +48,8 @@ public class AuthController {
 					"message",
 					"登録が完了しました。確認メールをご確認のうえ、メール認証を行ってください。");
 			return "redirect:/auth/login";
-		} catch (ResponseStatusException e) {
-			redirectAttributes.addFlashAttribute("error", e.getReason());
+		} catch (BusinessException e) {
+			redirectAttributes.addFlashAttribute("error", e.getMessage());
 			// 入力値を保持してユーザーの再入力負担を軽減（パスワードは保持しない）
 			redirectAttributes.addFlashAttribute("accountName", accountName);
 			redirectAttributes.addFlashAttribute("email", email);
@@ -78,11 +78,11 @@ public class AuthController {
 				return "redirect:/profile/new";
 			}
 			return "redirect:/profile/select-profile";
-		} catch (ResponseStatusException e) {
-			redirectAttributes.addFlashAttribute("error", e.getReason());
+		} catch (BusinessException e) {
+			redirectAttributes.addFlashAttribute("error", e.getMessage());
 			redirectAttributes.addFlashAttribute("email", email);
 			// login.html はこのフラグを見て「確認メールを再送する」ボタンの表示を切り替える
-			if (e.getStatusCode() == HttpStatus.FORBIDDEN) {
+			if (e.getStatus() == HttpStatus.FORBIDDEN) {
 				redirectAttributes.addFlashAttribute("emailNotVerified", true);
 			}
 			return "redirect:/auth/login";
@@ -106,8 +106,8 @@ public class AuthController {
 			redirectAttributes.addFlashAttribute(
 					"message",
 					"メール認証が完了しました。ログインしてください。");
-		} catch (ResponseStatusException e) {
-			redirectAttributes.addFlashAttribute("error", e.getReason());
+		} catch (BusinessException e) {
+			redirectAttributes.addFlashAttribute("error", e.getMessage());
 		}
 		return "redirect:/auth/login";
 	}
@@ -119,9 +119,9 @@ public class AuthController {
 			RedirectAttributes redirectAttributes) {
 		try {
 			authService.resendVerification(email);
-		} catch (ResponseStatusException e) {
+		} catch (BusinessException e) {
 			// 入力形式エラー（空欄・不正な形式）のみユーザーに表示
-			redirectAttributes.addFlashAttribute("error", e.getReason());
+			redirectAttributes.addFlashAttribute("error", e.getMessage());
 			return "redirect:/auth/login";
 		}
 		// メール存在有無・認証済み有無に関わらず同一メッセージを表示（列挙攻撃対策）
@@ -144,8 +144,8 @@ public class AuthController {
 			RedirectAttributes redirectAttributes) {
 		try {
 			authService.requestPasswordReset(email);
-		} catch (ResponseStatusException e) {
-			redirectAttributes.addFlashAttribute("error", e.getReason());
+		} catch (BusinessException e) {
+			redirectAttributes.addFlashAttribute("error", e.getMessage());
 			redirectAttributes.addFlashAttribute("email", email);
 			return "redirect:/auth/forgot-password";
 		}
@@ -184,8 +184,8 @@ public class AuthController {
 					"message",
 					"パスワードを変更しました。新しいパスワードでログインしてください。");
 			return "redirect:/auth/login";
-		} catch (ResponseStatusException e) {
-			redirectAttributes.addFlashAttribute("error", e.getReason());
+		} catch (BusinessException e) {
+			redirectAttributes.addFlashAttribute("error", e.getMessage());
 			redirectAttributes.addFlashAttribute("token", token);
 			return "redirect:/auth/password-reset?token=" + token;
 		}

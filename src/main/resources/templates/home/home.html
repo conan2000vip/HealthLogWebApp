@@ -9,6 +9,12 @@
 
 	<body>
 		<header th:replace="~{layout/header :: header(activePage='home')}"></header>
+		
+		<!-- Business Error -->
+		<div id="backendError" class="error-message" th:if="${error}">
+			<i data-lucide="alert-circle"></i>
+			<span th:text="${error}"></span>
+		</div>
 
 		<main style="max-width:900px; margin:0 auto; padding:32px 20px;">
 			<p>ホーム画面（仮）— プロフィール: <span th:text="${currentProfile.name}"></span></p>

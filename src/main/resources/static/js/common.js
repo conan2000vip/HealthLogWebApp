@@ -248,3 +248,18 @@ function initPositiveNumberInputs() {
         });
     });
 }
+
+//Business Error
+function clearBusinessError() {
+    document.querySelectorAll(".error-message").forEach(error => {
+        error.remove();
+    });
+}
+document.addEventListener("DOMContentLoaded", () => {
+    document.querySelectorAll("input, textarea").forEach(el => {
+        el.addEventListener("input", clearBusinessError);
+    });
+    document.querySelectorAll("select").forEach(el => {
+        el.addEventListener("change", clearBusinessError);
+    });
+});
