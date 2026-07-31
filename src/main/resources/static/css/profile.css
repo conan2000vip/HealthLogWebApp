@@ -2,10 +2,10 @@
    PROFILE MANAGE
 =================================================== */
 .icon-btn-img {
-	width: 16px;
-	height: 16px;
-	max-width: 16px;
-	max-height: 16px;
+	width: 25px;
+	height: 25px;
+	max-width: 25px;
+	max-height: 25px;
 	object-fit: contain;
 	display: block;
 }
@@ -41,11 +41,6 @@
 .btn--primary:visited,
 .btn--primary:active {
 	text-decoration: none;
-}
-
-.btn--primary .btn-icon {
-	width: 18px;
-	height: 18px;
 }
 
 .btn--outline:hover {
@@ -350,6 +345,31 @@
 	padding: 32px;
 	border: 1px solid #dfe6ea;
 	box-shadow: none;
+	position: relative;
+}
+
+.profile-form-page__close {
+	position: absolute;
+	top: 16px;
+	right: 16px;
+	width: 36px;
+	height: 36px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 50%;
+	text-decoration: none;
+	transition: background .2s;
+}
+
+.profile-form-page__close:hover {
+	background: #f3f4f6;
+}
+
+.profile-form-page__close img {
+	width: 25px;
+	height: 25px;
+	display: block;
 }
 
 .profile-form-page__top {

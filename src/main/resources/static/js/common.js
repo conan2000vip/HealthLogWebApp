@@ -249,7 +249,7 @@ function initPositiveNumberInputs() {
     });
 }
 
-//Business Error
+//Business Error + FieldError
 function clearBusinessError() {
     document.querySelectorAll(".error-message").forEach(error => {
         error.remove();
@@ -261,5 +261,21 @@ document.addEventListener("DOMContentLoaded", () => {
     });
     document.querySelectorAll("select").forEach(el => {
         el.addEventListener("change", clearBusinessError);
+    });
+});
+
+function clearFieldError(event) {
+    const group = event.target.closest(".input-group");
+    if (!group) return;
+
+    const error = group.querySelector(".field-error");
+    if (error) {
+        error.remove();
+    }
+}
+document.addEventListener("DOMContentLoaded", () => {
+    document.querySelectorAll("input, textarea, select").forEach(el => {
+        el.addEventListener("input", clearFieldError);
+        el.addEventListener("change", clearFieldError);
     });
 });

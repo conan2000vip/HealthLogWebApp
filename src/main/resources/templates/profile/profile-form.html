@@ -24,6 +24,9 @@
 						健康記録を始めるには、まずプロフィールを作成してください
 					</p>
 				</div>
+				<a th:unless="${isFirstProfile}" th:href="@{/profile/profile-manage}" class="profile-form-page__close">
+					<img th:src="@{/image/close.png}" alt="閉じる">
+				</a>
 
 				<div class="alert alert--error" th:if="${errorMessage}">
 					<img th:src="@{/image/warning.png}" alt="" class="alert-icon" />
