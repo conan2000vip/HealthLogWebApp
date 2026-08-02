@@ -75,7 +75,7 @@ CREATE TABLE `memo_logs` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `profile_id` bigint unsigned NOT NULL,
   `recorded_date` date NOT NULL,
-  `title` int NOT NULL,
+  `title` vachar(255) NOT NULL,
   `memo` text,
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
