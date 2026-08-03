@@ -53,6 +53,21 @@
    Weight Table Only
    ========================================================= */
 
+/* 日付・時間 は内容が短いので幅を固定し、余白が偏らないようにする */
+.weight-table th:nth-child(1),
+.weight-table td:nth-child(1) {
+	width: 110px;
+	white-space: nowrap;
+}
+
+.weight-table th.weight-table__time,
+.weight-table td.weight-table__time {
+	width: 70px;
+	white-space: nowrap;
+	color: var(--wp-text-muted);
+	text-align: center;
+}
+
 .weight-table__weight {
 	font-weight: 700;
 }
@@ -115,8 +130,9 @@
 		font-size: 13px;
 	}
 
+	/* メモ列: th と td を両方とも非表示にしてヘッダーとボディの列数を一致させる */
+	.weight-table th:nth-child(5),
 	.weight-table__memo {
 		display: none;
 	}
-
 }

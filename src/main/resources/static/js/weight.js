@@ -100,30 +100,32 @@ function initModal() {
     const form = document.getElementById("weightForm");
 
     const recordId = document.getElementById("recordId");
-    const dateInput = document.getElementById("date");
+    const measuredAtInput = document.getElementById("measuredAt");
     const weightInput = document.getElementById("weight");
     const heightInput = document.getElementById("height");
     const memoInput = document.getElementById("memo");
 
     if (!overlay || !form) return;
 
-    function openModal({ mode = "create", id = "", date = "", weight = "", height = "", memo = "" } = {}) {
+    function openModal({ mode = "create", id = "", measuredAt = "", weight = "", height = "", memo = "" } = {}) {
         modalTitle.textContent = mode === "edit" ? "体重を編集する" : "体重を記録する";
         recordId.value = id;
-        dateInput.value = date || todayIso();
+        measuredAtInput.value = normalizeToDateTimeLocal(measuredAt) || todayIso();
         weightInput.value = weight;
         heightInput.value = height;
         memoInput.value = memo;
         clearAllErrors();
         overlay.classList.add("is-open");
-        dateInput.focus();
+        measuredAtInput.focus();
     }
 
     function closeModal() {
         overlay.classList.remove("is-open");
     }
 
-    openBtns.forEach((btn) => btn.addEventListener("click", () => openModal({ mode: "create", date: btn.dataset.date || "" })));
+    openBtns.forEach((btn) =>
+        btn.addEventListener("click", () => openModal({ mode: "create", measuredAt: btn.dataset.measuredAt || "" }))
+    );
     if (closeBtn) closeBtn.addEventListener("click", closeModal);
     if (cancelBtn) cancelBtn.addEventListener("click", closeModal);
 
@@ -141,7 +143,7 @@ function initModal() {
             openModal({
                 mode: "edit",
                 id: btn.dataset.id || "",
-                date: btn.dataset.date || "",
+                measuredAt: btn.dataset.measuredAt || "",
                 weight: btn.dataset.weight || "",
                 height: btn.dataset.height || "",
                 memo: btn.dataset.memo || "",
@@ -150,17 +152,17 @@ function initModal() {
     });
 
     // 入力時にエラーをクリア
-    [dateInput, weightInput, heightInput].forEach((input) => {
+    [measuredAtInput, weightInput, heightInput].forEach((input) => {
         if (input) input.addEventListener("input", () => clearError(input.id));
     });
 
     // バリデーション
-    function validateDate() {
-        if (!dateInput.value) {
-            showError("date", "日付を入力してください");
+    function validateMeasuredAt() {
+        if (!measuredAtInput.value) {
+            showError("measuredAt", "日時を入力してください");
             return false;
         }
-        clearError("date");
+        clearError("measuredAt");
         return true;
     }
 
@@ -195,11 +197,11 @@ function initModal() {
     }
 
     form.addEventListener("submit", (event) => {
-        const isDateValid = validateDate();
+        const isMeasuredAtValid = validateMeasuredAt();
         const isWeightValid = validateWeight();
         const isHeightValid = validateHeight();
 
-        if (!isDateValid || !isWeightValid || !isHeightValid) {
+        if (!isMeasuredAtValid || !isWeightValid || !isHeightValid) {
             event.preventDefault();
         }
     });
@@ -225,13 +227,26 @@ function initModal() {
     }
 
     function clearAllErrors() {
-        ["date", "weight", "height"].forEach(clearError);
+        ["measuredAt", "weight", "height"].forEach(clearError);
+    }
+
+    // datetime-local input は "yyyy-MM-ddTHH:mm" 形式のみ受け付ける。
+    // filterStartDate 等、日付のみ（yyyy-MM-dd）で渡ってきた場合は 00:00 を補完する。
+    function normalizeToDateTimeLocal(value) {
+        if (!value) return "";
+        if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+            return `${value}T00:00`;
+        }
+        // "yyyy-MM-ddTHH:mm:ss" など秒以下が付いている場合は切り詰める
+        return value.slice(0, 16);
     }
 
     function todayIso() {
         const d = new Date();
         const mm = String(d.getMonth() + 1).padStart(2, "0");
         const dd = String(d.getDate()).padStart(2, "0");
-        return `${d.getFullYear()}-${mm}-${dd}`;
+        const hh = String(d.getHours()).padStart(2, "0");
+        const mi = String(d.getMinutes()).padStart(2, "0");
+        return `${d.getFullYear()}-${mm}-${dd}T${hh}:${mi}`;
     }
 }

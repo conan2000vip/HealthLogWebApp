@@ -429,6 +429,102 @@ body {
 	}
 }
 
+/* ===== Mobile nav toggle (hamburger) ===== */
+
+.app-header__nav-toggle {
+	display: none;
+	align-items: center;
+	justify-content: center;
+	width: 40px;
+	height: 40px;
+	border: 1px solid #E5E7EB;
+	border-radius: 12px;
+	background: #fff;
+	color: #667085;
+	cursor: pointer;
+	flex-shrink: 0;
+}
+
+.app-header__nav-toggle:hover {
+	background: #F3F4F6;
+	color: #111827;
+}
+
+@media (max-width: 1024px) {
+	.app-header__nav-item span {
+		display: none;
+	}
+
+	.app-header__nav {
+		overflow-x: auto;
+	}
+
+	.app-header__user-info {
+		display: none;
+	}
+}
+
+@media (max-width: 1100px) {
+	.app-header__inner {
+		position: relative;
+	}
+
+	.app-header__nav-toggle {
+		display: flex;
+	}
+
+	.app-header__nav {
+		display: none;
+		position: absolute;
+		top: 100%;
+		left: 0;
+		right: 0;
+		flex-direction: column;
+		align-items: stretch;
+		background: #fff;
+		border: 1px solid #E5E7EB;
+		border-radius: 0 0 16px 16px;
+		box-shadow: 0 12px 24px rgba(15, 23, 42, .1);
+		padding: 8px;
+		gap: 2px;
+		overflow: visible;
+		white-space: normal;
+		z-index: 150;
+	}
+
+	.app-header__nav.open {
+		display: flex;
+	}
+
+	.app-header__nav-item {
+		width: 100%;
+	}
+
+	.app-header__nav-item span {
+		display: inline;
+	}
+
+	.app-header__user-wrap {
+		position: static;
+	}
+
+	.app-header__dropdown {
+		left: 12px;
+		right: 12px;
+		width: auto;
+	}
+}
+
+@media (max-width: 600px) {
+	.app-header__inner {
+		padding: 10px 12px;
+		gap: 10px;
+	}
+
+	.app-header__brand-name {
+		display: none;
+	}
+}
 /* =========================================================
    Alert (Shared) — dùng cho weight, feedback, và các trang khác
    ========================================================= */

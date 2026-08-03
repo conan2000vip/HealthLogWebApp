@@ -3,8 +3,10 @@ package com.healthlog.app.controller;
 import java.beans.PropertyEditorSupport;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Map;
 
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.WebDataBinder;
@@ -86,14 +88,17 @@ public class WeightController {
 	public String save(
 			@PathVariable Long profileId,
 			@RequestParam(required = false) Long recordId,
-			@RequestParam LocalDate date,
+			@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime measuredAt,
 			@RequestParam BigDecimal weight,
 			@RequestParam(required = false) BigDecimal height,
 			@RequestParam(required = false) String memo,
 			RedirectAttributes redirectAttributes) {
+
 		Long currentUserId = currentUserId();
+
 		Weight input = new Weight();
-		input.setRecordedDate(date);
+		input.setMeasuredAt(measuredAt);
+		input.setRecordedDate(measuredAt.toLocalDate()); // sinh recordedDate từ measuredAt
 		input.setWeight(weight);
 		input.setHeight(height);
 		input.setMemo(memo);
