@@ -264,15 +264,19 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 });
 
+// FieldError
 function clearFieldError(event) {
     const group = event.target.closest(".input-group");
     if (!group) return;
 
     const error = group.querySelector(".field-error");
     if (error) {
-        error.remove();
+        error.classList.remove("show");   // エラー表示を非表示にする
+        const span = error.querySelector("span");
+        if (span) span.textContent = "";
     }
 }
+
 document.addEventListener("DOMContentLoaded", () => {
     document.querySelectorAll("input, textarea, select").forEach(el => {
         el.addEventListener("input", clearFieldError);

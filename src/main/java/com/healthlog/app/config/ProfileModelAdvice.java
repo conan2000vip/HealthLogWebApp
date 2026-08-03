@@ -16,6 +16,7 @@ import com.healthlog.app.repository.UserRepository;
 import com.healthlog.app.service.ProfileService;
 
 @ControllerAdvice
+// 全てのコントローラーに profileList と currentProfile を追加する
 public class ProfileModelAdvice {
 
 	private final ProfileService profileService;
@@ -27,6 +28,7 @@ public class ProfileModelAdvice {
 	}
 
 	@ModelAttribute
+	// 全てのコントローラーに profileList と currentProfile を追加する
 	public void addProfileAttributes(Model model, HttpSession session) {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {

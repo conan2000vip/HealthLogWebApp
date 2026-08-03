@@ -9,6 +9,8 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 @Configuration
 @EnableAsync
+
+// このアノテーションを付与することで、非同期処理を有効化します。
 public class AsyncConfig {
 
 	@Bean(name = "mailExecutor")

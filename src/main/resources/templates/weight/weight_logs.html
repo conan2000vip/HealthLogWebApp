@@ -23,7 +23,7 @@
 				<div class="weight-page__header">
 					<div class="weight-page__heading">
 						<span class="weight-page__icon">
-						    <img th:src="@{/image/scales.png}" alt="" class="weight-page__icon-img" />
+							<img th:src="@{/image/scales.png}" alt="" class="weight-page__icon-img" />
 						</span>
 						<div>
 							<h1>体重管理</h1>
@@ -74,8 +74,8 @@
 						<span class="summary-card__value">
 							<span th:text="${stats?.bmi != null ? stats.bmi : '--'}">21.2</span>
 							<span class="badge" th:if="${stats != null && stats.bmiStatus != null}"
-							    th:classappend="${'badge--' + (stats.bmiStatusCode ?: 'normal')}"
-							    th:text="${stats.bmiStatus}">標準</span>
+								th:classappend="${'badge--' + (stats.bmiStatusCode ?: 'normal')}"
+								th:text="${stats.bmiStatus}">標準</span>
 						</span>
 					</div>
 				</div>
@@ -102,6 +102,7 @@
 							<thead>
 								<tr>
 									<th>日付</th>
+									<th>時間</th>
 									<th>体重 (kg)</th>
 									<th>BMI</th>
 									<th>メモ</th>
@@ -125,9 +126,12 @@
 									<td class="weight-table__memo" th:text="${record.memo != null ? record.memo : ''}">
 									</td>
 									<td class="weight-table__actions">
-										<button type="button" class="icon-btn edit-btn" th:data-id="${record.id}"
-											th:data-date="${record.recordedDate}" th:data-weight="${record.weight}"
-											th:data-height="${record.height}" th:data-memo="${record.memo}" aria-label="編集">
+										<button type="button" class="icon-btn edit-btn"
+										    th:data-id="${record.id}"
+										    th:data-measured-at="${record.measuredAt}"
+										    th:data-weight="${record.weight}"
+										    th:data-height="${record.height}"
+										    th:data-memo="${record.memo}">
 											<img th:src="@{/image/edit.png}" alt="編集" class="icon-btn-img" />
 										</button>
 
@@ -162,7 +166,7 @@
 
 					<!-- Trường hợp 1: chưa từng có bản ghi nào (không liên quan đến việc có đang lọc hay không) -->
 					<div class="empty-state" th:if="${#lists.isEmpty(logs)} and ${!hasAnyLog}">
-					    <i data-lucide="scale"></i>
+					    <img th:src="@{/image/scales.png}" alt="" class="weight-page__icon-img" />
 					    <p>まだ体重が記録されていません</p>
 					    <button type="button" class="btn btn--primary" id="openAddModalBtnEmpty">
 					        <i data-lucide="plus"></i>最初の記録をつける
@@ -171,10 +175,10 @@
 
 					<!-- Trường hợp 2: đã từng có bản ghi, nhưng bộ lọc hiện tại không khớp gì -->
 					<div class="empty-state" th:if="${#lists.isEmpty(logs)} and ${hasAnyLog}">
-					    <i data-lucide="calendar-plus"></i>
+					    <i data-lucide="calendar-days"></i>
 					    <p>選択した期間に記録がありません</p>
 					    <button type="button" class="btn btn--primary" id="openAddModalBtnFiltered"
-					        th:data-date="${filterStartDate}">
+					       th:data-measured-at="${filterStartDate}">
 					        <i data-lucide="plus"></i>この期間の記録を追加する
 					    </button>
 					</div>
@@ -197,9 +201,9 @@
 					<input type="hidden" name="recordId" id="recordId" value="" />
 
 					<div class="input-group">
-						<label for="date">日付 <span class="required">*</span></label>
-						<input id="date" name="date" type="date" th:max="${T(java.time.LocalDate).now()}" required />
-						<div id="dateError" class="field-error"><span></span></div>
+					    <label for="measuredAt">日時 <span class="required">*</span></label>
+					    <input id="measuredAt" name="measuredAt" type="datetime-local" required />
+					    <div id="measuredAtError" class="field-error"><span></span></div>
 					</div>
 
 					<div class="input-group">
@@ -219,7 +223,7 @@
 
 					<div class="input-group">
 						<label for="memo">メモ</label>
-						<textarea id="memo" name="memo" rows="3" maxlength="200" placeholder="気づいたことなど..."></textarea>
+						<textarea id="memo" name="memo" rows="3" maxlength="500" placeholder="気づいたことなど..."></textarea>
 					</div>
 
 					<div class="modal__footer">

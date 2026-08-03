@@ -6,13 +6,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const forgotPasswordForm = document.getElementById("forgotPasswordForm");
     const email = document.getElementById("email");
 
-    // Thao tác xóa thông báo lỗi khi người dùng gõ phím
-    if (email) email.addEventListener("input", () => clearError("email"));
-
     // username@domain.extension
     const EMAIL_PATTERN = 	/^[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}$/;
 
-    // Các hàm hiển thị và xóa thông báo lỗi
+    //　エラーメッセージを表示する関数
     function showError(inputId, message) {
         const input = document.getElementById(inputId);
         const errorBox = document.getElementById(inputId + "Error");
@@ -23,6 +20,7 @@ document.addEventListener("DOMContentLoaded", () => {
         errorBox.classList.add("show");
     }
 
+	//　エラーメッセージをクリアする関数
     function clearError(inputId) {
         const input = document.getElementById(inputId);
         const errorBox = document.getElementById(inputId + "Error");
@@ -33,7 +31,7 @@ document.addEventListener("DOMContentLoaded", () => {
         errorBox.classList.remove("show");
     }
 
-    // Các hàm Logic Validation từng ô dữ liệu
+    // メールアドレスのバリデーション
     function validateEmail() {
         if (!email) return true;
         const value = email.value.trim();
@@ -53,7 +51,7 @@ document.addEventListener("DOMContentLoaded", () => {
         return true;
     }
 
-    // Xử lý sự kiện gửi form
+    // フォーム送信時のバリデーション
     if (forgotPasswordForm) {
         forgotPasswordForm.addEventListener("submit", (event) => {
             const isEmailValid = validateEmail();

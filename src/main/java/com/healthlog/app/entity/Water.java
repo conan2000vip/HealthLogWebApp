@@ -32,7 +32,7 @@ import lombok.Setter;
 public class Water {
 
 	public enum DrinkType {
-		WATER, TEA, MILK, COFFEE, OTHER
+		WATER, TEA, MILK, COFFEE, JUICE, SPORTS_DRINK, OTHER
 	}
 
 	@Id

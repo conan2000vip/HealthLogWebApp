@@ -9,16 +9,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const toggleNewBtn = document.getElementById("toggleNewPassword");
     const toggleConfirmBtn = document.getElementById("toggleConfirmPassword");
 
-    // Thao tác xóa thông báo lỗi khi người dùng gõ phím
-    if (newPassword) {
-        newPassword.addEventListener("input", () => {
-            clearError("newPassword");
-            clearError("confirmPassword");
-        });
-    }
-    if (confirmPassword) confirmPassword.addEventListener("input", () => clearError("confirmPassword"));
-
-    // Tính năng ẩn / hiện mật khẩu (dùng chung cho cả 2 ô)
+    // パスワードの表示/非表示切り替え
     function bindToggle(toggleBtn, input, iconId) {
         if (!toggleBtn || !input) return;
         toggleBtn.addEventListener("click", () => {
@@ -33,10 +24,9 @@ document.addEventListener("DOMContentLoaded", () => {
     bindToggle(toggleNewBtn, newPassword, "eyeNewPassword");
     bindToggle(toggleConfirmBtn, confirmPassword, "eyeConfirmPassword");
 
-    // FIX 1: Bỏ comment - biến này đang được dùng ở validateConfirmPassword()
     const PASSWORD_PATTERN = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#]).{8,100}$/;
 
-    // Các hàm hiển thị và xóa thông báo lỗi
+    // エラーメッセージを表示する関数
     function showError(inputId, message) {
         const input = document.getElementById(inputId);
         const errorBox = document.getElementById(inputId + "Error");
@@ -47,6 +37,7 @@ document.addEventListener("DOMContentLoaded", () => {
         errorBox.classList.add("show");
     }
 
+	// エラーメッセージをクリアする関数
     function clearError(inputId) {
         const input = document.getElementById(inputId);
         const errorBox = document.getElementById(inputId + "Error");
@@ -57,7 +48,7 @@ document.addEventListener("DOMContentLoaded", () => {
         errorBox.classList.remove("show");
     }
 
-    // Các hàm Logic Validation từng ô dữ liệu
+    // 新しいパスワードのバリデーション
     function validateNewPassword() {
         if (!newPassword) return true;
         const value = newPassword.value;
@@ -90,6 +81,7 @@ document.addEventListener("DOMContentLoaded", () => {
         return true;
     }
 
+	// 確認用パスワードのバリデーション
     function validateConfirmPassword() {
         if (!confirmPassword || !newPassword) return true;
         const value = confirmPassword.value;
@@ -101,8 +93,6 @@ document.addEventListener("DOMContentLoaded", () => {
             showError("confirmPassword", "パスワードが一致しません");
             return false;
         }
-        // Thêm điều kiện: nếu mật khẩu mới chưa đạt yêu cầu độ mạnh,
-        // thì dù confirm khớp cũng coi là chưa hợp lệ
         if (!PASSWORD_PATTERN.test(newPassword.value)) {
             showError("confirmPassword", "新しいパスワードの形式が正しくありません");
             return false;
@@ -111,7 +101,7 @@ document.addEventListener("DOMContentLoaded", () => {
         return true;
     }
 
-    // Xử lý sự kiện gửi form
+    // フォーム送信時のバリデーション
     if (passwordResetForm) {
         passwordResetForm.addEventListener("submit", (event) => {
             const isNewPwdValid = validateNewPassword();

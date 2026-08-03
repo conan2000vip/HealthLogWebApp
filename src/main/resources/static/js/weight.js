@@ -100,30 +100,31 @@ function initModal() {
     const form = document.getElementById("weightForm");
 
     const recordId = document.getElementById("recordId");
-    const dateInput = document.getElementById("date");
+    const measuredAtInput = document.getElementById("measuredAt");
     const weightInput = document.getElementById("weight");
     const heightInput = document.getElementById("height");
     const memoInput = document.getElementById("memo");
 
     if (!overlay || !form) return;
 
-    function openModal({ mode = "create", id = "", date = "", weight = "", height = "", memo = "" } = {}) {
+    function openModal({ mode = "create", id = "", measuredAt = "", weight = "", height = "", memo = "" } = {}) {
         modalTitle.textContent = mode === "edit" ? "体重を編集する" : "体重を記録する";
         recordId.value = id;
-        dateInput.value = date || todayIso();
+        measuredAtInput.value = measuredAt || currentDateTimeLocal();
         weightInput.value = weight;
         heightInput.value = height;
         memoInput.value = memo;
+
         clearAllErrors();
         overlay.classList.add("is-open");
-        dateInput.focus();
+        measuredAtInput.focus();
     }
 
     function closeModal() {
         overlay.classList.remove("is-open");
     }
 
-    openBtns.forEach((btn) => btn.addEventListener("click", () => openModal({ mode: "create", date: btn.dataset.date || "" })));
+    openBtns.forEach((btn) => btn.addEventListener("click", () => openModal({ mode: "create", measuredAt: btn.dataset.measuredAt || "" })));
     if (closeBtn) closeBtn.addEventListener("click", closeModal);
     if (cancelBtn) cancelBtn.addEventListener("click", closeModal);
 
@@ -141,7 +142,7 @@ function initModal() {
             openModal({
                 mode: "edit",
                 id: btn.dataset.id || "",
-                date: btn.dataset.date || "",
+                measuredAt: btn.dataset.measuredAt || "",
                 weight: btn.dataset.weight || "",
                 height: btn.dataset.height || "",
                 memo: btn.dataset.memo || "",
@@ -150,17 +151,17 @@ function initModal() {
     });
 
     // 入力時にエラーをクリア
-    [dateInput, weightInput, heightInput].forEach((input) => {
+    [measuredAtInput, weightInput, heightInput].forEach((input) => {
         if (input) input.addEventListener("input", () => clearError(input.id));
     });
 
     // バリデーション
-    function validateDate() {
-        if (!dateInput.value) {
-            showError("date", "日付を入力してください");
+    function validateMeasuredAt() {
+        if (!measuredAtInput.value) {
+            showError("measuredAt", "日付を入力してください");
             return false;
         }
-        clearError("date");
+        clearError("measuredAt");
         return true;
     }
 
@@ -195,11 +196,11 @@ function initModal() {
     }
 
     form.addEventListener("submit", (event) => {
-        const isDateValid = validateDate();
+        const isMeasuredAtValid = validateMeasuredAt();
         const isWeightValid = validateWeight();
         const isHeightValid = validateHeight();
 
-        if (!isDateValid || !isWeightValid || !isHeightValid) {
+        if (!isMeasuredAtValid || !isWeightValid || !isHeightValid) {
             event.preventDefault();
         }
     });
@@ -225,13 +226,17 @@ function initModal() {
     }
 
     function clearAllErrors() {
-        ["date", "weight", "height"].forEach(clearError);
+        ["measuredAt", "weight", "height"].forEach(clearError);
     }
 
-    function todayIso() {
+	// 現在日時を YYYY-MM-DDTHH:MM 形式で返す（datetime-local 用）
+    function currentDateTimeLocal() {
         const d = new Date();
+        const yyyy = d.getFullYear();
         const mm = String(d.getMonth() + 1).padStart(2, "0");
         const dd = String(d.getDate()).padStart(2, "0");
-        return `${d.getFullYear()}-${mm}-${dd}`;
+        const hh = String(d.getHours()).padStart(2, "0");
+        const min = String(d.getMinutes()).padStart(2, "0");
+        return `${yyyy}-${mm}-${dd}T${hh}:${min}`;
     }
 }

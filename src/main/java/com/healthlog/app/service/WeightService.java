@@ -3,7 +3,6 @@ package com.healthlog.app.service;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -179,7 +178,6 @@ public class WeightService {
 			weight.setHeight(profile.getHeight());
 		}
 		weight.setProfile(profile);
-		weight.setMeasuredAt(LocalDateTime.now());
 		return weightRepository.save(weight);
 	}
 
@@ -195,6 +193,7 @@ public class WeightService {
 			input.setHeight(log.getProfile().getHeight());
 		}
 		log.setRecordedDate(input.getRecordedDate());
+		log.setMeasuredAt(input.getMeasuredAt());
 		log.setWeight(input.getWeight());
 		log.setHeight(input.getHeight());
 		log.setMemo(input.getMemo());

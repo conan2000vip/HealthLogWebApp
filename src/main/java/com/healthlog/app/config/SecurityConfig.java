@@ -11,6 +11,7 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
 
 	@Bean
+	// SecurityFilterChainを定義することで、Spring Securityの設定をカスタマイズできます。
 	SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 		http
 				.exceptionHandling(ex -> ex
@@ -32,7 +33,7 @@ public class SecurityConfig {
 		return http.build();
 	}
 
-	// Mã hóa mật khẩu bằng BCrypt
+	// PasswordEncoder beanを定義することで、Spring Securityがパスワードのハッシュ化にBCryptを使用するようになります。
 	@Bean
 	PasswordEncoder passwordEncoder() {
 		return new BCryptPasswordEncoder();

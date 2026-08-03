@@ -267,6 +267,7 @@ function initChart() {
     });
 }
 
+// input: 1.5 → output: "1時間30分"
 function formatHoursMinutes(hoursDecimal) {
     const totalMinutes = Math.round(hoursDecimal * 60);
     const h = Math.floor(totalMinutes / 60);
@@ -274,6 +275,7 @@ function formatHoursMinutes(hoursDecimal) {
     return `${h}時間${m}分`;
 }
 
+// input: "2024-06-15" → output: "06-15"
 function formatShortDate(isoDate) {
     if (!isoDate) return "";
     const parts = isoDate.split("-");
@@ -281,6 +283,7 @@ function formatShortDate(isoDate) {
     return `${parts[1]}-${parts[2]}`;
 }
 
+// HEXカラーコードをRGBAに変換する関数
 function hexToRgba(hex, alpha) {
     const clean = hex.replace("#", "");
     const bigint = parseInt(clean, 16);

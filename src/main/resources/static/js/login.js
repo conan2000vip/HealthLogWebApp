@@ -8,11 +8,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const password = document.getElementById("password");
     const toggleBtn = document.getElementById("togglePassword");
 
-    // Thao tác xóa thông báo lỗi khi người dùng gõ phím
+    // リアルタイムでのバリデーション
 	if (email) email.addEventListener("input", validateEmail);
 	if (password) password.addEventListener("input", validatePassword);
 
-    // Tính năng ẩn / hiện mật khẩu
+    // パスワードの表示/非表示切り替え
     if (toggleBtn && password) {
         toggleBtn.addEventListener("click", () => {
             const isHidden = password.type === "password";
@@ -27,7 +27,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // username@domain.extension
     const EMAIL_PATTERN = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}$/;
 
-    // Các hàm hiển thị và xóa thông báo lỗi
+    // エラーメッセージを表示する関数
     function showError(inputId, message) {
         const input = document.getElementById(inputId);
         const errorBox = document.getElementById(inputId + "Error");
@@ -38,6 +38,7 @@ document.addEventListener("DOMContentLoaded", () => {
         errorBox.classList.add("show");
     }
 
+	// エラーメッセージをクリアする関数
     function clearError(inputId) {
         const input = document.getElementById(inputId);
         const errorBox = document.getElementById(inputId + "Error");
@@ -48,7 +49,7 @@ document.addEventListener("DOMContentLoaded", () => {
         errorBox.classList.remove("show");
     }
 
-    // Các hàm Logic Validation từng ô dữ liệu
+    // メールアドレスのバリデーション
     function validateEmail() {
         if (!email) return true;
         const value = email.value.trim();
@@ -68,6 +69,7 @@ document.addEventListener("DOMContentLoaded", () => {
         return true;
     }
 
+	// パスワードのバリデーション
 	function validatePassword() {
 	    if (!password) return true;
 	    const value = password.value;
@@ -83,7 +85,7 @@ document.addEventListener("DOMContentLoaded", () => {
 	    return true;
 	}
 
-    // Xử lý sự kiện gửi form
+    // フォームの送信時にバリデーションを実行
     if (loginForm) {
         loginForm.addEventListener("submit", (event) => {
             const isEmailValid = validateEmail();

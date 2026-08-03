@@ -15,6 +15,8 @@ import com.healthlog.app.repository.UserRepository;
 import com.healthlog.app.service.ProfileService;
 
 @Component
+
+// ユーザーがプロフィールを持っていない場合、プロフィール作成ページにリダイレクトするインターセプター
 public class ProfileRequiredInterceptor implements HandlerInterceptor {
 
 	private static final List<String> ALLOWED_PREFIXES = List.of(
@@ -38,6 +40,7 @@ public class ProfileRequiredInterceptor implements HandlerInterceptor {
 		return uri.matches("^/profile/\\d+/edit$");
 	}
 
+	// preHandle メソッドは、リクエストがコントローラーに到達する前に呼び出されます。
 	@Override
 	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
 			throws Exception {

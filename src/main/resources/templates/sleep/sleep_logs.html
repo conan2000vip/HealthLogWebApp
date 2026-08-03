@@ -183,7 +183,7 @@
 
 					<!-- Trường hợp 1: chưa từng có bản ghi nào (không phụ thuộc việc có đang lọc hay không) -->
 					<div class="empty-state" th:if="${#lists.isEmpty(logs)} and ${!hasAnyLog}">
-						<i data-lucide="moon"></i>
+						<img th:src="@{/image/sleep.png}" alt="" class="sleep-page__icon-img" />
 						<p>まだ睡眠が記録されていません</p>
 						<button type="button" class="btn btn--primary" id="openAddModalBtnEmpty">
 							<i data-lucide="plus"></i>最初の記録をつける
@@ -192,7 +192,7 @@
 
 					<!-- Trường hợp 2: đã từng có bản ghi, nhưng bộ lọc hiện tại không có kết quả -->
 					<div class="empty-state" th:if="${#lists.isEmpty(logs)} and ${hasAnyLog}">
-						<i data-lucide="calendar-plus"></i>
+						<i data-lucide="calendar-days"></i>
 						<p>選択した期間に記録がありません</p>
 						<button type="button" class="btn btn--primary" id="openAddModalBtnFiltered"
 							th:data-date="${filterStartDate}">
@@ -219,7 +219,7 @@
 
 					<div class="input-group">
 						<label for="date">就寝日 <span class="required">*</span> <span class="hint">（寝始めた日）</span></label>
-						<input id="date" name="date" type="date" th:max="${T(java.time.LocalDate).now()}" required />
+						<input id="recordedDate" name="recordedDate" type="date" th:max="${T(java.time.LocalDate).now()}" required />
 						<div id="dateError" class="field-error"><span></span></div>
 						<p id="wakeDateHint" class="hint" style="margin-top:4px; display:none;"></p>
 					</div>
