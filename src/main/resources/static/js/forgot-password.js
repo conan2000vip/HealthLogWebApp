@@ -10,7 +10,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (email) email.addEventListener("input", () => clearError("email"));
 
     // username@domain.extension
-    const EMAIL_PATTERN = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}$/;
+    const EMAIL_PATTERN = 	/^[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}$/;
 
     // Các hàm hiển thị và xóa thông báo lỗi
     function showError(inputId, message) {

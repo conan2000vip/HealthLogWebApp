@@ -1,7 +1,5 @@
 <html xmlns:th="http://www.thymeleaf.org">
-
 <body>
-
 	<!-- ============ Filter Bar ============-->
 	<form th:fragment="filterBar(actionUrl, clearUrl, filterStartDate, filterEndDate)"
 		class="filter-bar" th:action="${actionUrl}" method="get" id="filterForm">
@@ -26,7 +24,5 @@
 			<canvas th:id="${canvasId}" height="260"></canvas>
 		</div>
 	</section>
-
 </body>
-
 </html>

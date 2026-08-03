@@ -190,4 +190,92 @@ document.addEventListener("DOMContentLoaded", () => {
     initFilterForm();
     initChartToggle();
     initDiffBadges();
+	initPositiveNumberInputs();
+});
+
+/* =========================================================
+   汎用: 数値入力で負の値・不正な文字を入力させない（全画面共通）
+   対象: min="0" が設定された <input type="number">
+   ========================================================= */
+function initPositiveNumberInputs() {
+    const inputs = document.querySelectorAll('input[type="number"][min="0"]');
+    inputs.forEach((input) => {
+        const allowDecimal = input.hasAttribute("step") && input.step !== "1";
+        // 許可するキー（数字 + 制御キー + 小数点があるフィールドのみ "."）
+        input.addEventListener("keydown", (e) => {
+            const key = e.key;
+            // Backspace, Delete, Tab, 矢印キーなどはそのまま許可
+            if (
+                key === "Backspace" || key === "Delete" || key === "Tab" ||
+                key === "ArrowLeft" || key === "ArrowRight" ||
+                key === "ArrowUp" || key === "ArrowDown" ||
+                key === "Home" || key === "End" ||
+                (e.ctrlKey || e.metaKey) // Ctrl+C, Ctrl+V, Ctrl+A などは許可
+            ) {
+                return;
+            }
+            // 数字はOK
+            if (/^[0-9]$/.test(key)) {
+                return;
+            }
+            // 小数点はステップが小数対応のフィールドのみ、かつ1回だけ許可
+            if (allowDecimal && key === "." && !input.value.includes(".")) {
+                return;
+            }
+            // それ以外（文字、-、+、eなど）は全てブロック
+            e.preventDefault();
+        });
+
+        // ペースト対策：数値以外が含まれる場合は除去
+        input.addEventListener("input", () => {
+            let value = input.value;
+            if (allowDecimal) {
+                // 数字と小数点のみ残す（先頭の小数点は除去、2個目以降の小数点も除去）
+                value = value.replace(/[^0-9.]/g, "");
+                const parts = value.split(".");
+                if (parts.length > 2) {
+                    value = parts[0] + "." + parts.slice(1).join("");
+                }
+            } else {
+                value = value.replace(/[^0-9]/g, "");
+            }
+            if (value !== input.value) {
+                input.value = value;
+            }
+            if (input.value !== "" && Number(input.value) < 0) {
+                input.value = 0;
+            }
+        });
+    });
+}
+
+//Business Error + FieldError
+function clearBusinessError() {
+    document.querySelectorAll(".error-message").forEach(error => {
+        error.remove();
+    });
+}
+document.addEventListener("DOMContentLoaded", () => {
+    document.querySelectorAll("input, textarea").forEach(el => {
+        el.addEventListener("input", clearBusinessError);
+    });
+    document.querySelectorAll("select").forEach(el => {
+        el.addEventListener("change", clearBusinessError);
+    });
+});
+
+function clearFieldError(event) {
+    const group = event.target.closest(".input-group");
+    if (!group) return;
+
+    const error = group.querySelector(".field-error");
+    if (error) {
+        error.remove();
+    }
+}
+document.addEventListener("DOMContentLoaded", () => {
+    document.querySelectorAll("input, textarea, select").forEach(el => {
+        el.addEventListener("input", clearFieldError);
+        el.addEventListener("change", clearFieldError);
+    });
 });

@@ -9,8 +9,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const toggleBtn = document.getElementById("togglePassword");
 
     // Thao tác xóa thông báo lỗi khi người dùng gõ phím
-    if (email) email.addEventListener("input", () => clearError("email"));
-    if (password) password.addEventListener("input", () => clearError("password"));
+	if (email) email.addEventListener("input", validateEmail);
+	if (password) password.addEventListener("input", validatePassword);
 
     // Tính năng ẩn / hiện mật khẩu
     if (toggleBtn && password) {
@@ -68,16 +68,20 @@ document.addEventListener("DOMContentLoaded", () => {
         return true;
     }
 
-    function validatePassword() {
-        if (!password) return true;
-        const value = password.value;
-        if (!value) {
-            showError("password", "パスワードを入力してください");
-            return false;
-        }
-        clearError("password");
-        return true;
-    }
+	function validatePassword() {
+	    if (!password) return true;
+	    const value = password.value;
+	    if (!value) {
+	        showError("password", "パスワードを入力してください");
+	        return false;
+	    }
+	    if (value.length < 8) {
+	        showError("password", "パスワードは8文字以上で入力してください");
+	        return false;
+	    }
+	    clearError("password");
+	    return true;
+	}
 
     // Xử lý sự kiện gửi form
     if (loginForm) {

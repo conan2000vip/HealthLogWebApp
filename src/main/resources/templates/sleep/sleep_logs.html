@@ -22,7 +22,9 @@
 				<!-- Page Header -->
 				<div class="sleep-page__header">
 					<div class="sleep-page__heading">
-						<span class="sleep-page__icon"><i data-lucide="moon"></i></span>
+						<span class="sleep-page__icon">
+						    <img th:src="@{/image/sleep.png}" alt="" class="sleep-page__icon-img" />
+						</span>
 						<div>
 							<h1>睡眠管理</h1>
 							<p th:text="${currentProfile != null ? currentProfile.name + ' の睡眠記録' : 'ゲスト の睡眠記録'}">
@@ -142,19 +144,21 @@
 									</td>
 									<td class="sleep-table__actions">
 										<button type="button" class="icon-btn edit-btn" th:data-id="${record.id}"
-											th:data-date="${record.recordedDate}" th:data-start-time="${record.startTime}"
+											th:data-date="${record.recordedDate}"
+											th:data-start-time="${record.startTime}"
 											th:data-end-time="${record.endTime}"
 											th:data-sleep-type="${record.sleepType != null ? record.sleepType.name() : 'NIGHT'}"
-											th:data-memo="${record.memo}" title="編集">
-											<i data-lucide="pencil"></i>
+											th:data-memo="${record.memo}" aria-label="編集">
+											<img th:src="@{/image/edit.png}" alt="編集" class="icon-btn-img" />
 										</button>
+
 										<form
-											th:action="@{/profile/{profileId}/sleep/{id}/delete(profileId=${profileId},id=${record.id})}"
-											method="post" class="delete-form"
-											data-confirm-message="この睡眠記録を削除しますか？&#10;この操作は取り消せません。">
-											<button type="submit" class="icon-btn icon-btn--danger" title="削除">
-												<i data-lucide="trash-2"></i>
-											</button>
+										    th:action="@{/profile/{profileId}/sleep/{id}/delete(profileId=${profileId},id=${record.id})}"
+										    method="post" class="delete-form"
+										    th:attr="data-confirm-message='「' + ${record.recordedDate} + '」の睡眠記録を削除しますか？&#10; この操作は取り消せません。'">
+										    <button type="submit" class="icon-btn icon-btn--danger" aria-label="削除">
+										        <img th:src="@{/image/delete.png}" alt="削除" class="icon-btn-img" />
+										    </button>
 										</form>
 									</td>
 								</tr>
@@ -216,9 +220,10 @@
 					<input type="hidden" name="recordId" id="recordId" value="" />
 
 					<div class="input-group">
-						<label for="date">日付 <span class="required">*</span></label>
+						<label for="date">就寝日 <span class="required">*</span> <span class="hint">（寝始めた日）</span></label>
 						<input id="date" name="date" type="date" th:max="${T(java.time.LocalDate).now()}" required />
 						<div id="dateError" class="field-error"><span></span></div>
+						<p id="wakeDateHint" class="hint" style="margin-top:4px; display:none;"></p>
 					</div>
 
 					<div class="input-group">
@@ -258,7 +263,7 @@
 		</div>
 
 		<!-- ===== Confirm Modal (削除確認) ===== -->
-		<div th:replace="~{layout/confirm-modal :: confirmModal}"></div>
+		<div th:replace="~{layout/confirm-modal :: deleteModal}"></div>
 
 		<script src="https://unpkg.com/lucide@latest"></script>
 		<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>

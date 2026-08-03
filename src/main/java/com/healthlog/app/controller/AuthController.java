@@ -14,15 +14,19 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.healthlog.app.exception.BusinessException;
 import com.healthlog.app.service.AuthService;
+import com.healthlog.app.service.ProfileService;
 
 @Controller
 @RequestMapping("/auth")
 public class AuthController {
 
 	private final AuthService authService;
+	private final ProfileService profileService;
 
-	public AuthController(AuthService authService) {
+	public AuthController(AuthService authService,
+			ProfileService profileService) {
 		this.authService = authService;
+		this.profileService = profileService;
 	}
 
 	// ===== 登録 =====
@@ -69,7 +73,11 @@ public class AuthController {
 			RedirectAttributes redirectAttributes) {
 		try {
 			authService.login(email, password, request, response);
-			return "redirect:/";
+			Long userId = authService.getCurrentUser().getId();
+			if (!profileService.hasAnyProfile(userId)) {
+				return "redirect:/profile/new";
+			}
+			return "redirect:/profile/select-profile";
 		} catch (BusinessException e) {
 			redirectAttributes.addFlashAttribute("error", e.getMessage());
 			redirectAttributes.addFlashAttribute("email", email);
@@ -163,6 +171,7 @@ public class AuthController {
 			@RequestParam String confirmPassword,
 			RedirectAttributes redirectAttributes) {
 		// 画面側の入力確認チェック（newPassword と confirmPassword の一致）
+		// ※ AuthService.confirmPasswordReset() は newPassword のみ扱うため、ここで確認する
 		if (!newPassword.equals(confirmPassword)) {
 			redirectAttributes.addFlashAttribute("error", "パスワードが一致しません");
 			redirectAttributes.addFlashAttribute("token", token);

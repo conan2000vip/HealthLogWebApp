@@ -33,8 +33,9 @@
 					</div>
 
 					<!-- Business Error -->
-					<div class="error-message" th:if="${error}">
-						<i data-lucide="alert-circle"></i><span th:text="${error}"></span>
+					<div id="backendError" class="error-message" th:if="${error}">
+					    <i data-lucide="alert-circle"></i>
+					    <span th:text="${error}"></span>
 					</div>
 
 					<!-- Success Message -->
@@ -110,6 +111,7 @@
 		</div>
 
 		<script src="https://unpkg.com/lucide@latest"></script>
+		<script th:src="@{/js/common.js}"></script>
 		<script th:src="@{/js/register.js}"></script>
 	</body>
 </html>

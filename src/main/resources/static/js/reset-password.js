@@ -33,6 +33,9 @@ document.addEventListener("DOMContentLoaded", () => {
     bindToggle(toggleNewBtn, newPassword, "eyeNewPassword");
     bindToggle(toggleConfirmBtn, confirmPassword, "eyeConfirmPassword");
 
+    // FIX 1: Bỏ comment - biến này đang được dùng ở validateConfirmPassword()
+    const PASSWORD_PATTERN = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#]).{8,100}$/;
+
     // Các hàm hiển thị và xóa thông báo lỗi
     function showError(inputId, message) {
         const input = document.getElementById(inputId);
@@ -62,44 +65,51 @@ document.addEventListener("DOMContentLoaded", () => {
             showError("newPassword", "新しいパスワードを入力してください");
             return false;
         }
-		if (value.length < 8 || value.length > 100) {
-		        showError("password", "パスワードは8〜100文字で入力してください");
-		        return false;
-		    }
-		    if (!/[A-Z]/.test(value)) {
-		        showError("password", "英大文字を1文字以上含めてください");
-		        return false;
-		    }
-		    if (!/[a-z]/.test(value)) {
-		        showError("password", "英小文字を1文字以上含めてください");
-		        return false;
-		    }
-		    if (!/\d/.test(value)) {
-		        showError("password", "数字を1文字以上含めてください");
-		        return false;
-		    }
-		    if (!/[@$!%*?&#]/.test(value)) {
-		        showError("password", "特殊記号（@$!%*?&#）を1文字以上含めてください");
-		        return false;
-		    }
+        // vì input thực tế có id="newPassword"
+        if (value.length < 8 || value.length > 100) {
+            showError("newPassword", "パスワードは8〜100文字で入力してください");
+            return false;
+        }
+        if (!/[A-Z]/.test(value)) {
+            showError("newPassword", "英大文字を1文字以上含めてください");
+            return false;
+        }
+        if (!/[a-z]/.test(value)) {
+            showError("newPassword", "英小文字を1文字以上含めてください");
+            return false;
+        }
+        if (!/\d/.test(value)) {
+            showError("newPassword", "数字を1文字以上含めてください");
+            return false;
+        }
+        if (!/[@$!%*?&#]/.test(value)) {
+            showError("newPassword", "特殊記号（@$!%*?&#）を1文字以上含めてください");
+            return false;
+        }
         clearError("newPassword");
         return true;
     }
 
-	function validateConfirmPassword() {
-	    if (!confirmPassword || !newPassword) return true;
-	    const value = confirmPassword.value;
-	    if (!value) {
-	        showError("confirmPassword", "確認用パスワードを入力してください");
-	        return false;
-	    }
-	    if (newPassword.value !== value) {
-	        showError("confirmPassword", "パスワードが一致しません");
-	        return false;
-	    }
-	    clearError("confirmPassword");
-	    return true;
-	}
+    function validateConfirmPassword() {
+        if (!confirmPassword || !newPassword) return true;
+        const value = confirmPassword.value;
+        if (!value) {
+            showError("confirmPassword", "確認用パスワードを入力してください");
+            return false;
+        }
+        if (newPassword.value !== value) {
+            showError("confirmPassword", "パスワードが一致しません");
+            return false;
+        }
+        // Thêm điều kiện: nếu mật khẩu mới chưa đạt yêu cầu độ mạnh,
+        // thì dù confirm khớp cũng coi là chưa hợp lệ
+        if (!PASSWORD_PATTERN.test(newPassword.value)) {
+            showError("confirmPassword", "新しいパスワードの形式が正しくありません");
+            return false;
+        }
+        clearError("confirmPassword");
+        return true;
+    }
 
     // Xử lý sự kiện gửi form
     if (passwordResetForm) {

@@ -129,21 +129,24 @@ body {
 .tabs {
 	display: flex;
 	justify-content: center;
-	gap: 20px;
+	gap: 24px;
 	margin-bottom: 20px;
 }
 
 .tab {
-	padding: 8px 14px;
-	font-size: 1rem;
-	color: #777;
+	padding: 10px 16px;
+	font-size: 20px;
+	font-weight: 700;
+	color: #555;
 	text-decoration: none;
-	border-bottom: 2px solid transparent;
+	border-bottom: 3px solid transparent;
+	transition: all 0.2s ease;
 }
 
 .tab.active {
-	color: #333;
-	border-bottom: 2px solid #4caf50;
+	color: #4caf50;
+	font-weight: 800;
+	border-bottom: 3px solid #4caf50;
 }
 
 /* ===== Form ===== */
@@ -243,7 +246,7 @@ input::-ms-clear {
 
 .error-message {
 	display: flex;
-	flex-direction: column;
+	flex-direction: row;
 	align-items: center;
 	gap: 8px;
 	background: #ffebee;
@@ -255,6 +258,15 @@ input::-ms-clear {
 	text-align: left;
 }
 
+/* Đảm bảo icon SVG (Lucide render ra <svg>) không bị co giãn bất thường
+   và không tự chiếm hết chiều ngang */
+.error-message i,
+.error-message svg {
+	flex-shrink: 0;
+	width: 18px;
+	height: 18px;
+}
+
 .error-message__text {
 	display: flex;
 	align-items: center;
@@ -262,23 +274,15 @@ input::-ms-clear {
 }
 
 .resend-form {
-	display: flex;
-	justify-content: center;
+	margin: 12px 0 20px;
 }
 
 .resend-btn {
-	border: none;
-	background: transparent;
-	color: #4caf50;
-	font-size: 14px;
-	font-weight: 600;
-	cursor: pointer;
-	text-decoration: underline;
-	transition: color .2s;
+	width: 100%;
 }
 
 .resend-btn:hover {
-	color: rgb(0, 128, 0);
+	background: #e6f7f2;
 }
 
 /* ===== Success Message ===== */

@@ -13,18 +13,22 @@ public class SecurityConfig {
 	@Bean
 	SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 		http
+				.exceptionHandling(ex -> ex
+						.authenticationEntryPoint(
+								(request, response, authException) -> response.sendRedirect("/auth/login")))
 				.csrf(csrf -> csrf.disable())
 				.authorizeHttpRequests(auth -> auth
 						.requestMatchers(
 								"/auth/**",
 								"/css/**",
 								"/js/**",
-								"/image/**")
+								"/image/**",
+								"/favicon.ico")
 						.permitAll()
 						.anyRequest().authenticated())
-				.formLogin(form -> form.disable())
-				.logout(logout -> logout.disable());
-
+				.logout(logout -> logout
+						.logoutUrl("/logout")
+						.logoutSuccessUrl("/auth/login?logout=true"));
 		return http.build();
 	}
 

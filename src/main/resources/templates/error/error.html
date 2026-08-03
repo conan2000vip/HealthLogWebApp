@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="UTF-8">
+	<title>エラー</title>
+</head>
+<body>
+	<h1>エラーが発生しました</h1>
+	<p th:text="${status}"></p>
+	<p th:text="${error}"></p>
+	<p th:text="${message}"></p>
+	<a href="/auth/login">ログインページへ戻る</a>
+</body>
+</html>

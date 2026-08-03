@@ -46,6 +46,7 @@ function initModal() {
         clearAllErrors();
         overlay.classList.add("is-open");
         dateInput.focus();
+        updateWakeDateHint();
     }
 
     function closeModal() {
@@ -159,8 +160,49 @@ function initModal() {
         const dd = String(d.getDate()).padStart(2, "0");
         return `${d.getFullYear()}-${mm}-${dd}`;
     }
-}
 
+    // ===== 就寝日をまたぐ場合、起床日を自動計算してヒント表示 =====
+    const wakeDateHint = document.getElementById("wakeDateHint");
+
+    function updateWakeDateHint() {
+        if (!wakeDateHint) return;
+
+        const dateVal = dateInput.value;
+        const startVal = startTimeInput.value;
+        const endVal = endTimeInput.value;
+
+        if (!dateVal || !startVal || !endVal) {
+            wakeDateHint.style.display = "none";
+            return;
+        }
+
+        const [sh, sm] = startVal.split(":").map(Number);
+        const [eh, em] = endVal.split(":").map(Number);
+        const startMinutes = sh * 60 + sm;
+        const endMinutes = eh * 60 + em;
+
+        if (endMinutes < startMinutes) {
+            const sleepDate = new Date(dateVal + "T00:00:00");
+            sleepDate.setDate(sleepDate.getDate() + 1);
+            const wakeDateStr = formatDateJp(sleepDate);
+            wakeDateHint.textContent = `📅 この場合、起床日は ${wakeDateStr} として記録されます`;
+            wakeDateHint.style.display = "block";
+        } else {
+            wakeDateHint.style.display = "none";
+        }
+    }
+
+    function formatDateJp(dateObj) {
+        const y = dateObj.getFullYear();
+        const m = String(dateObj.getMonth() + 1).padStart(2, "0");
+        const d = String(dateObj.getDate()).padStart(2, "0");
+        return `${y}/${m}/${d}`;
+    }
+
+    [dateInput, startTimeInput, endTimeInput].forEach((input) => {
+        if (input) input.addEventListener("input", updateWakeDateHint);
+    });
+}
 /* =========================================================
    Chart.js — sleep ページ専用（睡眠時間推移データを描画）
    values は分単位（sleepMinutes）で渡ってくる想定

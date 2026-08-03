@@ -63,8 +63,6 @@ public class SleepService {
 	// list()
 	// ---------------------------------------------------------
 	public Map<String, Object> list(Long profileId, Long currentUserId, LocalDate from, LocalDate to, int page) {
-		// FIX: trước đây findProfile() bị gọi lặp lại 2 lần liên tiếp
-		// (dòng thứ 2 dư thừa, gây thêm 1 query DB không cần thiết) -> đã xóa
 		Profile profile = findProfile(profileId, currentUserId);
 		if (from != null && to != null && from.isAfter(to)) {
 			throw new BusinessException(HttpStatus.BAD_REQUEST, "開始日が終了日より後になっているため、期間指定が正しくありません。");
@@ -75,9 +73,6 @@ public class SleepService {
 		LocalDate lastDay = firstDay.withDayOfMonth(firstDay.lengthOfMonth());
 		boolean hasAnyLog = sleepRepository.existsByProfile_Id(profileId);
 
-		// FIX: nếu người dùng có lọc theo from/to, thống kê phải tính theo
-		// đúng khoảng đó thay vì luôn cố định theo tháng hiện tại.
-		// Nếu không lọc gì (from/to đều null) -> mặc định dùng tháng hiện tại.
 		LocalDate statsFrom = (from == null && to == null) ? firstDay : from;
 		LocalDate statsTo = (from == null && to == null) ? lastDay : to;
 		List<Sleep> statsLogs = fetchLogs(profileId, statsFrom, statsTo);
@@ -86,12 +81,6 @@ public class SleepService {
 		Sleep latestLog = sleepRepository.findTopByProfile_IdOrderByRecordedDateDesc(profileId).orElse(null);
 		Integer latest = latestLog != null ? latestLog.getSleepMinutes() : null;
 
-		// FIX: 同じ日に昼寝(NAP)と夜間睡眠(NIGHT)を両方記録した場合、
-		// 従来は record 単位（昼寝レコード・夜間レコードを別々の値）として
-		// 平均/最短/最長を計算していたため、昼寝の短い時間に引っ張られて
-		// 数値がおかしくなっていた。
-		// -> まず日付ごとに合算(昼寝+夜間)してから、その「1日分の合計」を
-		//    単位として平均/最短/最長を計算するように修正。
 		Map<LocalDate, Integer> dailyTotals = computeDailyTotals(statsLogs);
 		List<Integer> dailyValues = new ArrayList<>(dailyTotals.values());
 
@@ -156,11 +145,6 @@ public class SleepService {
 		List<String> labels = new ArrayList<>();
 		List<Integer> values = new ArrayList<>();
 		dailySleep.forEach((date, minutes) -> {
-			// FIX: trước đây dùng format "M/d" (VD: "7/28"), không đồng nhất với
-			// WeightService (dùng LocalDate.toString() -> "2026-07-28").
-			// Vì frontend (formatShortDate trong sleep.js/weight.js) parse theo
-			// chuẩn ISO "yyyy-MM-dd" để rút gọn hiển thị, format "M/d" khiến hàm
-			// đó không hoạt động đúng và hiển thị style ngày khác nhau giữa 2 trang.
 			labels.add(date.toString());
 			values.add(minutes);
 		});
