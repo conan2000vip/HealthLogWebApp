@@ -53,12 +53,49 @@
    Weight Table Only
    ========================================================= */
 
+.weight-table {
+	width: 100%;
+	table-layout: fixed;
+}
+
+/* 日付 */
+.weight-table th:nth-child(1),
+.weight-table td:nth-child(1) {
+	width: 120px;
+	white-space: nowrap;
+}
+
+/* 時間 */
+.weight-table th:nth-child(2),
+.weight-table td:nth-child(2) {
+	width: 90px;
+	text-align: center;
+	white-space: nowrap;
+	color: var(--wp-text-muted);
+}
+
+/* 体重 */
+.weight-table th:nth-child(3),
+.weight-table td:nth-child(3) {
+	width: 160px;
+	text-align: center;
+	white-space: nowrap;
+}
+
+/* BMI */
+.weight-table th:nth-child(4),
+.weight-table td:nth-child(4) {
+	width: 120px;
+	text-align: center;
+	white-space: nowrap;
+}
+
 .weight-table__weight {
 	font-weight: 700;
+	text-align: center;
 }
 
 .weight-table__memo {
-	max-width: 200px;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
@@ -100,7 +137,11 @@
    Responsive
    ========================================================= */
 
-@media (max-width: 560px) {
+@media (max-width: 768px) {
+
+	.weight-table {
+		table-layout: auto;
+	}
 
 	.weight-page__inner {
 		padding: 20px 14px 48px;
@@ -111,12 +152,18 @@
 		align-items: flex-start;
 	}
 
-	.weight-table {
-		font-size: 13px;
+	.weight-table th,
+	.weight-table td {
+		width: auto !important;
 	}
 
-	.weight-table__memo {
+	/* Ẩn cột Memo */
+	.weight-table th:nth-child(5),
+	.weight-table td:nth-child(5) {
 		display: none;
 	}
 
+	.weight-table {
+		font-size: 13px;
+	}
 }

@@ -113,6 +113,7 @@
 								<tr th:each="record : ${logs}" th:data-date="${record.recordedDate}"
 									th:data-value="${record.weight}">
 									<td th:text="${record.recordedDate}">2026-07-14</td>
+									<td class="weight-table__time" th:text="${#temporals.format(record.measuredAt, 'HH:mm')}"></td>
 									<td class="weight-table__weight">
 										<span th:text="${record.weight}">65</span>
 										<span class="diff-badge" data-diff-placeholder></span>
@@ -123,8 +124,7 @@
 											th:text="${record.bmi}">21.2</span>
 										<span class="text-muted" th:unless="${record.bmi != null}">--</span>
 									</td>
-									<td class="weight-table__memo" th:text="${record.memo != null ? record.memo : ''}">
-									</td>
+									<td class="weight-table__memo" th:text="${record.memo != null ? record.memo : ''}"></td>
 									<td class="weight-table__actions">
 										<button type="button" class="icon-btn edit-btn"
 										    th:data-id="${record.id}"

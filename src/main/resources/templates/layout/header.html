@@ -15,6 +15,15 @@
 				<span class="app-header__brand-name">HealthLog</span>
 			</a>
 
+			<button type="button" class="app-header__nav-toggle" id="menuToggle" aria-label="メニュー">
+				<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+					stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+					<line x1="3" y1="6" x2="21" y2="6"></line>
+					<line x1="3" y1="12" x2="21" y2="12"></line>
+					<line x1="3" y1="18" x2="21" y2="18"></line>
+				</svg>
+			</button>
+
 			<nav class="app-header__nav">
 				<a th:href="@{/profile/{profileId}/home(profileId=${currentProfile?.id})}" class="app-header__nav-item"
 					th:classappend="${activePage == 'home'} ? ' is-active' : ''">

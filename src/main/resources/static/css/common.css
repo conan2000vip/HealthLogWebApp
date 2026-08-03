@@ -17,7 +17,7 @@
 	--wp-radius-lg: 16px;
 	--wp-radius-md: 12px;
 	--wp-radius-sm: 8px;
-	--wp-shadow: 0 2px 8px rgba(15,23,42,.05);
+	--wp-shadow: 0 2px 8px rgba(15, 23, 42, .05);
 	--wp-shadow-lg: 0 20px 50px rgba(15, 23, 42, 0.18);
 	--wp-font: "Noto Sans JP", "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
 }
@@ -156,12 +156,12 @@ body {
 	display: flex;
 	align-items: center;
 	gap: 10px;
-	background:#FFFFFF;
-	border:1px solid #E5E7EB;
+	background: #FFFFFF;
+	border: 1px solid #E5E7EB;
 	height: 56px;
 	padding: 8px 14px;
 	border-radius: 18px;
-	box-shadow:0 2px 8px rgba(0,0,0,.05);
+	box-shadow: 0 2px 8px rgba(0, 0, 0, .05);
 	transition: 0.2s;
 }
 
@@ -255,7 +255,7 @@ body {
 	border: 1px solid #ececec;
 	border-radius: 18px;
 	padding: 10px;
-	box-shadow:0 8px 24px rgba(15,23,42,.08);
+	box-shadow: 0 8px 24px rgba(15, 23, 42, .08);
 	opacity: 0;
 	visibility: hidden;
 	transform: translateY(-6px);
@@ -394,8 +394,29 @@ body {
 }
 
 .app-header__logout:hover {
-	background:#F9FAFB;
+	background: #F9FAFB;
 	color: #dc2626;
+}
+
+/* ===== Mobile nav toggle (hamburger) ===== */
+
+.app-header__nav-toggle {
+	display: none;
+	align-items: center;
+	justify-content: center;
+	width: 40px;
+	height: 40px;
+	border: 1px solid #E5E7EB;
+	border-radius: 12px;
+	background: #fff;
+	color: #667085;
+	cursor: pointer;
+	flex-shrink: 0;
+}
+
+.app-header__nav-toggle:hover {
+	background: #F3F4F6;
+	color: #111827;
 }
 
 /* ===== Responsive (Header) ===== */
@@ -414,6 +435,57 @@ body {
 	}
 }
 
+@media (max-width: 1100px) {
+	.app-header__inner {
+		position: relative;
+	}
+
+	.app-header__nav-toggle {
+		display: flex;
+	}
+
+	.app-header__nav {
+		display: none;
+		position: absolute;
+		top: 100%;
+		left: 0;
+		right: 0;
+		flex-direction: column;
+		align-items: stretch;
+		background: #fff;
+		border: 1px solid #E5E7EB;
+		border-radius: 0 0 16px 16px;
+		box-shadow: 0 12px 24px rgba(15, 23, 42, .1);
+		padding: 8px;
+		gap: 2px;
+		overflow: visible;
+		white-space: normal;
+		z-index: 150;
+	}
+
+	.app-header__nav.open {
+		display: flex;
+	}
+
+	.app-header__nav-item {
+		width: 100%;
+	}
+
+	.app-header__nav-item span {
+		display: inline;
+	}
+
+	.app-header__user-wrap {
+		position: static;
+	}
+
+	.app-header__dropdown {
+		left: 12px;
+		right: 12px;
+		width: auto;
+	}
+}
+
 @media (max-width: 600px) {
 	.app-header__inner {
 		padding: 10px 12px;
@@ -424,8 +496,40 @@ body {
 		display: none;
 	}
 
-	.app-header__nav {
-		gap: 2px;
+	.app-header__user {
+		height: 40px;
+		padding: 6px 8px;
+		gap: 6px;
+	}
+
+	.app-header__user .app-header__avatar {
+		width: 26px;
+		height: 26px;
+		font-size: 12px;
+	}
+
+	.app-header__chevron {
+		width: 12px;
+		height: 12px;
+	}
+
+	.app-header__profile-item .app-header__avatar {
+		width: 26px;
+		height: 26px;
+		font-size: 11px;
+	}
+
+	.app-header__profile-item {
+		min-height: 40px;
+		padding: 8px 10px;
+		gap: 8px;
+	}
+
+	.app-header__profile-check img {
+		width: 20px;
+		height: 20px;
+		max-width: 20px;
+		max-height: 20px;
 	}
 }
 
@@ -564,7 +668,6 @@ body {
 	background: #fee2e2;
 	color: #b91c1c;
 }
-
 /* =========================================================
    Filter Bar (Shared)
    ========================================================= */
@@ -581,6 +684,13 @@ body {
 	flex-wrap: wrap;
 }
 
+.filter-bar__title {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	flex-shrink: 0;
+}
+
 .filter-bar i {
 	width: 16px;
 	height: 16px;
@@ -588,6 +698,8 @@ body {
 }
 
 .filter-bar__label {
+	flex-shrink: 0;
+	white-space: nowrap;
 	font-size: 13px;
 	color: var(--wp-text-muted);
 	font-weight: 500;
@@ -604,6 +716,7 @@ body {
 
 .filter-bar__sep {
 	color: var(--wp-text-muted);
+	flex-shrink: 0;
 }
 
 .filter-bar__reset {
@@ -611,10 +724,47 @@ body {
 	color: var(--wp-primary-dark);
 	text-decoration: none;
 	margin-left: auto;
+	flex-shrink: 0;
 }
 
 .filter-bar__reset:hover {
 	text-decoration: underline;
+}
+
+
+@media (max-width: 600px) {
+	.filter-bar {
+		row-gap: 10px;
+		padding: 14px 16px;
+	}
+
+	.filter-bar>i {
+		display: none;
+	}
+
+	.filter-bar__label {
+		flex: 1 1 100%;
+		order: 1;
+	}
+
+	.filter-bar input[type="date"] {
+		flex: 1 1 0;
+		min-width: 0;
+		width: auto;
+		order: 2;
+	}
+
+	.filter-bar__sep {
+		flex: 0 0 auto;
+		order: 2;
+	}
+
+	.filter-bar__reset {
+		flex: 1 1 100%;
+		order: 3;
+		margin-left: 0;
+		text-align: right;
+	}
 }
 
 /* =========================================================

@@ -138,7 +138,7 @@
 									<td th:text="${record.endTime}">07:00</td>
 									<td class="sleep-table__duration">
 										<span
-											th:text="${record.sleepMinutes != null ? (record.sleepMinutes / 60 + '時間' + record.sleepMinutes % 60 + '分') : '--'}">8時間0分</span>
+											th:text="${record.sleepMinutes != null ? (record.sleepMinutes / 60 + 'h' + record.sleepMinutes % 60 + 'm') : '--'}"
 									</td>
 									<td class="sleep-table__memo" th:text="${record.memo != null ? record.memo : ''}">
 									</td>

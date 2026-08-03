@@ -53,12 +53,51 @@
    Sleep Table Only
    ========================================================= */
 
-.sleep-table__duration {
-	font-weight: 700;
+.sleep-table {
+	width: 100%;
+	table-layout: fixed;
+}
+
+/* 日付 */
+.sleep-table th:nth-child(1),
+.sleep-table td:nth-child(1) {
+	width: 120px;
+	white-space: nowrap;
+}
+
+/* 種別 */
+.sleep-table th:nth-child(2),
+.sleep-table td:nth-child(2) {
+	width: 90px;
+	text-align: center;
+	white-space: nowrap;
+}
+
+/* 就寝 */
+.sleep-table th:nth-child(3),
+.sleep-table td:nth-child(3) {
+	width: 100px;
+	text-align: center;
+	white-space: nowrap;
+}
+
+/* 起床 */
+.sleep-table th:nth-child(4),
+.sleep-table td:nth-child(4) {
+	width: 100px;
+	text-align: center;
+	white-space: nowrap;
+}
+
+/* 睡眠時間 */
+.sleep-table th:nth-child(5),
+.sleep-table td:nth-child(5) {
+	width: 140px;
+	text-align: center;
+	white-space: nowrap;
 }
 
 .sleep-table__memo {
-	max-width: 200px;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
@@ -100,10 +139,10 @@
    Responsive
    ========================================================= */
 
-@media (max-width: 560px) {
+@media (max-width: 768px) {
 
-	.sleep-page__inner {
-		padding: 20px 14px 48px;
+	.sleep-table {
+		table-layout: auto;
 	}
 
 	.sleep-page__header {
@@ -111,12 +150,26 @@
 		align-items: flex-start;
 	}
 
-	.sleep-table {
-		font-size: 13px;
+	.sleep-table th,
+	.sleep-table td {
+		width: auto !important;
 	}
 
+	.sleep-table th:nth-child(6),
 	.sleep-table__memo {
 		display: none;
 	}
 
+	.sleep-table th:nth-child(1),
+	.sleep-table td:nth-child(1),
+	.sleep-table th:nth-child(2),
+	.sleep-table td:nth-child(2),
+	.sleep-table th:nth-child(3),
+	.sleep-table td:nth-child(3),
+	.sleep-table th:nth-child(4),
+	.sleep-table td:nth-child(4),
+	.sleep-table th:nth-child(5),
+	.sleep-table td:nth-child(5) {
+		width: auto;
+	}
 }
