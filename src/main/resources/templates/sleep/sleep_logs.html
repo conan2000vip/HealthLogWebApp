@@ -181,9 +181,8 @@
 							class="pagination__nav">次へ →</a>
 					</div>
 
-					<!-- Trường hợp 1: chưa có bản ghi nào, chưa lọc gì -->
-					<div class="empty-state"
-						th:if="${#lists.isEmpty(logs)} and ${filterStartDate == null} and ${filterEndDate == null}">
+					<!-- Trường hợp 1: chưa từng có bản ghi nào (không phụ thuộc việc có đang lọc hay không) -->
+					<div class="empty-state" th:if="${#lists.isEmpty(logs)} and ${!hasAnyLog}">
 						<i data-lucide="moon"></i>
 						<p>まだ睡眠が記録されていません</p>
 						<button type="button" class="btn btn--primary" id="openAddModalBtnEmpty">
@@ -191,9 +190,8 @@
 						</button>
 					</div>
 
-					<!-- Trường hợp 2: đang lọc nhưng không có kết quả -->
-					<div class="empty-state"
-						th:if="${#lists.isEmpty(logs)} and (${filterStartDate != null} or ${filterEndDate != null})">
+					<!-- Trường hợp 2: đã từng có bản ghi, nhưng bộ lọc hiện tại không có kết quả -->
+					<div class="empty-state" th:if="${#lists.isEmpty(logs)} and ${hasAnyLog}">
 						<i data-lucide="calendar-plus"></i>
 						<p>選択した期間に記録がありません</p>
 						<button type="button" class="btn btn--primary" id="openAddModalBtnFiltered"

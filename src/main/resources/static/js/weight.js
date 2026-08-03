@@ -1,52 +1,11 @@
 document.addEventListener("DOMContentLoaded", () => {
-    if (typeof lucide !== "undefined") {
-        lucide.createIcons();
-    }
-
-    initDiffBadges();
     initChart();
-    initChartToggle();
     initModal();
-    initDeleteConfirm();
 });
 
 /* =========================================================
-   1) 前日比バッジ（↘ -1.0 / ↗ +1.0）
-   テーブルは新しい日付が上（降順）に並んでいる前提。
-   各行の体重と、1つ下（＝1つ前の記録）の体重を比較する。
-   ========================================================= */
-function initDiffBadges() {
-    const rows = Array.from(document.querySelectorAll(".weight-table tbody tr"));
-    rows.forEach((row, index) => {
-        const olderRow = rows[index + 1];
-        if (!olderRow) return;
-
-        const current = parseFloat(row.dataset.weight);
-        const previous = parseFloat(olderRow.dataset.weight);
-        if (Number.isNaN(current) || Number.isNaN(previous)) return;
-
-        const diff = Math.round((current - previous) * 10) / 10;
-        if (diff === 0) return;
-
-        const badge = row.querySelector(".diff-badge");
-        if (!badge) return;
-
-        const isDown = diff < 0;
-        const icon = isDown ? "trending-down" : "trending-up";
-        const sign = isDown ? "" : "+";
-        badge.classList.add("is-visible", isDown ? "is-down" : "is-up");
-        badge.innerHTML = `<i data-lucide="${icon}"></i>${sign}${diff.toFixed(1)}`;
-    });
-
-    if (typeof lucide !== "undefined") {
-        lucide.createIcons();
-    }
-}
-
-/* =========================================================
-   2) 体重推移グラフ (Chart.js)
-   バックエンドで日付ごとに集約済み（同日複数回計測時は最新値）の
-   window.weightChartData を描画する。
+   1) 体重推移グラフ (Chart.js)
+   バックエンドで日付ごとに集約済みの window.weightChartData を描画する。
    ========================================================= */
 let weightChartInstance = null;
 
@@ -124,28 +83,16 @@ function hexToRgba(hex, alpha) {
 }
 
 /* =========================================================
-   3) グラフの表示 / 非表示切り替え
-   ========================================================= */
-function initChartToggle() {
-    const toggleBtn = document.getElementById("toggleChartBtn");
-    const wrapper = document.getElementById("chartWrapper");
-    if (!toggleBtn || !wrapper) return;
-
-    toggleBtn.addEventListener("click", () => {
-        const isHidden = wrapper.style.display === "none";
-        wrapper.style.display = isHidden ? "" : "none";
-        toggleBtn.textContent = isHidden ? "非表示" : "表示";
-    });
-}
-
-/* =========================================================
-   4) モーダル（新規登録 / 編集）
+   2) モーダル（新規登録 / 編集）— weight ページ専用
+   （diff-badge / chart-toggle / delete-confirm は common.js 側で
+   全画面共通として処理されるため、ここでは扱わない）
    ========================================================= */
 function initModal() {
     const overlay = document.getElementById("weightModalOverlay");
     const openBtns = [
         document.getElementById("openAddModalBtn"),
         document.getElementById("openAddModalBtnEmpty"),
+        document.getElementById("openAddModalBtnFiltered"),
     ].filter(Boolean);
     const closeBtn = document.getElementById("closeModalBtn");
     const cancelBtn = document.getElementById("cancelModalBtn");
@@ -176,7 +123,7 @@ function initModal() {
         overlay.classList.remove("is-open");
     }
 
-    openBtns.forEach((btn) => btn.addEventListener("click", () => openModal({ mode: "create" })));
+    openBtns.forEach((btn) => btn.addEventListener("click", () => openModal({ mode: "create", date: btn.dataset.date || "" })));
     if (closeBtn) closeBtn.addEventListener("click", closeModal);
     if (cancelBtn) cancelBtn.addEventListener("click", closeModal);
 
@@ -287,16 +234,4 @@ function initModal() {
         const dd = String(d.getDate()).padStart(2, "0");
         return `${d.getFullYear()}-${mm}-${dd}`;
     }
-}
-
-/* =========================================================
-   5) 削除確認
-   ========================================================= */
-function initDeleteConfirm() {
-    document.querySelectorAll(".delete-form").forEach((form) => {
-        form.addEventListener("submit", (event) => {
-            const ok = window.confirm("この記録を削除しますか？この操作は取り消せません。");
-            if (!ok) event.preventDefault();
-        });
-    });
 }

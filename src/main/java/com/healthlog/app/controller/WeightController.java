@@ -19,6 +19,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import com.healthlog.app.entity.Weight;
 import com.healthlog.app.exception.BusinessException;
 import com.healthlog.app.service.AuthService;
+import com.healthlog.app.service.ProfileService;
 import com.healthlog.app.service.WeightService;
 
 import lombok.RequiredArgsConstructor;
@@ -29,6 +30,7 @@ import lombok.RequiredArgsConstructor;
 public class WeightController {
 	private final WeightService weightService;
 	private final AuthService authService;
+	private final ProfileService profileService;
 
 	@InitBinder
 	public void initBinder(WebDataBinder binder) {
@@ -96,14 +98,15 @@ public class WeightController {
 		input.setHeight(height);
 		input.setMemo(memo);
 		try {
+			String profileName = profileService.getProfile(currentUserId, profileId).getName();
 			if (recordId == null) {
-				// 新規登録
 				weightService.create(profileId, currentUserId, input);
-				redirectAttributes.addFlashAttribute("message", "体重を記録しました");
+				redirectAttributes.addFlashAttribute("message",
+						"「" + profileName + "」の体重記録を保存しました");
 			} else {
-				// 編集
 				weightService.update(profileId, currentUserId, recordId, input);
-				redirectAttributes.addFlashAttribute("message", "体重を更新しました");
+				redirectAttributes.addFlashAttribute("message",
+						"「" + profileName + "」の体重記録を更新しました");
 			}
 		} catch (BusinessException e) {
 			redirectAttributes.addFlashAttribute("error", e.getMessage());
@@ -118,8 +121,10 @@ public class WeightController {
 			RedirectAttributes redirectAttributes) {
 		Long currentUserId = currentUserId();
 		try {
+			String profileName = profileService.getProfile(currentUserId, profileId).getName();
 			weightService.delete(profileId, currentUserId, logId);
-			redirectAttributes.addFlashAttribute("message", "削除しました");
+			redirectAttributes.addFlashAttribute("message",
+					"「" + profileName + "」の体重記録を削除しました");
 		} catch (BusinessException e) {
 			redirectAttributes.addFlashAttribute("error", e.getMessage());
 		}

@@ -96,15 +96,15 @@ public class WeightService {
 		List<Weight> allLogs = fetchLogs(profileId, from, to);
 		boolean hasAnyLog = weightRepository.existsByProfile_Id(profileId);
 
-		BigDecimal latest = allLogs.stream()
-				.max(Comparator.comparing(Weight::getRecordedDate).thenComparing(Weight::getId))
-				.map(Weight::getWeight).orElse(null);
 		BigDecimal min = allLogs.stream().map(Weight::getWeight).min(BigDecimal::compareTo).orElse(null);
 		BigDecimal max = allLogs.stream().map(Weight::getWeight).max(BigDecimal::compareTo).orElse(null);
 
+		// 最新の記録は1回だけ計算して latest と BMI の両方に使い回す
 		Weight latestLog = allLogs.stream()
 				.max(Comparator.comparing(Weight::getRecordedDate).thenComparing(Weight::getId))
 				.orElse(null);
+		BigDecimal latest = latestLog != null ? latestLog.getWeight() : null;
+
 		BigDecimal bmi = null;
 		String[] overallStatus = new String[] { null, null };
 		if (latestLog != null) {
@@ -166,7 +166,7 @@ public class WeightService {
 			return new String[] { "標準", "normal" };
 		if (bmi.compareTo(BigDecimal.valueOf(30)) < 0)
 			return new String[] { "肥満(1度)", "warning" };
-		return new String[] { "肥満(2度以上)", "danger" };
+		return new String[] { "肥満(2度以上)", "high" };
 	}
 
 	// ---------------------------------------------------------
