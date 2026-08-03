@@ -74,7 +74,7 @@ public class ProfileController {
 		try {
 			profileService.switchProfile(session, user.getId(), id);
 		} catch (BusinessException e) {
-			redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+			redirectAttributes.addFlashAttribute("error", e.getMessage());
 			return "redirect:" + (referer != null ? referer : "/home");
 		}
 
@@ -136,7 +136,7 @@ public class ProfileController {
 		try {
 			profile = profileService.create(profile);
 		} catch (BusinessException e) {
-			model.addAttribute("errorMessage", e.getMessage());
+			model.addAttribute("error", e.getMessage());
 			model.addAttribute("isFirstProfile", isFirstProfile);
 			model.addAttribute("profileColors", PROFILE_COLORS);
 			return "profile/profile-form";
@@ -155,7 +155,7 @@ public class ProfileController {
 			model.addAttribute("profile", profile);
 			model.addAttribute("isPrimary", Boolean.TRUE.equals(profile.getIsPrimary()));
 		} catch (BusinessException e) {
-			model.addAttribute("errorMessage", e.getMessage());
+			model.addAttribute("error", e.getMessage());
 			model.addAttribute("profiles", profileService.getProfiles(user.getId()));
 			return "profile/profile-manage";
 		}
@@ -180,7 +180,6 @@ public class ProfileController {
 			Profile profile = profileService.getProfile(user.getId(), id);
 			if (!Boolean.TRUE.equals(profile.getIsPrimary())) {
 				profile.setRelationship(formProfile.getRelationship());
-				redirectAttributes.addFlashAttribute("message", "プロフィールを更新しました");
 			}
 			profile.setName(formProfile.getName());
 			profile.setBirthDate(formProfile.getBirthDate());
@@ -192,8 +191,10 @@ public class ProfileController {
 			profile.setSleepGoalHours(formProfile.getSleepGoalHours());
 			profile.setProfileColor(formProfile.getProfileColor());
 			profileService.update(profile);
+			redirectAttributes.addFlashAttribute("message",
+					"「" + profile.getName() + "」のプロフィールを更新しました");
 		} catch (BusinessException e) {
-			model.addAttribute("errorMessage", e.getMessage());
+			model.addAttribute("error", e.getMessage());
 			model.addAttribute("isFirstProfile", false);
 			model.addAttribute("profileColors", PROFILE_COLORS);
 			return "profile/profile-form";
@@ -211,7 +212,7 @@ public class ProfileController {
 			profileService.delete(user.getId(), profileId, session);
 			redirectAttributes.addFlashAttribute("message", "プロフィールを削除しました");
 		} catch (BusinessException e) {
-			redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+			redirectAttributes.addFlashAttribute("error", e.getMessage());
 		}
 		return "redirect:/profile/profile-manage";
 	}

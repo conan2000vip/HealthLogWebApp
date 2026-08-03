@@ -20,6 +20,7 @@ import com.healthlog.app.entity.Sleep;
 import com.healthlog.app.entity.Sleep.SleepType;
 import com.healthlog.app.exception.BusinessException;
 import com.healthlog.app.service.AuthService;
+import com.healthlog.app.service.ProfileService;
 import com.healthlog.app.service.SleepService;
 
 import lombok.RequiredArgsConstructor;
@@ -31,6 +32,7 @@ public class SleepController {
 
 	private final SleepService sleepService;
 	private final AuthService authService;
+	private final ProfileService profileService;
 
 	@InitBinder
 	public void initBinder(WebDataBinder binder) {
@@ -90,14 +92,17 @@ public class SleepController {
 		input.setSleepType(sleepType);
 		input.setMemo(memo);
 		try {
+			String profileName = profileService.getProfile(currentUserId, profileId).getName();
 			if (recordId == null) {
 				// 新規登録
 				sleepService.create(profileId, currentUserId, input);
-				redirectAttributes.addFlashAttribute("message", "睡眠記録を保存しました");
+				redirectAttributes.addFlashAttribute("message",
+						"「" + profileName + "」の睡眠記録を保存しました");
 			} else {
 				// 編集
 				sleepService.update(profileId, currentUserId, recordId, input);
-				redirectAttributes.addFlashAttribute("message", "睡眠記録を更新しました");
+				redirectAttributes.addFlashAttribute("message",
+						"「" + profileName + "」の睡眠記録を更新しました");
 			}
 		} catch (BusinessException e) {
 			redirectAttributes.addFlashAttribute("error", e.getMessage());
@@ -112,8 +117,10 @@ public class SleepController {
 			RedirectAttributes redirectAttributes) {
 		Long currentUserId = currentUserId();
 		try {
+			String profileName = profileService.getProfile(currentUserId, profileId).getName();
 			sleepService.delete(profileId, currentUserId, logId);
-			redirectAttributes.addFlashAttribute("message", "削除しました");
+			redirectAttributes.addFlashAttribute("message",
+					"「" + profileName + "」の睡眠記録を削除しました");
 		} catch (BusinessException e) {
 			redirectAttributes.addFlashAttribute("error", e.getMessage());
 		}
