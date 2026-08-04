@@ -52,32 +52,55 @@
 /* =========================================================
    Weight Table Only
    ========================================================= */
+.weight-table {
+	width: 100%;
+	table-layout: fixed;
+}
 
-/* 日付・時間 は内容が短いので幅を固定し、余白が偏らないようにする */
+/* 日付 */
 .weight-table th:nth-child(1),
 .weight-table td:nth-child(1) {
-	width: 110px;
+	width: 120px;
 	white-space: nowrap;
 }
 
-.weight-table th.weight-table__time,
-.weight-table td.weight-table__time {
-	width: 70px;
+/* 時間 */
+.weight-table__time {
+	width: 80px;
+	text-align: center;
 	white-space: nowrap;
 	color: var(--wp-text-muted);
-	text-align: center;
+}
+
+/* 体重 */
+.weight-table th:nth-child(3),
+.weight-table td:nth-child(3) {
+	width: 180px;
 }
 
 .weight-table__weight {
+	text-align: center;
+}
+
+.weight-table__weight-content {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
 	font-weight: 700;
 }
 
+/* BMI */
+.weight-table th:nth-child(4),
+.weight-table td:nth-child(4) {
+	width: 120px;
+	text-align: center;
+}
+
 .weight-table__memo {
-	max-width: 200px;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
-	color: var(--wp-text-muted);
 }
 
 .weight-table__actions {
@@ -110,6 +133,7 @@
 .modal .form {
 	padding: 20px 24px 24px;
 }
+
 
 /* =========================================================
    Responsive

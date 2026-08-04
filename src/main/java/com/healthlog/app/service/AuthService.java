@@ -331,9 +331,6 @@ public class AuthService {
 		// パスワード形式を先に検証（不正な形式のまま次に進まない）
 		validatePasswordPolicy(newPassword);
 		User user = authToken.getUser();
-		if (passwordEncoder.matches(newPassword, user.getPasswordHash())) {
-			throw new BusinessException(HttpStatus.BAD_REQUEST, "現在使用中のパスワードは指定できません");
-		}
 		user.setPasswordHash(passwordEncoder.encode(newPassword));
 		userRepository.save(user);
 		authToken.setUsedFlg(true);

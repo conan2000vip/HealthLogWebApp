@@ -115,13 +115,16 @@
 									<td th:text="${#temporals.format(record.recordedDate, 'yyyy-MM-dd')}"></td>
 									<td th:text="${#temporals.format(record.measuredAt, 'HH:mm')}"></td>
 									<td class="weight-table__weight">
-										<span th:text="${record.weight}">65</span>
-										<span class="diff-badge" data-diff-placeholder></span>
+									    <div class="weight-table__weight-content">
+									        <span th:text="${record.weight}">65</span>
+									        <span class="diff-badge" data-diff-placeholder></span>
+									    </div>
 									</td>
 									<td>
 										<span class="badge" th:if="${record.bmi != null}"
 											th:classappend="${'badge--' + (record.bmiStatusCode ?: 'normal')}"
-											th:text="${record.bmi}">21.2</span>
+											th:text="${record.bmi}">21.2
+										</span>
 										<span class="text-muted" th:unless="${record.bmi != null}">--</span>
 									</td>
 									<td class="weight-table__memo" th:text="${record.memo != null ? record.memo : ''}">
