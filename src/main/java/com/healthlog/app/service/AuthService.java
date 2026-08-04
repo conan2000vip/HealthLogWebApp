@@ -77,153 +77,84 @@ public class AuthService {
 	// register
 	// ユーザー登録処理（新規ユーザーの作成とメール認証トークンの発行）
 	@Transactional
-	public void register(
-			String accountName,
-			String email,
-			String password) {
+	public void register(String email, String password) {
 
-		validateAccountName(accountName);
 		validateEmail(email);
-		validatePasswordPolicy(password);
+		validatePasswordPolicy(password, "password");
 		email = email.trim().toLowerCase();
 		if (userRepository.existsByEmail(email)) {
-			throw new BusinessException(
-					HttpStatus.CONFLICT,
-					"メールが既に登録されています");
+			throw new BusinessException(HttpStatus.CONFLICT, "email", "メールが既に登録されています");
 		}
 
 		User user = new User();
-		user.setAccountName(accountName.trim());
 		user.setEmail(email);
-		user.setPasswordHash(
-				passwordEncoder.encode(password));
+		user.setPasswordHash(passwordEncoder.encode(password));
 
 		try {
 			userRepository.save(user);
 		} catch (DataIntegrityViolationException e) {
-			throw new BusinessException(
-					HttpStatus.CONFLICT,
-					"メールが既に登録されています");
+			throw new BusinessException(HttpStatus.CONFLICT, "email", "メールが既に登録されています");
 		}
 
-		AuthToken token = issueAuthToken(
-				user,
-				TOKEN_TYPE_EMAIL_VERIFICATION,
-				EMAIL_TOKEN_EXPIRY_MINUTES);
-		emailService.sendVerificationEmail(
-				user.getEmail(),
-				token.getToken());
-	}
-
-	private void validateAccountName(String accountName) {
-		if (!StringUtils.hasText(accountName)) {
-			throw new BusinessException(
-					HttpStatus.BAD_REQUEST,
-					"名前を入力してください");
-		}
-		String value = accountName.trim();
-		if (value.length() < 3 || value.length() > 50) {
-			throw new BusinessException(
-					HttpStatus.BAD_REQUEST,
-					"名前は3〜50文字で入力してください");
-		}
-		if (!value.matches("^[a-zA-Z0-9_ぁ-んァ-ヶー一-龯\\s]+$")) {
-			throw new BusinessException(
-					HttpStatus.BAD_REQUEST,
-					"名前は英数字、アンダースコア、日本語のみ使用できます");
-		}
+		AuthToken token = issueAuthToken(user, TOKEN_TYPE_EMAIL_VERIFICATION, EMAIL_TOKEN_EXPIRY_MINUTES);
+		emailService.sendVerificationEmail(user.getEmail(), token.getToken());
 	}
 
 	private void validateEmail(String email) {
 		if (email == null || email.trim().isEmpty()) {
-			throw new BusinessException(
-					HttpStatus.BAD_REQUEST,
-					"メールを入力してください");
+			throw new BusinessException(HttpStatus.BAD_REQUEST, "email", "メールを入力してください");
 		}
 		if (email.length() > MAX_EMAIL_LENGTH) {
-			throw new BusinessException(
-					HttpStatus.BAD_REQUEST,
-					"メールアドレスが長すぎます");
+			throw new BusinessException(HttpStatus.BAD_REQUEST, "email", "メールアドレスが長すぎます");
 		}
 		if (!EMAIL_PATTERN.matcher(email).matches()) {
-			throw new BusinessException(
-					HttpStatus.BAD_REQUEST,
-					"メールアドレスの形式が正しくありません");
+			throw new BusinessException(HttpStatus.BAD_REQUEST, "email", "メールアドレスの形式が正しくありません");
 		}
 	}
 
-	// パスワードポリシーの検証（登録・リセット共通で使用する唯一の検証ロジック）
-	private void validatePasswordPolicy(String password) {
+	// fieldName: register→"password", confirmPasswordReset→"newPassword" (id khác nhau giữa 2 form)
+	private void validatePasswordPolicy(String password, String fieldName) {
 		if (!StringUtils.hasText(password)) {
-			throw new BusinessException(
-					HttpStatus.BAD_REQUEST,
-					"パスワードを入力してください");
+			throw new BusinessException(HttpStatus.BAD_REQUEST, fieldName, "パスワードを入力してください");
 		}
 		if (password.length() > MAX_PASSWORD_LENGTH) {
-			throw new BusinessException(
-					HttpStatus.BAD_REQUEST,
-					"パスワードは100文字以内で入力してください");
+			throw new BusinessException(HttpStatus.BAD_REQUEST, fieldName, "パスワードは100文字以内で入力してください");
 		}
 		if (!PASSWORD_PATTERN.matcher(password).matches()) {
-			throw new BusinessException(HttpStatus.BAD_REQUEST,
-					"大文字・小文字・数字・特殊記号をそれぞれ1文字以上含めてください");
+			throw new BusinessException(HttpStatus.BAD_REQUEST, fieldName, "大文字・小文字・数字・特殊記号をそれぞれ1文字以上含めてください");
 		}
 		if (WEAK_PASSWORDS.contains(password.toLowerCase())) {
-			throw new BusinessException(HttpStatus.BAD_REQUEST, "このパスワードは一般的すぎて使用できません");
+			throw new BusinessException(HttpStatus.BAD_REQUEST, fieldName, "このパスワードは一般的すぎて使用できません");
 		}
 	}
 
 	// login
 	@Transactional
 	// ログイン処理（認証済みユーザーのセッションを作成）
-	public void login(
-			String email,
-			String password,
-			HttpServletRequest request,
-			HttpServletResponse response) {
+	public void login(String email, String password, HttpServletRequest request, HttpServletResponse response) {
 		if (!StringUtils.hasText(email)) {
-			throw new BusinessException(
-					HttpStatus.BAD_REQUEST,
-					"メールアドレスを入力してください");
+			throw new BusinessException(HttpStatus.BAD_REQUEST, "メールアドレスを入力してください");
 		}
 		if (!StringUtils.hasText(password)) {
-			throw new BusinessException(
-					HttpStatus.BAD_REQUEST,
-					"パスワードを入力してください");
+			throw new BusinessException(HttpStatus.BAD_REQUEST, "パスワードを入力してください");
 		}
 		email = email.trim().toLowerCase();
 		User user = userRepository.findByEmail(email)
-				.orElseThrow(
-						() -> new BusinessException(
-								HttpStatus.UNAUTHORIZED,
-								"メールアドレスまたはパスワードが正しくありません"));
-		if (!passwordEncoder.matches(
-				password,
-				user.getPasswordHash())) {
-			throw new BusinessException(
-					HttpStatus.UNAUTHORIZED,
-					"メールアドレスまたはパスワードが正しくありません");
+				.orElseThrow(() -> new BusinessException(HttpStatus.UNAUTHORIZED, "メールアドレスまたはパスワードが正しくありません"));
+		if (!passwordEncoder.matches(password, user.getPasswordHash())) {
+			throw new BusinessException(HttpStatus.UNAUTHORIZED, "メールアドレスまたはパスワードが正しくありません");
 		}
 
 		if (user.getEmailVerifiedAt() == null) {
-			throw new BusinessException(
-					HttpStatus.FORBIDDEN,
-					"メール認証を完了してください");
+			throw new BusinessException(HttpStatus.FORBIDDEN, "メール認証を完了してください");
 		}
 
-		Authentication authentication = new UsernamePasswordAuthenticationToken(
-				user.getEmail(),
-				null,
-				Collections.singletonList(
-						new SimpleGrantedAuthority(
-								"ROLE_USER")));
+		Authentication authentication = new UsernamePasswordAuthenticationToken(user.getEmail(), null,
+				Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER")));
 		SecurityContext context = SecurityContextHolder.createEmptyContext();
 		context.setAuthentication(authentication);
 		SecurityContextHolder.setContext(context);
-		securityContextRepository.saveContext(
-				context,
-				request,
-				response);
+		securityContextRepository.saveContext(context, request, response);
 	}
 
 	// logout
@@ -329,11 +260,8 @@ public class AuthService {
 		}
 
 		// パスワード形式を先に検証（不正な形式のまま次に進まない）
-		validatePasswordPolicy(newPassword);
+		validatePasswordPolicy(newPassword, "newPassword");
 		User user = authToken.getUser();
-		if (passwordEncoder.matches(newPassword, user.getPasswordHash())) {
-			throw new BusinessException(HttpStatus.BAD_REQUEST, "現在使用中のパスワードは指定できません");
-		}
 		user.setPasswordHash(passwordEncoder.encode(newPassword));
 		userRepository.save(user);
 		authToken.setUsedFlg(true);
