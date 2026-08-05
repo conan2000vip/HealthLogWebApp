@@ -111,6 +111,7 @@ function initModal() {
         modalTitle.textContent = mode === "edit" ? "体重を編集する" : "体重を記録する";
         recordId.value = id;
         measuredAtInput.value = measuredAt || currentDateTimeLocal();
+		measuredAtInput.max = currentDateTimeLocal();
         weightInput.value = weight;
         heightInput.value = height;
         memoInput.value = memo;
@@ -156,14 +157,21 @@ function initModal() {
     });
 
     // バリデーション
-    function validateMeasuredAt() {
-        if (!measuredAtInput.value) {
-            showError("measuredAt", "日付を入力してください");
-            return false;
-        }
-        clearError("measuredAt");
-        return true;
-    }
+	function validateMeasuredAt() {
+	    if (!measuredAtInput.value) {
+	        showError("measuredAt", "日時を入力してください");
+	        return false;
+	    }
+
+	    const selected = new Date(measuredAtInput.value);
+	    const now = new Date();
+	    if (selected > now) {
+	        showError("measuredAt", "未来の日時は入力できません");
+	        return false;
+	    }
+	    clearError("measuredAt");
+	    return true;
+	}
 
     function validateWeight() {
         const value = weightInput.value;

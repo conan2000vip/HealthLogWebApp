@@ -37,8 +37,9 @@ body {
 	background: rgba(255, 255, 255, .82);
 	backdrop-filter: blur(12px);
 	border-bottom: 1px solid #E5E7EB;
-	box-shadow:
-		0 2px 10px rgba(0, 0, 0, .03);
+	box-shadow: 0 2px 10px rgba(0, 0, 0, .03);
+	position: relative;
+	z-index: 300;
 }
 
 .app-header__inner {
@@ -398,22 +399,6 @@ body {
 	color: #dc2626;
 }
 
-/* ===== Backdrop cho dropdown profile ===== */
-.app-header__backdrop {
-	position: fixed;
-	inset: 0;
-	background: rgba(15, 23, 42, 0.25);
-	opacity: 0;
-	visibility: hidden;
-	transition: opacity .2s ease;
-	z-index: 190; /* thấp hơn dropdown (200), cao hơn nội dung trang */
-}
-
-.app-header__backdrop.is-open {
-	opacity: 1;
-	visibility: visible;
-}
-
 /* ===== Mobile nav toggle (hamburger) ===== */
 
 .app-header__nav-toggle {
@@ -565,6 +550,7 @@ body {
 	box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
 	animation: alert-in 0.2s ease-out;
 	position: relative;
+	z-index: 1;
 }
 
 .alert-icon {
@@ -612,6 +598,151 @@ body {
 	to {
 		opacity: 1;
 		transform: translateY(0);
+	}
+}
+
+/* =========================================================
+   Feedback Card (Shared)
+   ========================================================= */
+
+.feedback-list {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	margin-bottom: 20px;
+}
+
+.feedback-card {
+	display: flex;
+	align-items: flex-start;
+	gap: 12px;
+	padding: 14px 18px;
+	border-radius: 12px;
+	border-left: 4px solid transparent;
+	background: #ffffff;
+	box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+}
+
+.feedback-card__icon {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 22px;
+	height: 22px;
+	flex-shrink: 0;
+	margin-top: 1px;
+}
+
+.feedback-card__icon i {
+	width: 20px;
+	height: 20px;
+}
+
+.feedback-card__content {
+	flex: 1;
+	min-width: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 3px;
+}
+
+.feedback-card__title {
+	font-size: 14.5px;
+	font-weight: 700;
+	color: #1f2937;
+}
+
+.feedback-card__message {
+	font-size: 13px;
+	color: #6b7280;
+}
+
+.feedback-card__meta {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-end;
+	gap: 6px;
+	flex-shrink: 0;
+	margin-left: auto;
+	padding-left: 10px;
+}
+
+.feedback-card__time {
+	font-size: 12px;
+	color: #9ca3af;
+	white-space: nowrap;
+}
+
+.feedback-card__badge {
+	font-size: 11px;
+	font-weight: 800;
+	padding: 3px 10px;
+	border-radius: 6px;
+	color: #fff;
+	white-space: nowrap;
+}
+
+/* Lv4: 重要 - 赤 */
+.feedback-card--lv4 {
+	border-left-color: #ef4444;
+	background: linear-gradient(90deg, #fef2f2 0%, #ffffff 60%);
+}
+.feedback-card--lv4 .feedback-card__icon i { color: #ef4444; }
+.feedback-card--lv4 .feedback-card__badge { background: #ef4444; }
+
+/* Lv3: 注意 - 橙 */
+.feedback-card--lv3 {
+	border-left-color: #f59e0b;
+	background: linear-gradient(90deg, #fffbeb 0%, #ffffff 60%);
+}
+.feedback-card--lv3 .feedback-card__icon i { color: #f59e0b; }
+.feedback-card--lv3 .feedback-card__badge { background: #f59e0b; }
+
+/* Lv2: アドバイス - 青 */
+.feedback-card--lv2 {
+	border-left-color: #3b82f6;
+	background: linear-gradient(90deg, #eff6ff 0%, #ffffff 60%);
+}
+.feedback-card--lv2 .feedback-card__icon i { color: #3b82f6; }
+.feedback-card--lv2 .feedback-card__badge { background: #3b82f6; }
+
+/* Lv1: 達成 - 緑 */
+.feedback-card--lv1 {
+	border-left-color: #10b981;
+	background: linear-gradient(90deg, #ecfdf5 0%, #ffffff 60%);
+}
+.feedback-card--lv1 .feedback-card__icon i { color: #10b981; }
+.feedback-card--lv1 .feedback-card__badge { background: #10b981; }
+
+.feedback-card.is-hidden {
+	display: none;
+}
+
+.feedback-list__toggle {
+	align-self: center;
+	margin-top: 4px;
+	background: none;
+	border: none;
+	color: var(--wp-primary-dark);
+	font-size: 13px;
+	font-weight: 600;
+	cursor: pointer;
+	padding: 6px 10px;
+}
+
+.feedback-list__toggle:hover {
+	text-decoration: underline;
+}
+
+@media (max-width: 600px) {
+	.feedback-card {
+		flex-wrap: wrap;
+	}
+	.feedback-card__meta {
+		flex-direction: row;
+		align-items: center;
+		margin-left: 34px;
+		padding-left: 0;
 	}
 }
 
@@ -698,6 +829,30 @@ body {
 	padding: 14px 20px;
 	margin-bottom: 20px;
 	flex-wrap: wrap;
+}
+
+.filter-bar__search-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    background-color: #f9fafb;
+    color: #374151;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.filter-bar__search-btn:hover {
+    background-color: #f3f4f6;
+    border-color: #9ca3af;
+}
+
+.filter-bar__search-btn i {
+    width: 16px;
+    height: 16px;
 }
 
 .filter-bar__title {

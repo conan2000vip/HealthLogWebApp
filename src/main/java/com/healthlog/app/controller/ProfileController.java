@@ -78,7 +78,47 @@ public class ProfileController {
 		} catch (BusinessException e) {
 			redirectAttributes.addFlashAttribute("error", e.getMessage());
 		}
-		return "redirect:" + (referer != null ? referer : "/home");
+		return "redirect:" + buildRedirectUrl(referer, id);
+	}
+
+	// referer の中の古い profileId を新しい id に置き換えてリダイレクト先を組み立てる。
+	private String buildRedirectUrl(String referer, Long newProfileId) {
+		String path = extractSafePath(referer);
+		if (path == null) {
+			return "/profile/" + newProfileId + "/home";
+		}
+
+		java.util.regex.Matcher matcher = java.util.regex.Pattern
+				.compile("^/profile/\\d+(/.*)?$")
+				.matcher(path);
+		if (matcher.matches()) {
+			String suffix = matcher.group(1);
+			if (suffix == null || suffix.isBlank() || suffix.equals("/")) {
+				suffix = "/home";
+			}
+			return "/profile/" + newProfileId + suffix;
+		}
+
+		// profileId を含まない画面（profile-manage 等）はそのまま同じ画面に留まる
+		return path;
+	}
+
+	// referer からホスト部分を除いた安全なパス（+クエリ）だけを取り出す
+	private String extractSafePath(String referer) {
+		if (referer == null || referer.isBlank()) {
+			return null;
+		}
+		try {
+			java.net.URI uri = java.net.URI.create(referer);
+			String path = uri.getRawPath();
+			if (path == null || path.isBlank()) {
+				return null;
+			}
+			String query = uri.getRawQuery();
+			return query != null ? path + "?" + query : path;
+		} catch (IllegalArgumentException e) {
+			return null;
+		}
 	}
 
 	// ===== Create =====
