@@ -31,9 +31,6 @@ public class User {
 	@Column(name = "id")
 	private Long id;
 
-	@Column(name = "account_name", length = 50, nullable = false)
-	private String accountName; // nullable
-
 	@Column(name = "email", length = 255, nullable = false, unique = true)
 	private String email; // ログインIDとして使用
 

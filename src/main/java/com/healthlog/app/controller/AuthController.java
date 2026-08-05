@@ -38,20 +38,21 @@ public class AuthController {
 
 	@PostMapping("/register")
 	public String register(
-			@RequestParam String accountName,
 			@RequestParam String email,
 			@RequestParam String password,
 			RedirectAttributes redirectAttributes) {
 		try {
-			authService.register(accountName, email, password);
+			authService.register(email, password);
 			redirectAttributes.addFlashAttribute(
 					"message",
 					"登録が完了しました。確認メールをご確認のうえ、メール認証を行ってください。");
 			return "redirect:/auth/login";
 		} catch (BusinessException e) {
-			redirectAttributes.addFlashAttribute("error", e.getMessage());
-			// 入力値を保持してユーザーの再入力負担を軽減（パスワードは保持しない）
-			redirectAttributes.addFlashAttribute("accountName", accountName);
+			if (e.getField() != null) {
+				redirectAttributes.addFlashAttribute(e.getField() + "Error", e.getMessage());
+			} else {
+				redirectAttributes.addFlashAttribute("error", e.getMessage());
+			}
 			redirectAttributes.addFlashAttribute("email", email);
 			return "redirect:/auth/register";
 		}
