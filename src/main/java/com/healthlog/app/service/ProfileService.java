@@ -19,6 +19,10 @@ public class ProfileService {
 
 	private static final int MAX_PROFILES = 10;
 
+	// 続柄が重複不可（1人のユーザーにつき1件まで）の関係性
+	// 子供のように複数人あり得る続柄はここに含めない
+	private static final List<String> UNIQUE_RELATIONSHIPS = List.of("父", "母", "配偶者");
+
 	private final ProfileRepository profileRepository;
 
 	public ProfileService(ProfileRepository profileRepository) {
@@ -44,12 +48,20 @@ public class ProfileService {
 		if (count >= MAX_PROFILES) {
 			throw new BusinessException(HttpStatus.BAD_REQUEST, "プロフィールは最大" + MAX_PROFILES + "件までです");
 		}
-		profile.setIsPrimary(count == 0);
+
 		if (count == 0) {
 			profile.setIsPrimary(true);
 			profile.setRelationship("本人");
 		} else {
 			profile.setIsPrimary(false);
+
+			// 父・母・配偶者は重複登録不可
+			if (UNIQUE_RELATIONSHIPS.contains(profile.getRelationship())
+					&& profileRepository.existsByUser_IdAndRelationship(
+							profile.getUser().getId(), profile.getRelationship())) {
+				throw new BusinessException(HttpStatus.BAD_REQUEST,
+						"「" + profile.getRelationship() + "」はすでに登録されています");
+			}
 		}
 		return profileRepository.save(profile);
 	}
@@ -64,6 +76,14 @@ public class ProfileService {
 
 		if (Boolean.TRUE.equals(dbProfile.getIsPrimary())) {
 			profile.setRelationship(dbProfile.getRelationship());
+		} else if (UNIQUE_RELATIONSHIPS.contains(profile.getRelationship())
+				&& !profile.getRelationship().equals(dbProfile.getRelationship())
+				&& profileRepository.existsByUser_IdAndRelationship(
+						dbProfile.getUser().getId(), profile.getRelationship())) {
+			// 続柄を父・母・配偶者に変更しようとした際、既に他のプロフィールで
+			// 同じ続柄が登録されている場合はエラー
+			throw new BusinessException(HttpStatus.BAD_REQUEST,
+					"「" + profile.getRelationship() + "」はすでに登録されています");
 		}
 		return profileRepository.save(profile);
 	}
