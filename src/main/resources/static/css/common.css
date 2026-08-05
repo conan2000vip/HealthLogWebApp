@@ -398,6 +398,22 @@ body {
 	color: #dc2626;
 }
 
+/* ===== Backdrop cho dropdown profile ===== */
+.app-header__backdrop {
+	position: fixed;
+	inset: 0;
+	background: rgba(15, 23, 42, 0.25);
+	opacity: 0;
+	visibility: hidden;
+	transition: opacity .2s ease;
+	z-index: 190; /* thấp hơn dropdown (200), cao hơn nội dung trang */
+}
+
+.app-header__backdrop.is-open {
+	opacity: 1;
+	visibility: visible;
+}
+
 /* ===== Mobile nav toggle (hamburger) ===== */
 
 .app-header__nav-toggle {

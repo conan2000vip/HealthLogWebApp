@@ -34,8 +34,8 @@
 
 					<!-- Business Error -->
 					<div id="backendError" class="error-message" th:if="${error}">
-					    <i data-lucide="alert-circle"></i>
-					    <span th:text="${error}"></span>
+						<i data-lucide="alert-circle"></i>
+						<span th:text="${error}"></span>
 					</div>
 
 					<!-- Success Message -->
@@ -45,26 +45,16 @@
 
 					<!-- Register Form -->
 					<form id="registerForm" th:action="@{/auth/register}" method="post" class="form" novalidate>
-						
-						<!-- Account Name -->
-						<div class="input-group">
-							<label for="accountName">お名前</label>
-							<input id="accountName" name="accountName" type="text" th:value="${accountName}"
-								placeholder="山田　太郎"/>
-							<div id="accountNameError" class="field-error">
-								<i data-lucide="alert-circle"></i>
-								<span></span>
-							</div>
-						</div>
 
 						<!-- Email -->
 						<div class="input-group">
 							<label for="email">メールアドレス</label>
 							<input id="email" name="email" type="email" th:value="${email}"
-								placeholder="example@email.com" autocomplete="email" />
-							<div id="emailError" class="field-error">
+								th:classappend="${emailError} ? ' invalid' : ''" placeholder="example@email.com"
+								autocomplete="email" />
+							<div id="emailError" class="field-error" th:classappend="${emailError} ? ' show' : ''">
 								<i data-lucide="alert-circle"></i>
-								<span></span>
+								<span th:text="${emailError}"></span>
 							</div>
 						</div>
 
@@ -72,22 +62,26 @@
 						<div class="input-group">
 							<label for="password">パスワード</label>
 							<div class="password-box">
-								<input id="password" name="password" type="password" placeholder="パスワード" autocomplete="new-password" />
+								<input id="password" name="password" type="password"
+									th:classappend="${passwordError} ? ' invalid' : ''" placeholder="パスワード"
+									autocomplete="new-password" />
 								<button id="togglePassword" type="button">
 									<i data-lucide="eye" id="eye"></i>
 								</button>
 							</div>
-							<div id="passwordError" class="field-error">
+							<div id="passwordError" class="field-error"
+								th:classappend="${passwordError} ? ' show' : ''">
 								<i data-lucide="alert-circle"></i>
-								<span></span>
+								<span th:text="${passwordError}"></span>
 							</div>
 						</div>
-
+						
 						<!-- Confirm Password -->
 						<div class="input-group">
 							<label for="confirmPassword">パスワード確認</label>
 							<div class="password-box">
-								<input id="confirmPassword" name="confirmPassword" type="Password" placeholder="パスワードを再入力" autocomplete="new-password" />
+								<input id="confirmPassword" name="confirmPassword" type="Password"
+									placeholder="パスワードを再入力" autocomplete="new-password" />
 								<button id="toggleConfirmPassword" type="button">
 									<i data-lucide="eye" id="eyeConfirmPassword"></i>
 								</button>
@@ -114,4 +108,5 @@
 		<script th:src="@{/js/common.js}"></script>
 		<script th:src="@{/js/register.js}"></script>
 	</body>
+
 </html>
