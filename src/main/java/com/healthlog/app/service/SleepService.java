@@ -33,6 +33,9 @@ public class SleepService {
 	private final SleepRepository sleepRepository;
 	private final ProfileRepository profileRepository;
 
+	private static final int NIGHT_MAX_MINUTES = 16 * 60; // 夜間睡眠の上限
+	private static final int NAP_MAX_MINUTES = 5 * 60; // 昼寝の上限
+
 	// ---------------------------------------------------------
 	// 共通: Profile取得 + 所有者チェック
 	// profileId が存在しない場合は404、存在するが currentUserId のものでない場合は403
@@ -279,8 +282,14 @@ public class SleepService {
 		if (minutes <= 0) {
 			throw new BusinessException(HttpStatus.BAD_REQUEST, "睡眠時間が不正です");
 		}
-		if (minutes > 16 * 60) {
-			throw new BusinessException(HttpStatus.BAD_REQUEST, "睡眠時間が長すぎます");
+		// ★変更: 種別ごとに上限を分ける
+		int maxMinutes = sleep.getSleepType() == SleepType.NAP ? NAP_MAX_MINUTES : NIGHT_MAX_MINUTES;
+		if (minutes > maxMinutes) {
+			int maxHours = maxMinutes / 60;
+			String message = sleep.getSleepType() == SleepType.NAP
+					? "昼寝が" + maxHours + "時間を超えています。長時間の場合は「夜間睡眠」として記録してください"
+					: "夜間睡眠の記録は" + maxHours + "時間以内で入力してください";
+			throw new BusinessException(HttpStatus.BAD_REQUEST, message);
 		}
 	}
 

@@ -36,19 +36,21 @@
 				</div>
 
 				<!-- Business Error / Success -->
-				<div class="alert alert--error" th:if="${error}" id="errorAlert">
-					<i data-lucide="alert-circle"></i><span th:text="${error}"></span>
-					<button type="button" class="alert__close" onclick="this.closest('.alert').remove()">
-						<i data-lucide="x"></i>
-					</button>
+				<div class="alert alert--error" th:if="${error}" id="errorAlert" data-auto-hide="true">
+				    <i data-lucide="alert-circle"></i><span th:text="${error}"></span>
+				    <button type="button" class="alert__close" onclick="this.closest('.alert').remove()">
+				        <i data-lucide="x"></i>
+				    </button>
 				</div>
-				<div class="alert alert--success" th:if="${message}" id="successAlert">
-					<i data-lucide="check-circle"></i><span th:text="${message}"></span>
-					<button type="button" class="alert__close" onclick="this.closest('.alert').remove()">
-						<i data-lucide="x"></i>
-					</button>
+				<div class="alert alert--success" th:if="${message}" id="successAlert" data-auto-hide="true">
+				    <i data-lucide="check-circle"></i><span th:text="${message}"></span>
+				    <button type="button" class="alert__close" onclick="this.closest('.alert').remove()">
+				        <i data-lucide="x"></i>
+				    </button>
 				</div>
 
+				<div th:replace="~{layout/data-controls :: feedbackList(feedbackList=${feedbackList})}"></div>
+				
 				<!-- Summary Cards -->
 				<div class="summary-grid">
 					<div class="summary-card">
@@ -218,10 +220,10 @@
 					<input type="hidden" name="recordId" id="recordId" value="" />
 
 					<div class="input-group">
-						<label for="date">就寝日 <span class="required">*</span> <span class="hint">（寝始めた日）</span></label>
-						<input id="recordedDate" name="recordedDate" type="date" th:max="${T(java.time.LocalDate).now()}" required />
-						<div id="dateError" class="field-error"><span></span></div>
-						<p id="wakeDateHint" class="hint" style="margin-top:4px; display:none;"></p>
+					    <label for="recordedDate">就寝日 <span class="required">*</span> <span class="hint">（寝始めた日）</span></label>
+					    <input id="recordedDate" name="recordedDate" type="date" th:max="${T(java.time.LocalDate).now()}" required />
+					    <div id="recordedDateError" class="field-error"><span></span></div>
+					    <p id="wakeDateHint" class="hint" style="margin-top:4px; display:none;"></p>
 					</div>
 
 					<div class="input-group">

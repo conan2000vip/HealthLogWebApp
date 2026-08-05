@@ -3,6 +3,7 @@ package com.healthlog.app.controller;
 import java.beans.PropertyEditorSupport;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.stereotype.Controller;
@@ -20,8 +21,10 @@ import com.healthlog.app.entity.Sleep;
 import com.healthlog.app.entity.Sleep.SleepType;
 import com.healthlog.app.exception.BusinessException;
 import com.healthlog.app.service.AuthService;
+import com.healthlog.app.service.FeedbackService;
 import com.healthlog.app.service.ProfileService;
 import com.healthlog.app.service.SleepService;
+import com.healthlog.app.service.feedbackservice.model.FeedbackItem;
 
 import lombok.RequiredArgsConstructor;
 
@@ -33,6 +36,7 @@ public class SleepController {
 	private final SleepService sleepService;
 	private final AuthService authService;
 	private final ProfileService profileService;
+	private final FeedbackService feedbackService;
 
 	@InitBinder
 	public void initBinder(WebDataBinder binder) {
@@ -66,7 +70,22 @@ public class SleepController {
 			model.addAllAttributes(result);
 		} catch (BusinessException e) {
 			model.addAttribute("error", e.getMessage());
+			// ★追加: テンプレートが null 参照でエラーにならないようデフォルト値を設定
+			model.addAttribute("logs", java.util.Collections.emptyList());
+			model.addAttribute("stats", null);
+			model.addAttribute("hasAnyLog", false);
+			model.addAttribute("totalPages", 0);
+			model.addAttribute("currentPage", 0);
+			model.addAttribute("hasPrevious", false);
+			model.addAttribute("hasNext", false);
+			model.addAttribute("labels", java.util.Collections.emptyList());
+			model.addAttribute("values", java.util.Collections.emptyList());
 		}
+
+		// ★追加: フィルター条件に関係なく、実データ全体から常に算出する
+		List<FeedbackItem> feedbackList = feedbackService.getSleepFeedback(profileId);
+		model.addAttribute("feedbackList", feedbackList);
+
 		model.addAttribute("profileId", profileId);
 		model.addAttribute("filterStartDate", startDate);
 		model.addAttribute("filterEndDate", endDate);
@@ -78,7 +97,7 @@ public class SleepController {
 	public String save(
 			@PathVariable Long profileId,
 			@RequestParam(required = false) Long recordId,
-			@RequestParam LocalDate date,
+			@RequestParam LocalDate recordedDate, // ★sửa: "date" → "recordedDate"
 			@RequestParam LocalTime startTime,
 			@RequestParam LocalTime endTime,
 			@RequestParam(required = false) SleepType sleepType,
@@ -86,7 +105,7 @@ public class SleepController {
 			RedirectAttributes redirectAttributes) {
 		Long currentUserId = currentUserId();
 		Sleep input = new Sleep();
-		input.setRecordedDate(date);
+		input.setRecordedDate(recordedDate); // ★sửa: dùng biến recordedDate
 		input.setStartTime(startTime);
 		input.setEndTime(endTime);
 		input.setSleepType(sleepType);

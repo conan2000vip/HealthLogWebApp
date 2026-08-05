@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import com.healthlog.app.service.feedbackservice.SleepFeedbackRule;
 import com.healthlog.app.service.feedbackservice.WeightFeedbackRule;
 import com.healthlog.app.service.feedbackservice.model.FeedbackItem;
 
@@ -16,26 +17,30 @@ import lombok.RequiredArgsConstructor;
 public class FeedbackService {
 
 	private final WeightFeedbackRule weightFeedbackRule;
+	private final SleepFeedbackRule sleepFeedbackRule;
 
-	/**
-	 * 画面Weight：Weightのフィードバックのみ取得（全件、優先度順）
-	 * 表示件数の制限（「すべて見る」対応）は画面側で行う。
-	 */
 	public List<FeedbackItem> getWeightFeedback(Long profileId) {
 		return sortByPriority(weightFeedbackRule.evaluate(profileId));
 	}
 
+	public List<FeedbackItem> getSleepFeedback(Long profileId) {
+		return sortByPriority(sleepFeedbackRule.evaluate(profileId));
+	}
+
 	/**
 	 * Dashboard Home
-	 * 将来的にWeight + Sleep + Water + Stepをまとめる
+	 * 将来的にWater + Stepも追加
 	 */
 	public List<FeedbackItem> getHomeFeedback(Long profileId) {
 		List<FeedbackItem> items = new ArrayList<>();
 		items.addAll(weightFeedbackRule.evaluate(profileId));
+		items.addAll(sleepFeedbackRule.evaluate(profileId));
+		// TODO: 今後追加
+		// items.addAll(waterFeedbackRule.evaluate(profileId));
+		// items.addAll(stepFeedbackRule.evaluate(profileId));
 		return sortByPriority(items);
 	}
 
-	// 優先順位: Lv4 > Lv3 > Lv2 > Lv1。同一優先度は発生日時が新しい順。
 	private List<FeedbackItem> sortByPriority(List<FeedbackItem> items) {
 		return items.stream()
 				.sorted(

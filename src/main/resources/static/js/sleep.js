@@ -19,7 +19,7 @@ function initModal() {
     const modalTitle = document.getElementById("sleepModalTitle");
     const form = document.getElementById("sleepForm");
     const recordId = document.getElementById("recordId");
-    const dateInput = document.getElementById("date");
+    const dateInput = document.getElementById("recordedDate");
     const sleepTypeInput = document.getElementById("sleepType");
     const startTimeInput = document.getElementById("startTime");
     const endTimeInput = document.getElementById("endTime");
@@ -80,25 +80,75 @@ function initModal() {
         });
     });
 
+    // 就寝時刻と起床時刻から睡眠時間（分）を計算する関数
+    function computeSleepMinutes(startVal, endVal) {
+        if (!startVal || !endVal) return null;
+        const [sh, sm] = startVal.split(":").map(Number);
+        const [eh, em] = endVal.split(":").map(Number);
+        let startMinutes = sh * 60 + sm;
+        let endMinutes = eh * 60 + em;
+        if (endMinutes < startMinutes) {
+            endMinutes += 24 * 60; // qua ngày hôm sau
+        }
+        return endMinutes - startMinutes;
+    }
+
     // 入力時にエラーをクリア
     [dateInput, startTimeInput, endTimeInput].forEach((input) => {
         if (input) input.addEventListener("input", () => clearError(input.id));
     });
 
+	[dateInput, startTimeInput, endTimeInput].forEach((input) => {
+		    if (input) input.addEventListener("input", () => {
+		        validateDuration();
+		        updateWakeDateHint();
+		    });
+		});
+		if (sleepTypeInput) {
+		    sleepTypeInput.addEventListener("change", validateDuration);
+		}
+	
     // バリデーション
+	function validateDuration() {
+	    const minutes = computeSleepMinutes(startTimeInput.value, endTimeInput.value);
+	    if (minutes === null) {
+	        clearError("endTime");
+	        return true;
+	    }
+	    if (minutes <= 0) {
+	        showError("endTime", "起床時刻が正しくありません");
+	        return false;
+	    }
+
+	    const isNap = sleepTypeInput.value === "NAP";
+	    const maxMinutes = isNap ? 5 * 60 : 16 * 60;
+		if (minutes > maxMinutes) {
+		        const h = Math.floor(minutes / 60);
+		        const m = minutes % 60;
+		        const maxHours = maxMinutes / 60;
+		        const message = isNap
+		            ? `昼寝が${maxHours}時間を超えています（現在 ${h}時間${m}分）。長時間の場合は「夜間睡眠」として記録してください`
+		            : `夜間睡眠の記録は${maxHours}時間以内で入力してください（現在 ${h}時間${m}分）`;
+		        showError("endTime", message);
+		        return false;
+		    }
+	    clearError("endTime");
+	    return true;
+	}
+
     function validateDate() {
         if (!dateInput.value) {
-            showError("date", "日付を選択してください");
+            showError("recordedDate", "日付を選択してください");
             return false;
         }
         const selected = new Date(dateInput.value);
         const today = new Date();
         today.setHours(23, 59, 59, 999);
         if (selected > today) {
-            showError("date", "未来の日付は選択できません。");
+            showError("recordedDate", "未来の日付は選択できません。");
             return false;
         }
-        clearError("date");
+        clearError("recordedDate");
         return true;
     }
 
@@ -124,9 +174,10 @@ function initModal() {
         const isDateValid = validateDate();
         const isStartValid = validateStartTime();
         const isEndValid = validateEndTime();
+		const isDurationValid = validateDuration();
 
-        if (!isDateValid || !isStartValid || !isEndValid) {
-            event.preventDefault();
+		if (!isDateValid || !isStartValid || !isEndValid || !isDurationValid) {
+		        event.preventDefault();
         }
     });
 
@@ -151,7 +202,7 @@ function initModal() {
     }
 
     function clearAllErrors() {
-        ["date", "startTime", "endTime"].forEach(clearError);
+        ["recordedDate", "startTime", "endTime"].forEach(clearError);
     }
 
     function todayIso() {
@@ -198,10 +249,6 @@ function initModal() {
         const d = String(dateObj.getDate()).padStart(2, "0");
         return `${y}/${m}/${d}`;
     }
-
-    [dateInput, startTimeInput, endTimeInput].forEach((input) => {
-        if (input) input.addEventListener("input", updateWakeDateHint);
-    });
 }
 /* =========================================================
    Chart.js — sleep ページ専用（睡眠時間推移データを描画）
