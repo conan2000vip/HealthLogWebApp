@@ -59,9 +59,10 @@ public class ProfileController {
 	}
 
 	@GetMapping("/profile-manage")
-	public String manageProfile(Model model) {
+	public String manageProfile(Model model, HttpSession session) {
 		User user = getLoginUser();
 		model.addAttribute("profiles", profileService.getProfiles(user.getId()));
+		model.addAttribute("currentProfile", profileService.resolveCurrentProfile(session, user.getId()));
 		return "profile/profile-manage";
 	}
 
@@ -69,39 +70,15 @@ public class ProfileController {
 	public String switchProfile(@PathVariable Long id, HttpSession session,
 			@RequestHeader(value = "Referer", required = false) String referer,
 			RedirectAttributes redirectAttributes) {
-
+		Profile profile = profileService.getProfile(getLoginUser().getId(), id);
 		User user = getLoginUser();
 		try {
 			profileService.switchProfile(session, user.getId(), id);
+			redirectAttributes.addFlashAttribute("message", profile.getName() + "プロファイルを切り替えました");
 		} catch (BusinessException e) {
 			redirectAttributes.addFlashAttribute("error", e.getMessage());
-			return "redirect:" + (referer != null ? referer : "/home");
 		}
-
-		String redirectUrl = buildRedirectUrl(referer, id);
-		return "redirect:" + redirectUrl;
-	}
-
-	// referer が "/profile/{任意の数字}/xxx" の形なら、その数字部分を新しい id に置き換える
-	private String buildRedirectUrl(String referer, Long newProfileId) {
-		if (referer == null || referer.isBlank()) {
-			return "/profile/" + newProfileId + "/home";
-		}
-		// URL から path 部分だけ取り出す（クエリパラメータは除く）
-		String path;
-		try {
-			java.net.URI uri = java.net.URI.create(referer);
-			path = uri.getPath();
-		} catch (Exception e) {
-			return "/profile/" + newProfileId + "/home";
-		}
-
-		// "/profile/{数字}/..." のパターンなら数字を置き換える
-		if (path.matches("^/profile/\\d+(/.*)?$")) {
-			return path.replaceFirst("^/profile/\\d+", "/profile/" + newProfileId);
-		}
-		// profileId を含まないページ（/home など）ならそのまま
-		return path;
+		return "redirect:" + (referer != null ? referer : "/home");
 	}
 
 	// ===== Create =====
@@ -129,20 +106,21 @@ public class ProfileController {
 		profile.setId(null);
 		profile.setUser(user);
 
-		// 最初のプロフィールは続柄を強制的に「本人」にする（クライアント入力を信用しない）
+		// 最初のプロファイルは続柄を強制的に「本人」にする（クライアント入力を信用しない）
 		if (isFirstProfile) {
 			profile.setRelationship("本人");
 		}
 		try {
 			profile = profileService.create(profile);
 		} catch (BusinessException e) {
-			model.addAttribute("error", e.getMessage());
+			model.addAttribute("errorMessage", e.getMessage());
 			model.addAttribute("isFirstProfile", isFirstProfile);
 			model.addAttribute("profileColors", PROFILE_COLORS);
+			model.addAttribute("isPrimary", false);
 			return "profile/profile-form";
 		}
 		session.setAttribute(SessionConstants.CURRENT_PROFILE_ID, profile.getId());
-		return "redirect:/profile/profile-manage";
+		return "redirect:/profile/" + profile.getId() + "/home";
 	}
 
 	// ===== Update =====
@@ -155,7 +133,7 @@ public class ProfileController {
 			model.addAttribute("profile", profile);
 			model.addAttribute("isPrimary", Boolean.TRUE.equals(profile.getIsPrimary()));
 		} catch (BusinessException e) {
-			model.addAttribute("error", e.getMessage());
+			model.addAttribute("errorMessage", e.getMessage());
 			model.addAttribute("profiles", profileService.getProfiles(user.getId()));
 			return "profile/profile-manage";
 		}
@@ -191,17 +169,15 @@ public class ProfileController {
 			profile.setSleepGoalHours(formProfile.getSleepGoalHours());
 			profile.setProfileColor(formProfile.getProfileColor());
 			profileService.update(profile);
-			redirectAttributes.addFlashAttribute("message",
-					"「" + profile.getName() + "」のプロフィールを更新しました");
+			redirectAttributes.addFlashAttribute("message", profile.getName() + " のプロファイルを更新しました");
 		} catch (BusinessException e) {
-			model.addAttribute("error", e.getMessage());
+			model.addAttribute("errorMessage", e.getMessage());
 			model.addAttribute("isFirstProfile", false);
 			model.addAttribute("profileColors", PROFILE_COLORS);
 			return "profile/profile-form";
 		}
 		return "redirect:/profile/profile-manage";
 	}
-
 	// ===== Delete =====
 
 	@PostMapping("/delete")
@@ -210,7 +186,7 @@ public class ProfileController {
 		User user = getLoginUser();
 		try {
 			profileService.delete(user.getId(), profileId, session);
-			redirectAttributes.addFlashAttribute("message", "プロフィールを削除しました");
+			redirectAttributes.addFlashAttribute("message", "プロファイルを削除しました");
 		} catch (BusinessException e) {
 			redirectAttributes.addFlashAttribute("error", e.getMessage());
 		}

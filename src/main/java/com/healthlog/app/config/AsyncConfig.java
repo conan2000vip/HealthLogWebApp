@@ -6,12 +6,19 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 @EnableAsync
-
 // このアノテーションを付与することで、非同期処理を有効化します。
-public class AsyncConfig {
+public class AsyncConfig implements WebMvcConfigurer {
+
+	private final ProfileRequiredInterceptor profileRequiredInterceptor;
+
+	public AsyncConfig(ProfileRequiredInterceptor profileRequiredInterceptor) {
+		this.profileRequiredInterceptor = profileRequiredInterceptor;
+	}
 
 	@Bean(name = "mailExecutor")
 	Executor mailExecutor() {
@@ -22,5 +29,11 @@ public class AsyncConfig {
 		executor.setThreadNamePrefix("mail-");
 		executor.initialize();
 		return executor;
+	}
+
+	@Override
+	public void addInterceptors(InterceptorRegistry registry) {
+		registry.addInterceptor(profileRequiredInterceptor)
+				.addPathPatterns("/**");
 	}
 }

@@ -19,4 +19,6 @@ public interface ProfileRepository extends JpaRepository<Profile, Long> {
 	long countByUser_Id(Long userId);
 
 	boolean existsByUser_Id(Long userId);
+
+	boolean existsByUser_IdAndRelationship(Long userId, String relationship);
 }
