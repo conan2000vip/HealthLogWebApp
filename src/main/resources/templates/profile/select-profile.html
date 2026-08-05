@@ -3,7 +3,7 @@
 
 	<head>
 		<meta charset="UTF-8">
-		<title>プロフィールを選択</title>
+		<title>プロファイルを選択</title>
 		<link rel="stylesheet" th:href="@{/css/common.css}">
 		<link rel="stylesheet" th:href="@{/css/profile.css}">
 	</head>
@@ -20,8 +20,8 @@
 
 				<img th:src="@{/image/logo.png}" alt="HealthLog Logo" class="select-logo">
 
-				<h1 class="select-title">プロフィールを選択</h1>
-				<p class="select-subtitle">記録を確認するプロフィールを選んでください</p>
+				<h1 class="select-title">プロファイルを選択</h1>
+				<p class="select-subtitle">記録を確認するプロファイルを選んでください</p>
 
 				<div class="profile-list">
 					<a th:each="profile : ${profiles}" th:href="@{/profile/{id}/select(id=${profile.id})}"

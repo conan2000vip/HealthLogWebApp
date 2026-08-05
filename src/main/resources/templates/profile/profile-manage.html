@@ -3,7 +3,7 @@
 
 	<head>
 		<meta charset="UTF-8">
-		<title>プロフィール管理</title>
+		<title>プロファイル管理</title>
 		<link rel="stylesheet" th:href="@{/css/common.css}">
 		<link rel="stylesheet" th:href="@{/css/profile.css}">
 	</head>
@@ -14,15 +14,15 @@
 		<main class="profile-manage">
 			<div class="profile-manage__top">
 				<div>
-					<h1 class="profile-manage__title">プロフィール管理</h1>
-					<p class="profile-manage__subtitle">本人・家族のプロフィールを管理します</p>
+					<h1 class="profile-manage__title">プロファイル管理</h1>
+					<p class="profile-manage__subtitle">本人・家族のプロファイルを管理します</p>
 				</div>
 
 				<a th:if="${#lists.size(profiles) < 10}" th:href="@{/profile/new}" class="btn btn--primary">
 					<i data-lucide="plus"></i>
 					<span>追加</span>
 				</a>
-				<p th:if="${#lists.size(profiles) >= 10}" style="color:#999; font-size:0.85rem;">プロフィールは最大10件までです</p>
+				<p th:if="${#lists.size(profiles) >= 10}" style="color:#999; font-size:0.85rem;">プロファイルは最大10件までです</p>
 			</div>
 
 			<!-- Business Error / Success -->
@@ -42,8 +42,8 @@
 			<!-- ===== Empty state ===== -->
 			<div class="profile-manage__empty" th:if="${#lists.isEmpty(profiles)}">
 				<img th:src="@{/image/user.png}" alt="" class="profile-manage__empty-icon" />
-				<p class="profile-manage__empty-text">プロフィールがありません</p>
-				<a th:href="@{/profile/new}" class="profile-manage__empty-link">最初のプロフィールを追加する</a>
+				<p class="profile-manage__empty-text">プロファイルがありません</p>
+				<a th:href="@{/profile/new}" class="profile-manage__empty-link">最初のプロファイルを追加する</a>
 			</div>
 
 			<!-- ===== List ===== -->
@@ -84,7 +84,7 @@
 
 						<form th:if="${!p.isPrimary}" th:action="@{/profile/delete}" method="post"
 						      class="delete-form" style="display:inline"
-						      th:attr="data-confirm-message='「' + ${p.name} + '」のプロフィールを削除しますか？'">
+						      th:attr="data-confirm-message='「' + ${p.name} + '」のプロファイルを削除しますか？'">
 						    <input type="hidden" name="profileId" th:value="${p.id}" />
 						    <button type="submit" class="icon-btn icon-btn--danger" aria-label="削除">
 						        <img th:src="@{/image/delete.png}" alt="削除" class="icon-btn-img" />

@@ -3,7 +3,7 @@
 
 	<head>
 		<meta charset="UTF-8">
-		<title th:text="${profile.id != null} ? 'プロフィール編集' : 'プロフィール作成'">プロフィール作成</title>
+		<title th:text="${profile.id != null} ? 'プロファイル編集' : 'プロファイル作成'">ププロファイル作成</title>
 		<link rel="stylesheet" th:href="@{/css/common.css}">
 		<link rel="stylesheet" th:href="@{/css/profile.css}">
 	</head>
@@ -16,12 +16,12 @@
 			<div class="profile-form-page__box">
 
 				<div class="profile-form-page__top">
-					<h1 th:if="${isFirstProfile}">最初のプロフィールを作成</h1>
-					<h1 th:if="${!isFirstProfile and profile.id == null}">新規プロフィール作成</h1>
-					<h1 th:if="${profile.id != null}">プロフィールを編集</h1>
+					<h1 th:if="${isFirstProfile}">最初のプロファイルを作成</h1>
+					<h1 th:if="${!isFirstProfile and profile.id == null}">新規プロファイル作成</h1>
+					<h1 th:if="${profile.id != null}">プロファイルを編集</h1>
 
 					<p th:if="${isFirstProfile}" class="profile-form-page__subtitle">
-						健康記録を始めるには、まずプロフィールを作成してください
+						健康記録を始めるには、まずプロファイルを作成してください
 					</p>
 				</div>
 				<a th:unless="${isFirstProfile}" th:href="@{/profile/profile-manage}" class="profile-form-page__close">
@@ -104,7 +104,7 @@
 						</div>
 
 						<div class="input-group">
-							<label for="profileColor">プロフィールカラー</label>
+							<label for="profileColor">プロファイルカラー</label>
 							<div class="color-picker">
 								<label class="color-option" th:each="c : ${profileColors}">
 									<input type="radio" th:field="*{profileColor}" th:value="${c}" />

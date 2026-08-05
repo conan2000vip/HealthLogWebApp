@@ -70,11 +70,11 @@ public class ProfileController {
 	public String switchProfile(@PathVariable Long id, HttpSession session,
 			@RequestHeader(value = "Referer", required = false) String referer,
 			RedirectAttributes redirectAttributes) {
-
+		Profile profile = profileService.getProfile(getLoginUser().getId(), id);
 		User user = getLoginUser();
 		try {
 			profileService.switchProfile(session, user.getId(), id);
-			redirectAttributes.addFlashAttribute("message", "プロフィールを切り替えました");
+			redirectAttributes.addFlashAttribute("message", profile.getName() + "プロファイルを切り替えました");
 		} catch (BusinessException e) {
 			redirectAttributes.addFlashAttribute("error", e.getMessage());
 		}
@@ -106,7 +106,7 @@ public class ProfileController {
 		profile.setId(null);
 		profile.setUser(user);
 
-		// 最初のプロフィールは続柄を強制的に「本人」にする（クライアント入力を信用しない）
+		// 最初のプロファイルは続柄を強制的に「本人」にする（クライアント入力を信用しない）
 		if (isFirstProfile) {
 			profile.setRelationship("本人");
 		}
@@ -146,7 +146,7 @@ public class ProfileController {
 	public String updateProfile(@PathVariable Long id,
 			@ModelAttribute("profile") Profile formProfile,
 			BindingResult bindingResult, Model model,
-			RedirectAttributes redirectAttributes) { // ← thêm param này
+			RedirectAttributes redirectAttributes) {
 		User user = getLoginUser();
 		validate(formProfile, bindingResult, false);
 		if (bindingResult.hasErrors()) {
@@ -169,7 +169,7 @@ public class ProfileController {
 			profile.setSleepGoalHours(formProfile.getSleepGoalHours());
 			profile.setProfileColor(formProfile.getProfileColor());
 			profileService.update(profile);
-			redirectAttributes.addFlashAttribute("message", "プロフィールを更新しました");
+			redirectAttributes.addFlashAttribute("message", profile.getName() + " のプロファイルを更新しました");
 		} catch (BusinessException e) {
 			model.addAttribute("errorMessage", e.getMessage());
 			model.addAttribute("isFirstProfile", false);
@@ -186,7 +186,7 @@ public class ProfileController {
 		User user = getLoginUser();
 		try {
 			profileService.delete(user.getId(), profileId, session);
-			redirectAttributes.addFlashAttribute("message", "プロフィールを削除しました");
+			redirectAttributes.addFlashAttribute("message", "プロファイルを削除しました");
 		} catch (BusinessException e) {
 			redirectAttributes.addFlashAttribute("error", e.getMessage());
 		}
