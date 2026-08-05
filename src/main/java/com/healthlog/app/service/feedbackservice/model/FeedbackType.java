@@ -1,0 +1,28 @@
+package com.healthlog.app.service.feedbackservice.model;
+
+public enum FeedbackType {
+
+	WEIGHT_NO_RECORD,
+
+	WEIGHT_BIG_CHANGE,
+
+	WEIGHT_SUDDEN_CHANGE,
+
+	SLEEP_SHORT,
+
+	SLEEP_CONTINUOUS_SHORT,
+
+	WATER_LOW,
+
+	WATER_ALMOST,
+
+	WATER_COMPLETE,
+
+	STEP_ALMOST,
+
+	STEP_COMPLETE,
+
+	DAILY_COMPLETE,
+
+	CONTINUOUS_RECORD
+}

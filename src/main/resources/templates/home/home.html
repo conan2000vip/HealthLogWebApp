@@ -9,7 +9,9 @@
 
 	<body>
 		<header th:replace="~{layout/header :: header(activePage='home')}"></header>
-		
+
+		<div th:replace="~{layout/data-controls :: feedbackList(feedbackList=${feedbackList})}"></div>
+
 		<!-- Business Error -->
 		<div id="backendError" class="error-message" th:if="${error}">
 			<i data-lucide="alert-circle"></i>
@@ -17,7 +19,7 @@
 		</div>
 
 		<main style="max-width:900px; margin:0 auto; padding:32px 20px;">
-			<p>ホーム画面（仮）— プロフィール: <span th:text="${currentProfile.name}"></span></p>
+			<p>ホーム画面（仮）— プロファイル: <span th:text="${currentProfile.name}"></span></p>
 		</main>
 
 		<script th:src="@{/js/common.js}"></script>

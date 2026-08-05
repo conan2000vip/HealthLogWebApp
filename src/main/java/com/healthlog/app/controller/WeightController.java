@@ -4,6 +4,7 @@ import java.beans.PropertyEditorSupport;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.format.annotation.DateTimeFormat;
@@ -21,8 +22,10 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import com.healthlog.app.entity.Weight;
 import com.healthlog.app.exception.BusinessException;
 import com.healthlog.app.service.AuthService;
+import com.healthlog.app.service.FeedbackService;
 import com.healthlog.app.service.ProfileService;
 import com.healthlog.app.service.WeightService;
+import com.healthlog.app.service.feedbackservice.model.FeedbackItem;
 
 import lombok.RequiredArgsConstructor;
 
@@ -33,6 +36,7 @@ public class WeightController {
 	private final WeightService weightService;
 	private final AuthService authService;
 	private final ProfileService profileService;
+	private final FeedbackService feedbackService;
 
 	@InitBinder
 	public void initBinder(WebDataBinder binder) {
@@ -61,13 +65,11 @@ public class WeightController {
 			@RequestParam(defaultValue = "0") int page,
 			Model model) {
 		Long currentUserId = currentUserId();
-		// tránh exception bay thẳng lên gây whitelabel error page (500)
 		try {
 			Map<String, Object> result = weightService.list(profileId, currentUserId, startDate, endDate, page);
 			model.addAllAttributes(result);
 		} catch (BusinessException e) {
 			model.addAttribute("error", e.getMessage());
-			// Giá trị mặc định để template không bị null (VD: logs, totalPages...)
 			model.addAttribute("logs", java.util.Collections.emptyList());
 			model.addAttribute("stats", null);
 			model.addAttribute("totalPages", 0);
@@ -77,6 +79,11 @@ public class WeightController {
 			model.addAttribute("labels", java.util.Collections.emptyList());
 			model.addAttribute("values", java.util.Collections.emptyList());
 		}
+
+		// フィルター条件に関係なく、実データ全体から常に算出する
+		List<FeedbackItem> feedbackList = feedbackService.getWeightFeedback(profileId);
+		model.addAttribute("feedbackList", feedbackList);
+
 		model.addAttribute("profileId", profileId);
 		model.addAttribute("filterStartDate", startDate);
 		model.addAttribute("filterEndDate", endDate);

@@ -50,6 +50,26 @@
 })();
 
 /* =========================================================
+   汎用: フィードバック「すべて見る」トグル（全画面共通）
+   ========================================================= */
+function initFeedbackToggle() {
+	const toggleBtn = document.getElementById("feedbackToggleBtn");
+	const section = document.getElementById("feedbackSection");
+	if (!toggleBtn || !section) return;
+
+	let expanded = false;
+	toggleBtn.addEventListener("click", () => {
+		expanded = !expanded;
+		section.querySelectorAll(".feedback-card.is-hidden, .feedback-card").forEach((card, index) => {
+			if (index >= 3) {
+				card.classList.toggle("is-hidden", !expanded);
+			}
+		});
+		toggleBtn.textContent = expanded ? "閉じる" : `すべて見る (${section.querySelectorAll(".feedback-card").length}件)`;
+	});
+}
+
+/* =========================================================
    汎用: 削除確認モーダル（全画面共通）
    使い方: HTML側で class="delete-form" を持つ form があれば自動的に有効化
    ========================================================= */
@@ -125,17 +145,6 @@ function initAutoHideAlerts() {
    選択/Enterで自動submit。weight/sleep/water/step 共通で使う。
    ========================================================= */
 function initFilterForm() {
-    const filterForm = document.getElementById("filterForm");
-    if (!filterForm) return;
-    filterForm.querySelectorAll('input[type="date"]').forEach((input) => {
-        input.addEventListener("change", () => filterForm.submit());
-        input.addEventListener("keydown", (e) => {
-            if (e.key === "Enter") {
-                e.preventDefault();
-                filterForm.submit();
-            }
-        });
-    });
 }
 
 /* =========================================================
@@ -187,10 +196,10 @@ document.addEventListener("DOMContentLoaded", () => {
     if (typeof lucide !== "undefined") lucide.createIcons();
     initDeleteConfirm();
     initAutoHideAlerts();
-    initFilterForm();
     initChartToggle();
     initDiffBadges();
 	initPositiveNumberInputs();
+	initFeedbackToggle();
 });
 
 /* =========================================================

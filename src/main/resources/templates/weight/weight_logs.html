@@ -36,18 +36,21 @@
 				</div>
 
 				<!-- Business Error / Success -->
-				<div class="alert alert--error" th:if="${error}" id="errorAlert">
+				<div class="alert alert--error" th:if="${error}" id="errorAlert" data-auto-hide="true">
 					<i data-lucide="alert-circle"></i><span th:text="${error}"></span>
 					<button type="button" class="alert__close" onclick="this.closest('.alert').remove()">
 						<i data-lucide="x"></i>
 					</button>
 				</div>
-				<div class="alert alert--success" th:if="${message}" id="successAlert">
+				<div class="alert alert--success" th:if="${message}" id="successAlert" data-auto-hide="true">
 					<i data-lucide="check-circle"></i><span th:text="${message}"></span>
 					<button type="button" class="alert__close" onclick="this.closest('.alert').remove()">
 						<i data-lucide="x"></i>
 					</button>
 				</div>
+				
+				<!-- Feedback -->
+				<div th:replace="~{layout/data-controls :: feedbackList(feedbackList=${feedbackList})}"></div>
 
 				<!-- Summary Cards -->
 				<div class="summary-grid">
