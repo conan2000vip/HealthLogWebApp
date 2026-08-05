@@ -66,6 +66,9 @@ public class Water {
 	@Column(name = "updated_at", nullable = false)
 	private LocalDateTime updatedAt = LocalDateTime.now();
 
+	@jakarta.persistence.Transient
+	private java.math.BigDecimal goalRate;
+
 	@PrePersist
 	protected void onCreate() {
 		LocalDateTime now = LocalDateTime.now();

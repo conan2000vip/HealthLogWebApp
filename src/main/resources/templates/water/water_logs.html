@@ -36,47 +36,50 @@
 				</div>
 
 				<!-- Business Error / Success -->
-				<div class="alert alert--error" th:if="${error}" id="errorAlert">
+				<div class="alert alert--error" th:if="${error}" id="errorAlert" data-auto-hide="true">
 					<i data-lucide="alert-circle"></i><span th:text="${error}"></span>
 					<button type="button" class="alert__close" onclick="this.closest('.alert').remove()">
 						<i data-lucide="x"></i>
 					</button>
 				</div>
-				<div class="alert alert--success" th:if="${message}" id="successAlert">
+				<div class="alert alert--success" th:if="${message}" id="successAlert" data-auto-hide="true">
 					<i data-lucide="check-circle"></i><span th:text="${message}"></span>
 					<button type="button" class="alert__close" onclick="this.closest('.alert').remove()">
 						<i data-lucide="x"></i>
 					</button>
 				</div>
 
+				<!--  Feedback -->
+				<div th:replace="~{layout/data-controls :: feedbackList(feedbackList=${feedbackList})}"></div>
+
+				<!-- Summary Cards -->
 				<div class="summary-grid">
-
 					<div class="summary-card">
-						<span class="summary-card__label">最新</span>
-						<span class="summary-card__value">
-							<span th:text="${stats.latest ?: '--'}"></span> ml
-						</span>
+					    <span class="summary-card__label">最新</span>
+					    <span class="summary-card__value">
+					        <span th:text="${stats?.latest ?: '--'}"></span> ml
+					    </span>
 					</div>
 
 					<div class="summary-card">
-						<span class="summary-card__label">今日合計</span>
-						<span class="summary-card__value">
-							<span th:text="${stats.todayTotal ?: '--'}"></span> ml
-						</span>
+					    <span class="summary-card__label">今日合計</span>
+					    <span class="summary-card__value">
+					        <span th:text="${stats?.todayTotal ?: '--'}"></span> ml
+					    </span>
 					</div>
 
 					<div class="summary-card">
-						<span class="summary-card__label">今月平均</span>
-						<span class="summary-card__value">
-							<span th:text="${stats.monthAverage ?: '--'}"></span> ml
-						</span>
+					    <span class="summary-card__label">今月平均</span>
+					    <span class="summary-card__value">
+					        <span th:text="${stats?.monthAverage ?: '--'}"></span> ml
+					    </span>
 					</div>
 
 					<div class="summary-card">
-						<span class="summary-card__label">目標達成率</span>
-						<span class="summary-card__value">
-							<span th:text="${stats.goalRate ?: '--'}"></span>%
-						</span>
+					    <span class="summary-card__label">目標達成率</span>
+					    <span class="summary-card__value">
+					        <span th:text="${stats?.goalRate ?: '--'}"></span>%
+					    </span>
 					</div>
 				</div>
 
@@ -164,7 +167,7 @@
 							class="pagination__nav">次へ →</a>
 					</div>
 
-					<!-- Trường hợp 1: chưa từng có bản ghi nào (không liên quan đến việc có đang lọc hay không) -->
+					<!-- Empty State : -->
 					<div class="empty-state" th:if="${#lists.isEmpty(logs)} and ${!hasAnyLog}">
 					    <i data-lucide="droplets"></i>
 					    <p>まだ水分が記録されていません</p>
@@ -173,7 +176,7 @@
 					    </button>
 					</div>
 
-					<!-- Trường hợp 2: đã từng có bản ghi, nhưng bộ lọc hiện tại không khớp gì -->
+					<!-- Empty State for Filtered Results -->
 					<div class="empty-state" th:if="${#lists.isEmpty(logs)} and ${hasAnyLog}">
 					    <i data-lucide="calendar-days"></i>
 					    <p>選択した期間に記録がありません</p>
