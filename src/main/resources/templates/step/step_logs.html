@@ -1,0 +1,203 @@
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+	<title>歩数管理 | HealthLog</title>
+
+	<link rel="preconnect" href="https://fonts.googleapis.com" />
+	<link rel="stylesheet"
+		href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700;800&display=swap" />
+
+	<link rel="stylesheet" th:href="@{/css/common.css}" />
+	<link rel="stylesheet" th:href="@{/css/step.css}" />
+</head>
+
+<body>
+	<div th:replace="~{layout/header :: header(activePage='step')}"></div>
+
+	<main class="step-page">
+		<div class="step-page__inner">
+			<!-- Header -->
+			<div class="step-page__header">
+				<div class="step-page__heading">
+					<span class="step-page__icon">
+						<img th:src="@{/image/steps.png}" class="step-page__icon-img" alt="" />
+					</span>
+
+					<div>
+						<h1>歩数管理</h1>
+						<p th:text="${currentProfile != null 
+				? currentProfile.name + ' の歩数記録'
+				: 'ゲスト の歩数記録'}"></p>
+					</div>
+				</div>
+
+				<button type="button" class="btn btn--primary" id="openAddModalBtn">
+					<i data-lucide="plus"></i>記録する
+				</button>
+			</div>
+
+			<!-- Alert -->
+			<div class="alert alert--error" th:if="${error}" id="errorAlert">
+				<i data-lucide="alert-circle"></i>
+				<span th:text="${error}"></span>
+			</div>
+
+			<div class="alert alert--success" th:if="${message}" id="successAlert">
+				<i data-lucide="check-circle"></i>
+				<span th:text="${message}"></span>
+			</div>
+
+			<!-- Feedback -->
+			<div th:replace="~{layout/data-controls :: feedbackList(feedbackList=${feedbackList})}"></div>
+
+			<!-- Summary -->
+			<div class="summary-grid">
+				<!-- 最新歩数 -->
+				<div class="summary-card">
+					<span class="summary-card__label"> 最新歩数 </span>
+					<span class="summary-card__value">
+						<span th:text="${stats != null && stats.latest != null ? stats.latest : '--'}"></span>歩
+					</span>
+					<span class="summary-card__sub" th:if="${stats != null && stats.latestDate != null}" th:text="'最終記録：' + ${#temporals.format(stats.latestDate,'yyyy/MM/dd')}">
+					</span>
+				</div>
+
+				<!-- 達成率 -->
+				<div class="summary-card">
+					<span class="summary-card__label"> 目標達成率 </span>
+					<span class="summary-card__value">
+						<span th:text="${stats != null && stats.rate != null ? stats.rate : '--'}"></span>%
+					</span>
+				</div>
+
+				<!-- 平均 -->
+				<div class="summary-card">
+					<span class="summary-card__label"> 平均歩数 </span>
+					<span class="summary-card__value">
+					<span th:text="${stats?.average ?: '--'}"> </span>歩</span>
+				</div>
+
+				<!-- 最大 -->
+				<div class="summary-card">
+					<span class="summary-card__label"> 最大歩数 </span>
+					<span class="summary-card__value">
+					<span th:text="${stats?.max ?: '--'}"> </span>歩</span>
+				</div>
+			</div>
+
+			<!-- Filter -->
+			<div th:replace="~{layout/data-controls :: filterBar(
+	actionUrl=@{/profile/{profileId}/step(profileId=${profileId})},
+	clearUrl=@{/profile/{profileId}/step(profileId=${profileId})},
+	filterStartDate=${filterStartDate},
+	filterEndDate=${filterEndDate})}"></div>
+
+			<!-- Chart -->
+			<div th:replace="~{layout/data-controls :: chartCard(
+	title='歩数推移グラフ',
+	canvasId='stepChart',
+	hasData=${not #lists.isEmpty(logs)})}"></div>
+
+			<!-- Table -->
+			<section class="table-card">
+				<div class="data-table-scroll">
+					<table class="step-table" th:if="${not #lists.isEmpty(logs)}">
+						<thead>
+							<tr>
+								<th>日付</th>
+								<th>歩数</th>
+								<th>達成率</th>
+								<th>メモ</th>
+								<th></th>
+							</tr>
+						</thead>
+
+						<tbody>
+							<tr th:each="record : ${logs}">
+								<td th:text="${record.recordedDate}"></td>
+								<td><span th:text="${record.steps}"> </span>歩</td>
+								<td><span class="badge" th:text="${record.stepsRate + '%'}"></span></td>
+								<td class="step-table__memo" th:text="${record.memo != null ? record.memo : ''}"></td>
+								<td class="step-table__actions">
+									<button type="button" class="icon-btn edit-btn" th:data-id="${record.id}"
+										th:data-date="${record.recordedDate}" th:data-steps="${record.steps}"
+										th:data-memo="${record.memo}">
+										<img th:src="@{/image/edit.png}" class="icon-btn-img" alt="編集" />
+									</button>
+
+									<form
+										th:action="@{/profile/{profileId}/step/{id}/delete(profileId=${profileId},id=${record.id})}"
+										method="post">
+										<button type="submit" class="icon-btn icon-btn--danger">
+											<img th:src="@{/image/delete.png}" class="icon-btn-img" alt="削除" />
+										</button>
+									</form>
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+
+				<!-- Empty -->
+
+				<div class="empty-state" th:if="${#lists.isEmpty(logs)} and ${!hasAnyLog}">
+					<img th:src="@{/image/steps.png}" class="step-page__icon-img" />
+					<p>まだ歩数が記録されていません</p>
+					<button type="button" class="btn btn--primary" id="openAddModalBtnEmpty">
+						<i data-lucide="plus"></i>最初の記録をつける
+					</button>
+				</div>
+			</section>
+		</div>
+	</main>
+
+	<!-- Modal -->
+
+	<div class="modal-overlay" id="stepModalOverlay">
+		<div class="modal">
+			<div class="modal__header">
+				<h2>歩数を記録する</h2>
+				<button type="button" class="modal__close" id="closeModalBtn">
+					<i data-lucide="x"></i>
+				</button>
+			</div>
+
+			<form id="stepForm" th:action="@{/profile/{profileId}/step/save(profileId=${profileId})}" method="post">
+				<input type="hidden" name="recordId" id="recordId" />
+
+				<div class="input-group">
+					<label>日付<span class="required">*</span></label>
+					<input type="date" id="recordedDate" name="recordedDate" required />
+				</div>
+
+				<div class="input-group">
+					<label>歩数<span class="required">*</span></label>
+					<input type="number" id="steps" name="steps" min="0" max="100000" placeholder="例: 8000" />
+				</div>
+
+				<div class="input-group">
+					<label> メモ </label>
+					<textarea id="memo" name="memo" rows="3" maxlength="500"></textarea>
+				</div>
+
+				<div class="modal__footer">
+					<button type="button" class="btn btn--ghost">キャンセル</button>
+					<button type="submit" class="btn btn--primary">
+						<i data-lucide="check"></i>保存する
+					</button>
+				</div>
+			</form>
+		</div>
+	</div>
+	<div th:replace="~{layout/confirm-modal :: deleteModal}"></div>
+
+	<script src="https://unpkg.com/lucide@latest"></script>
+	<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+	<script th:src="@{/js/common.js}"></script>
+	<script th:inline="javascript">
+		window.weightChartData = {labels: /*[[${labels}]]*/[], values: /*[[${values}]]*/[], chartMode: /*[[${chartMode}]]*/ "DAY", from: /*[[${chartFrom}]]*/ null, to: /*[[${chartTo}]]*/ null};
+	</script>
+
+	<script th:src="@{/js/step.js}"></script>
+</body>

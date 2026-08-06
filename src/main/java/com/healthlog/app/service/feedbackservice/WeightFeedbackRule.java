@@ -12,7 +12,9 @@ import java.util.Map;
 
 import org.springframework.stereotype.Component;
 
+import com.healthlog.app.entity.Profile;
 import com.healthlog.app.entity.Weight;
+import com.healthlog.app.repository.ProfileRepository;
 import com.healthlog.app.repository.WeightRepository;
 import com.healthlog.app.service.feedbackservice.model.FeedbackItem;
 import com.healthlog.app.service.feedbackservice.model.FeedbackLevel;
@@ -25,49 +27,100 @@ import lombok.RequiredArgsConstructor;
 public class WeightFeedbackRule {
 
 	private final WeightRepository weightRepository;
+	private final ProfileRepository profileRepository;
 
 	private static final BigDecimal LV3_CHANGE_PERCENT = BigDecimal.valueOf(3);
 	private static final BigDecimal LV4_CHANGE_PERCENT = BigDecimal.valueOf(5);
 	private static final BigDecimal LV4_DAILY_CHANGE_KG = BigDecimal.valueOf(2);
 	private static final long NO_RECORD_DAYS_THRESHOLD = 3;
+	// TODO: 「目標達成」とみなす許容誤差。仕様に合わせて調整してください
+	private static final BigDecimal TARGET_ACHIEVED_TOLERANCE_KG = BigDecimal.valueOf(0.5);
 
 	public List<FeedbackItem> evaluate(Long profileId) {
 		List<FeedbackItem> items = new ArrayList<>();
+		Profile profile = profileRepository.findById(profileId).orElseThrow();
+		LocalDate today = LocalDate.now();
+		LocalDate yesterday = today.minusDays(1);
+
 		List<Weight> logs = weightRepository.findByProfile_IdOrderByRecordedDateDesc(profileId);
+
+		// ---- お知らせ: 記録が一度もない ----
 		if (logs.isEmpty()) {
+			items.add(buildNoRecordReminder(today, "体重記録がありません", "まだ体重データが記録されていません。記録を始めてみましょう。"));
 			return items;
 		}
 
 		List<Weight> latestLogs = latestPerDateDesc(logs);
+		boolean hasToday = latestLogs.stream().anyMatch(w -> w.getRecordedDate().isEqual(today));
+		boolean hasYesterday = latestLogs.stream().anyMatch(w -> w.getRecordedDate().isEqual(yesterday));
 
-		checkAchievementToday(latestLogs, items);
-		checkNoRecord(latestLogs, items);
-		checkWeightChange(latestLogs, items);
+		// ---- お知らせ: 今日/昨日の記録漏れ（体重は毎日でなくてもよいため、評価は継続する） ----
+		if (!hasToday) {
+			items.add(
+					buildNoRecordReminder(today, "今日の体重記録がありません", "今日の体重データがまだ記録されていません。記録すると、あなたに合ったフィードバックが受け取れます。"));
+		}
+		if (!hasYesterday) {
+			items.add(buildNoRecordReminder(today, "昨日の体重記録がありません", "昨日分の体重データが記録されていません。忘れずに記録しましょう。"));
+		}
+
+		// ---- メイン評価: LV4/LV3（変化）> LV2（3日以上未記録）> LV1（達成）、互いに排他 ----
+		List<FeedbackItem> mainFeedback = new ArrayList<>();
+		checkWeightChange(latestLogs, mainFeedback); // LV4 / LV3
+		if (mainFeedback.isEmpty()) {
+			checkNoRecord(latestLogs, today, mainFeedback); // LV2
+		}
+		if (mainFeedback.isEmpty()) {
+			checkAchievement(latestLogs, profile, today, mainFeedback); // LV1
+		}
+
+		items.addAll(mainFeedback);
 		return items;
 	}
 
-	// ---- Lv1: 達成（今日の記録完了） ----
-	private void checkAchievementToday(
+	// ---- Lv1: 目標体重達成、または（目標未設定 or 未達成時）今日の記録完了 ----
+	private void checkAchievement(
 			List<Weight> logs,
+			Profile profile,
+			LocalDate today,
 			List<FeedbackItem> items) {
-		LocalDate today = LocalDate.now();
 		Weight latest = logs.get(0);
-		if (latest.getRecordedDate().isEqual(today)) {
-			items.add(new FeedbackItem(
-					FeedbackType.DAILY_COMPLETE,
-					FeedbackLevel.LV1,
-					"今日の健康記録を完了しました",
-					"体重の記録、お疲れさまでした！",
-					latest.getMeasuredAt(),
-					"check-circle"));
+		BigDecimal target = profile.getTargetWeight(); // TODO: 実際のgetter名に合わせて修正
+		boolean hasGoal = target != null;
+
+		if (hasGoal && latest.getWeight() != null) {
+			BigDecimal diff = latest.getWeight().subtract(target).abs();
+			if (diff.compareTo(TARGET_ACHIEVED_TOLERANCE_KG) <= 0) {
+				items.add(new FeedbackItem(
+						FeedbackType.WEIGHT_GOAL_ACHIEVED,
+						FeedbackLevel.LV1,
+						"目標体重を達成しました",
+						"現在の体重は" + latest.getWeight() + "kgです。設定した目標体重を達成しました！",
+						latest.getMeasuredAt(),
+						"check-circle"));
+				return;
+			}
 		}
+
+		if (!latest.getRecordedDate().isEqual(today)) {
+			return;
+		}
+		String message = hasGoal
+				? "体重の記録、お疲れさまでした！目標体重に向けて引き続き頑張りましょう。"
+				: "体重の記録、お疲れさまでした！目標体重を設定すると、より詳しいフィードバックが受け取れます。";
+		items.add(new FeedbackItem(
+				FeedbackType.DAILY_COMPLETE,
+				FeedbackLevel.LV1,
+				"今日の健康記録を完了しました",
+				message,
+				latest.getMeasuredAt(),
+				"check-circle"));
 	}
 
 	// ---- Lv2: 体重記録なし（3日間） ----
 	private void checkNoRecord(
 			List<Weight> logs,
+			LocalDate today,
 			List<FeedbackItem> items) {
-		LocalDate today = LocalDate.now();
 		Weight latest = logs.get(0);
 		long days = ChronoUnit.DAYS.between(latest.getRecordedDate(), today);
 		if (days >= NO_RECORD_DAYS_THRESHOLD) {
@@ -124,6 +177,11 @@ public class WeightFeedbackRule {
 					latest.getRecordedDate().atStartOfDay(),
 					"alert-triangle"));
 		}
+	}
+
+	private FeedbackItem buildNoRecordReminder(LocalDate today, String title, String message) {
+		return new FeedbackItem(FeedbackType.WEIGHT_NO_RECORD, FeedbackLevel.LV0, title, message,
+				today.atStartOfDay(), "calendar-x");
 	}
 
 	private List<Weight> latestPerDateDesc(List<Weight> logs) {

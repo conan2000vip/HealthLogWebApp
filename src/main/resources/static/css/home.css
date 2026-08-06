@@ -62,8 +62,14 @@ body {
 	width: 76px;
 	height: 76px;
 	border-radius: 50%;
-	object-fit: cover;
-	background: #fde4ec;
+	flex-shrink: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 30px;
+	font-weight: 700;
+	color: #fff;
+	text-transform: uppercase;
 }
 
 .profile-card__info {
@@ -270,7 +276,7 @@ body {
 	display: grid;
 	grid-template-columns: 1.5fr 1fr;
 	gap: 20px;
-	align-items: start;
+	align-items: stretch;
 }
 
 /* Chart card (bổ sung style cho fragment dùng chung) */
@@ -283,6 +289,8 @@ body {
 	border-radius: var(--radius);
 	box-shadow: var(--shadow);
 	padding: 20px 22px;
+	display: flex;
+	flex-direction: column;
 }
 
 .chart-card__header,
@@ -290,8 +298,9 @@ body {
 .family-card__header,
 .feedback-panel__header {
 	display: flex;
-	align-items: center;
+	align-items: flex-start;
 	justify-content: space-between;
+	gap: 12px;
 	margin-bottom: 14px;
 }
 
@@ -305,6 +314,23 @@ body {
 	display: flex;
 	align-items: center;
 	gap: 6px;
+	line-height: 1.4;
+}
+
+.chart-card__header .link-btn,
+.memo-card__header .link-btn,
+.family-card__header .link-btn,
+.feedback-panel__header .link-btn {
+	flex-shrink: 0;
+	white-space: nowrap;
+}
+
+.empty-text {
+	font-size: 13px;
+	color: var(--c-text-mute);
+	text-align: center;
+	padding: 20px 0;
+	margin: 0;
 }
 
 /* ---------- Memo list ---------- */
@@ -367,8 +393,14 @@ body {
 	width: 48px;
 	height: 48px;
 	border-radius: 50%;
-	object-fit: cover;
-	margin-bottom: 6px;
+	margin: 0 auto 6px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 18px;
+	font-weight: 700;
+	color: #fff;
+	text-transform: uppercase;
 }
 
 .family-member__name {
@@ -404,7 +436,7 @@ body {
 	justify-content: center;
 	gap: 6px;
 	text-align: center;
-	margin-top: 16px;
+	margin-top: auto;
 	padding: 10px;
 	border: 1px solid var(--c-border);
 	border-radius: 10px;
@@ -418,6 +450,7 @@ body {
 	display: flex;
 	flex-direction: column;
 	gap: 10px;
+	flex: 1;
 }
 
 .feedback-card {

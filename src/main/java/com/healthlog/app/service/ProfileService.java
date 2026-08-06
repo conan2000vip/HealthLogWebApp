@@ -1,5 +1,6 @@
 package com.healthlog.app.service;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -22,8 +23,9 @@ public class ProfileService {
 	// 続柄が重複不可（1人のユーザーにつき1件まで）の関係性
 	// 子供のように複数人あり得る続柄はここに含めない
 	private static final List<String> UNIQUE_RELATIONSHIPS = List.of("父", "母", "配偶者");
-
 	private final ProfileRepository profileRepository;
+	private static final Integer DEFAULT_WATER_GOAL_ML = 1500;
+	private static final BigDecimal DEFAULT_SLEEP_GOAL_HOURS = new BigDecimal("8.0");
 
 	public ProfileService(ProfileRepository profileRepository) {
 		this.profileRepository = profileRepository;
@@ -55,7 +57,6 @@ public class ProfileService {
 		} else {
 			profile.setIsPrimary(false);
 
-			// 父・母・配偶者は重複登録不可
 			if (UNIQUE_RELATIONSHIPS.contains(profile.getRelationship())
 					&& profileRepository.existsByUser_IdAndRelationship(
 							profile.getUser().getId(), profile.getRelationship())) {
@@ -63,6 +64,10 @@ public class ProfileService {
 						"「" + profile.getRelationship() + "」はすでに登録されています");
 			}
 		}
+
+		// 作成時にデフォルト値と異なる目標が指定されていれば「ユーザー設定済み」とみなす
+		applyGoalSetFlags(profile, null);
+
 		return profileRepository.save(profile);
 	}
 
@@ -80,12 +85,38 @@ public class ProfileService {
 				&& !profile.getRelationship().equals(dbProfile.getRelationship())
 				&& profileRepository.existsByUser_IdAndRelationship(
 						dbProfile.getUser().getId(), profile.getRelationship())) {
-			// 続柄を父・母・配偶者に変更しようとした際、既に他のプロファイルで
-			// 同じ続柄が登録されている場合はエラー
 			throw new BusinessException(HttpStatus.BAD_REQUEST,
 					"「" + profile.getRelationship() + "」はすでに登録されています");
 		}
+
+		// 目標値が変更されていれば「ユーザー設定済み」に更新し、以後は自動で外れない
+		applyGoalSetFlags(profile, dbProfile);
+
 		return profileRepository.save(profile);
+	}
+
+	// 目標値がデフォルト（新規時）または既存値（更新時）と異なる場合に設定済みフラグを立てる
+	private static final Integer DEFAULT_STEP_GOAL = 8000;
+
+	private void applyGoalSetFlags(Profile incoming, Profile existing) {
+		Integer previousWaterGoal = existing != null ? existing.getWaterGoalMl() : DEFAULT_WATER_GOAL_ML;
+		BigDecimal previousSleepGoal = existing != null ? existing.getSleepGoalHours() : DEFAULT_SLEEP_GOAL_HOURS;
+		Integer previousStepGoal = existing != null ? existing.getStepGoal() : DEFAULT_STEP_GOAL;
+
+		boolean waterAlreadySet = existing != null && Boolean.TRUE.equals(existing.getWaterGoalSet());
+		boolean sleepAlreadySet = existing != null && Boolean.TRUE.equals(existing.getSleepGoalSet());
+		boolean stepAlreadySet = existing != null && Boolean.TRUE.equals(existing.getStepGoalSet());
+
+		boolean waterChanged = incoming.getWaterGoalMl() != null
+				&& !incoming.getWaterGoalMl().equals(previousWaterGoal);
+		boolean sleepChanged = incoming.getSleepGoalHours() != null
+				&& incoming.getSleepGoalHours().compareTo(previousSleepGoal) != 0;
+		boolean stepChanged = incoming.getStepGoal() != null
+				&& !incoming.getStepGoal().equals(previousStepGoal);
+
+		incoming.setWaterGoalSet(waterAlreadySet || waterChanged);
+		incoming.setSleepGoalSet(sleepAlreadySet || sleepChanged);
+		incoming.setStepGoalSet(stepAlreadySet || stepChanged);
 	}
 
 	@Transactional

@@ -18,4 +18,6 @@ public interface StepRepository extends JpaRepository<Step, Long> {
 	List<Step> findByProfile_IdAndRecordedDateBetweenOrderByRecordedDateDesc(
 			Long profileId, LocalDate startDate, LocalDate endDate);
 
+	List<Step> findByProfile_IdAndRecordedDateGreaterThanEqualOrderByRecordedDateDesc(Long profileId, LocalDate from);
+
 }

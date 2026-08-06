@@ -21,7 +21,7 @@
 		    <a th:href="${clearUrl}" class="filter-bar__reset"
 		        th:if="${filterStartDate != null or filterEndDate != null}">クリア</a>
 		</form>
-		
+
 		<!-- ============ Feedback List ============-->
 		<section th:fragment="feedbackList(feedbackList)" class="feedback-list" id="feedbackSection"
 			th:if="${feedbackList != null and not #lists.isEmpty(feedbackList)}">
@@ -36,7 +36,8 @@
 				<div class="feedback-card__meta">
 					<span class="feedback-card__time"
 						th:text="${#temporals.format(fb.occurredAt, 'M/d HH:mm')}">7/10 16:20</span>
-					<span class="feedback-card__badge" th:text="${'Lv' + fb.level.priority}">Lv4</span>
+					<span class="feedback-card__badge" th:if="${fb.level.priority > 1}"
+					th:text="${fb.level.label}">重要</span>
 				</div>
 			</div>
 

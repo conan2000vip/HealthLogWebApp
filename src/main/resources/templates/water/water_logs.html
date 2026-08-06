@@ -36,47 +36,50 @@
 				</div>
 
 				<!-- Business Error / Success -->
-				<div class="alert alert--error" th:if="${error}" id="errorAlert">
+				<div class="alert alert--error" th:if="${error}" id="errorAlert" data-auto-hide="true">
 					<i data-lucide="alert-circle"></i><span th:text="${error}"></span>
 					<button type="button" class="alert__close" onclick="this.closest('.alert').remove()">
 						<i data-lucide="x"></i>
 					</button>
 				</div>
-				<div class="alert alert--success" th:if="${message}" id="successAlert">
+				<div class="alert alert--success" th:if="${message}" id="successAlert" data-auto-hide="true">
 					<i data-lucide="check-circle"></i><span th:text="${message}"></span>
 					<button type="button" class="alert__close" onclick="this.closest('.alert').remove()">
 						<i data-lucide="x"></i>
 					</button>
 				</div>
 
+				<!--  Feedback -->
+				<div th:replace="~{layout/data-controls :: feedbackList(feedbackList=${feedbackList})}"></div>
+
+				<!-- Summary Cards -->
 				<div class="summary-grid">
-
 					<div class="summary-card">
-						<span class="summary-card__label">最新</span>
-						<span class="summary-card__value">
-							<span th:text="${stats.latest ?: '--'}"></span> ml
-						</span>
+					    <span class="summary-card__label">最新</span>
+					    <span class="summary-card__value">
+					        <span th:text="${stats?.latest ?: '--'}"></span> ml
+					    </span>
 					</div>
 
 					<div class="summary-card">
-						<span class="summary-card__label">今日合計</span>
-						<span class="summary-card__value">
-							<span th:text="${stats.todayTotal ?: '--'}"></span> ml
-						</span>
+					    <span class="summary-card__label">今日合計</span>
+					    <span class="summary-card__value">
+					        <span th:text="${stats?.todayTotal ?: '--'}"></span> ml
+					    </span>
 					</div>
 
 					<div class="summary-card">
-						<span class="summary-card__label">今月平均</span>
-						<span class="summary-card__value">
-							<span th:text="${stats.monthAverage ?: '--'}"></span> ml
-						</span>
+					    <span class="summary-card__label">今月平均</span>
+					    <span class="summary-card__value">
+					        <span th:text="${stats?.monthAverage ?: '--'}"></span> ml
+					    </span>
 					</div>
 
 					<div class="summary-card">
-						<span class="summary-card__label">目標達成率</span>
-						<span class="summary-card__value">
-							<span th:text="${stats.goalRate ?: '--'}"></span>%
-						</span>
+					    <span class="summary-card__label">目標達成率</span>
+					    <span class="summary-card__value">
+					        <span th:text="${stats?.goalRate ?: '--'}"></span>%
+					    </span>
 					</div>
 				</div>
 
@@ -102,6 +105,7 @@
 							<thead>
 								<tr>
 									<th>日付</th>
+									<th>時間</th>
 									<th>飲み物</th>
 									<th>量 (ml)</th>
 									<th>目標比</th>
@@ -113,6 +117,9 @@
 								<tr th:each="record : ${logs}" th:data-date="${record.recordedDate}"
 									th:data-value="${record.amountMl}">
 									<td th:text="${record.recordedDate}">2026-08-03</td>
+									<td class="water-table__time"
+									    th:text="${record.recordedTime != null ? #temporals.format(record.recordedTime,'HH:mm') : '--'}">
+									</td>
 									<td><span class="water-drink" th:text="${record.drinkType}">水</span></td>
 									<td class="water-table__amount">
 										<strong>
@@ -126,12 +133,17 @@
 										</span>
 										<span th:unless="${record.goalRate != null}" class="text-muted">--</span>
 									</td>
-									<td class="water-table__memo" th:text="${record.memo != null ? record.memo : ''}">
+									<td class="water-table__memo memo-cell"
+									    th:text="${record.memo != null ? record.memo : ''}"
+									    th:attr="data-full-memo=${record.memo != null ? record.memo : ''}">
 									</td>
 									<td class="water-table__actions">
-										<button type="button" class="icon-btn edit-btn" th:data-id="${record.id}"
+										<button type="button" class="icon-btn edit-btn"
+										    th:data-id="${record.id}"
 											th:data-date="${record.recordedDate}"
-											th:data-drink-type="${record.drinkType}" th:data-amount="${record.amountMl}"
+											th:data-drink-type="${record.drinkType}"
+											th:data-amount="${record.amountMl}"
+											th:data-time="${record.recordedTime}"
 											th:data-memo="${record.memo}" aria-label="編集">
 											<img th:src="@{/image/edit.png}" alt="編集" class="icon-btn-img" />
 										</button>
@@ -164,7 +176,7 @@
 							class="pagination__nav">次へ →</a>
 					</div>
 
-					<!-- Trường hợp 1: chưa từng có bản ghi nào (không liên quan đến việc có đang lọc hay không) -->
+					<!-- Empty State : -->
 					<div class="empty-state" th:if="${#lists.isEmpty(logs)} and ${!hasAnyLog}">
 					    <i data-lucide="droplets"></i>
 					    <p>まだ水分が記録されていません</p>
@@ -173,7 +185,7 @@
 					    </button>
 					</div>
 
-					<!-- Trường hợp 2: đã từng có bản ghi, nhưng bộ lọc hiện tại không khớp gì -->
+					<!-- Empty State for Filtered Results -->
 					<div class="empty-state" th:if="${#lists.isEmpty(logs)} and ${hasAnyLog}">
 					    <i data-lucide="calendar-days"></i>
 					    <p>選択した期間に記録がありません</p>
@@ -224,12 +236,12 @@
 							<option value="SPORTS_DRINK">スポーツドリンク</option>
 							<option value="OTHER">その他</option>
 						</select>
-						<div id="waterError" class="field-error"><span></span></div>
+						<div id="drinkTypeError" class="field-error"><span></span></div>
 					</div>
 
 					<div class="input-group">
-						<label for="amount">水分量 (ml)<span class="required">*</span></label>
-						<input type="number" id="amount" name="amount" min="1" max="5000" placeholder="250" required>
+						<label for="amountMl">水分量 (ml)<span class="required">*</span></label>
+						<input type="number" id="amountMl" name="amountMl" min="1" max="5000" placeholder="250" required>
 						<div id="amountError" class="field-error"><span></span></div>
 					</div>
 
@@ -255,12 +267,13 @@
 		<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 		<script th:src="@{/js/common.js}"></script>
 		<script th:inline="javascript">
-			/*<![CDATA[*/
 			window.waterChartData = {
-				labels: /*[[${labels}]]*/[],
-				values: /*[[${values}]]*/[]
+			    labels: /*[[${labels}]]*/ [],
+			    values: /*[[${values}]]*/ [],
+			    chartMode: /*[[${chartMode}]]*/ "DAY",
+			    from: /*[[${chartFrom}]]*/ null,
+			    to: /*[[${chartTo}]]*/ null
 			};
-			/*]]>*/
 		</script>
 		<script th:src="@{/js/water.js}"></script>
 
