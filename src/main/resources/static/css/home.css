@@ -1,0 +1,521 @@
+/* ==================== Home page body ==================== */
+:root {
+	--c-weight: #7c3aed;
+	--c-sleep: #3b82f6;
+	--c-water: #06b6d4;
+	--c-step: #22c55e;
+	--c-bg: #f4f6fb;
+	--c-card: #ffffff;
+	--c-border: #e6e9f2;
+	--c-text: #1e293b;
+	--c-text-mute: #64748b;
+	--radius: 14px;
+	--shadow: 0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+body {
+	background: var(--c-bg);
+	color: var(--c-text);
+	font-family: "Hiragino Sans", "Noto Sans JP", -apple-system, sans-serif;
+}
+
+.home {
+	max-width: 1500px;
+	margin: 0 auto;
+	padding: 24px 32px 64px;
+	display: flex;
+	flex-direction: column;
+	gap: 20px;
+}
+
+.link-btn {
+	background: none;
+	border: none;
+	color: #2563eb;
+	font-size: 13px;
+	cursor: pointer;
+	text-decoration: none;
+}
+
+/* ---------- Profile card ---------- */
+.profile-card {
+	background: var(--c-card);
+	border: 1px solid var(--c-border);
+	border-radius: var(--radius);
+	box-shadow: var(--shadow);
+	padding: 24px 28px;
+	display: flex;
+	align-items: center;
+	gap: 24px;
+	flex-wrap: wrap;
+	position: relative;
+}
+
+.profile-card__avatar {
+	width: 76px;
+	height: 76px;
+	border-radius: 50%;
+	object-fit: cover;
+	background: #fde4ec;
+}
+
+.profile-card__info {
+	flex: 1;
+	min-width: 220px;
+}
+
+.profile-card__title-row {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	margin-bottom: 4px;
+}
+
+.profile-card__label {
+	font-size: 13px;
+	color: var(--c-text-mute);
+}
+
+.profile-card__badge {
+	background: #7c3aed;
+	color: #fff;
+	font-size: 11px;
+	font-weight: 700;
+	padding: 3px 10px;
+	border-radius: 999px;
+	letter-spacing: 0.03em;
+}
+
+.profile-card__name {
+	font-size: 24px;
+	font-weight: 700;
+	margin: 0 0 8px;
+}
+
+.profile-card__meta {
+	font-size: 15px;
+	font-weight: 400;
+	color: var(--c-text-mute);
+}
+
+.profile-card__facts {
+	display: flex;
+	gap: 22px;
+	flex-wrap: wrap;
+	font-size: 13px;
+	color: var(--c-text-mute);
+}
+
+.profile-card__facts img {
+	width: 14px;
+	height: 14px;
+	vertical-align: -2px;
+	margin-right: 4px;
+}
+
+.profile-card__goals {
+	display: flex;
+	gap: 12px;
+	flex-wrap: wrap;
+}
+
+.goal-chip {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	background: #f8f9fc;
+	border: 1px solid var(--c-border);
+	border-radius: 10px;
+	padding: 10px 16px;
+	min-width: 140px;
+}
+
+.goal-chip__icon {
+	font-size: 18px;
+}
+
+.goal-chip__label {
+	font-size: 11px;
+	color: var(--c-text-mute);
+	margin: 0;
+}
+
+.goal-chip__value {
+	font-size: 15px;
+	font-weight: 700;
+	margin: 0;
+}
+
+.profile-card__switch {
+	position: absolute;
+	top: 24px;
+	right: 28px;
+	background: #eef2ff;
+	color: #2563eb;
+	font-size: 13px;
+	font-weight: 600;
+	border-radius: 8px;
+	padding: 8px 14px;
+	text-decoration: none;
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+}
+
+/* ---------- Stat grid (4 cards) ---------- */
+.stat-grid {
+	display: grid;
+	grid-template-columns: repeat(4, 1fr);
+	gap: 20px;
+}
+
+.stat-card {
+	background: var(--c-card);
+	border: 1px solid var(--c-border);
+	border-radius: var(--radius);
+	box-shadow: var(--shadow);
+	padding: 20px 20px 16px;
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+
+.stat-card__head {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.stat-card__head h3 {
+	font-size: 14px;
+	font-weight: 700;
+	margin: 0;
+	color: var(--c-text-mute);
+}
+
+.stat-card__icon {
+	font-size: 18px;
+}
+
+.stat-card__value {
+	font-size: 26px;
+	font-weight: 700;
+	margin: 0;
+	display: flex;
+	align-items: baseline;
+	gap: 8px;
+}
+
+.stat-card__pill {
+	font-size: 11px;
+	font-weight: 700;
+	background: #ede9fe;
+	color: var(--c-weight);
+	padding: 3px 9px;
+	border-radius: 999px;
+}
+
+.stat-card__pill--ok {
+	background: #dcfce7;
+	color: #16a34a;
+}
+
+.stat-card--weight canvas { max-height: 70px; }
+.stat-card--sleep canvas { max-height: 70px; }
+
+.stat-card__sub {
+	font-size: 12px;
+	color: var(--c-text-mute);
+	margin: 0;
+}
+
+.progress-bar {
+	height: 8px;
+	border-radius: 999px;
+	background: #e6e9f2;
+	overflow: hidden;
+}
+
+.progress-bar__fill {
+	height: 100%;
+	border-radius: 999px;
+	background: linear-gradient(90deg, #06b6d4, #22d3ee);
+}
+
+.progress-bar__fill--green {
+	background: linear-gradient(90deg, #22c55e, #4ade80);
+}
+
+.stat-card__link {
+	margin-top: auto;
+	font-size: 13px;
+	color: #2563eb;
+	text-decoration: none;
+}
+
+/* ---------- 2 column rows ---------- */
+.row-2col {
+	display: grid;
+	grid-template-columns: 1.5fr 1fr;
+	gap: 20px;
+	align-items: start;
+}
+
+/* Chart card (bổ sung style cho fragment dùng chung) */
+.chart-card,
+.memo-card,
+.family-card,
+.feedback-panel {
+	background: var(--c-card);
+	border: 1px solid var(--c-border);
+	border-radius: var(--radius);
+	box-shadow: var(--shadow);
+	padding: 20px 22px;
+}
+
+.chart-card__header,
+.memo-card__header,
+.family-card__header,
+.feedback-panel__header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 14px;
+}
+
+.chart-card__header h2,
+.memo-card__header h2,
+.family-card__header h2,
+.feedback-panel__header h2 {
+	font-size: 15px;
+	font-weight: 700;
+	margin: 0;
+}
+
+/* ---------- Memo list ---------- */
+.memo-card__list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+
+.memo-card__list li {
+	background: #f8f9fc;
+	border-radius: 10px;
+	padding: 10px 14px;
+}
+
+.memo-card__date {
+	font-size: 11px;
+	color: var(--c-text-mute);
+	margin: 0 0 4px;
+}
+
+.memo-card__text {
+	font-size: 13px;
+	margin: 0;
+}
+
+/* ---------- Family card ---------- */
+.family-card__header {
+	flex-wrap: wrap;
+	gap: 8px;
+}
+
+.family-card__note {
+	font-size: 13px;
+	color: var(--c-text-mute);
+}
+
+.family-card__grid {
+	display: grid;
+	grid-template-columns: repeat(4, 1fr);
+	gap: 14px;
+}
+
+.family-member {
+	border-radius: 12px;
+	padding: 14px;
+	text-align: center;
+	border: 1px solid var(--c-border);
+	background: #f8f9fc;
+}
+
+.family-member.is-ok { background: #f0fdf4; border-color: #bbf7d0; }
+.family-member.is-warn { background: #fffbeb; border-color: #fde68a; }
+.family-member.is-danger { background: #fef2f2; border-color: #fecaca; }
+
+.family-member__avatar {
+	width: 48px;
+	height: 48px;
+	border-radius: 50%;
+	object-fit: cover;
+	margin-bottom: 6px;
+}
+
+.family-member__name {
+	font-size: 13px;
+	font-weight: 700;
+	margin: 0 0 4px;
+}
+
+.family-member__status {
+	font-size: 11px;
+	margin: 0 0 6px;
+}
+
+.family-member__ratio {
+	font-size: 15px;
+	font-weight: 700;
+	margin: 0;
+}
+
+.family-member__time {
+	font-size: 11px;
+	color: var(--c-text-mute);
+	margin: 2px 0 0;
+}
+
+.family-card__select-btn {
+	display: block;
+	text-align: center;
+	margin-top: 16px;
+	padding: 10px;
+	border: 1px solid var(--c-border);
+	border-radius: 10px;
+	font-size: 13px;
+	color: var(--c-text);
+	text-decoration: none;
+}
+
+/* ---------- Feedback list (fragment layout/data-controls :: feedbackList) ---------- */
+.feedback-list {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+
+.feedback-card {
+	display: flex;
+	align-items: flex-start;
+	gap: 10px;
+	border-radius: 10px;
+	padding: 12px 14px;
+	background: #f8f9fc;
+	border-left: 4px solid var(--c-border);
+}
+
+.feedback-card.is-hidden {
+	display: none;
+}
+
+/* fb.level.cssClass = lv1 (達成) / lv2 (アドバイス) / lv3 (注意) / lv4 (重要) */
+.feedback-card--lv4 {
+	background: #fef2f2;
+	border-left-color: #ef4444;
+}
+
+.feedback-card--lv3 {
+	background: #fffbeb;
+	border-left-color: #f59e0b;
+}
+
+.feedback-card--lv2 {
+	background: #eff6ff;
+	border-left-color: #3b82f6;
+}
+
+.feedback-card--lv1 {
+	background: #f0fdf4;
+	border-left-color: #22c55e;
+}
+
+.feedback-card__icon {
+	flex-shrink: 0;
+	width: 28px;
+	height: 28px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.feedback-card__icon i {
+	width: 18px;
+	height: 18px;
+}
+
+.feedback-card__content { flex: 1; min-width: 0; }
+
+.feedback-card__title {
+	font-size: 13px;
+	font-weight: 700;
+	margin: 0 0 3px;
+}
+
+.feedback-card__message {
+	font-size: 12px;
+	color: var(--c-text-mute);
+	margin: 0;
+}
+
+.feedback-card__meta {
+	text-align: right;
+	white-space: nowrap;
+}
+
+.feedback-card__time {
+	display: block;
+	font-size: 11px;
+	color: var(--c-text-mute);
+}
+
+.feedback-card__badge {
+	display: inline-block;
+	margin-top: 4px;
+	font-size: 11px;
+	font-weight: 700;
+	padding: 2px 8px;
+	border-radius: 999px;
+	background: #ef4444;
+	color: #fff;
+}
+
+.feedback-card--lv3 .feedback-card__badge {
+	background: #f59e0b;
+}
+
+.feedback-card--lv2 .feedback-card__badge {
+	background: #3b82f6;
+}
+
+.feedback-card--lv1 .feedback-card__badge {
+	background: #22c55e;
+}
+
+.feedback-list__toggle {
+	align-self: center;
+	margin-top: 4px;
+	background: none;
+	border: 1px solid var(--c-border);
+	border-radius: 999px;
+	padding: 6px 16px;
+	font-size: 12px;
+	color: var(--c-text);
+	cursor: pointer;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 1100px) {
+	.stat-grid { grid-template-columns: repeat(2, 1fr); }
+	.row-2col { grid-template-columns: 1fr; }
+	.family-card__grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 600px) {
+	.stat-grid { grid-template-columns: 1fr; }
+	.family-card__grid { grid-template-columns: 1fr; }
+	.profile-card__switch { position: static; margin-top: 12px; }
+}
