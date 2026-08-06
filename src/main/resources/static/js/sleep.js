@@ -5,7 +5,6 @@ document.addEventListener("DOMContentLoaded", () => {
 /* =========================================================
    モーダル（新規登録 / 編集）— sleep ページ専用
    （filter-bar / chart-toggle / diff-badge は common.js 側で
-   全画面共通として処理されるため、ここでは扱わない）
    ========================================================= */
 function initModal() {
     const overlay = document.getElementById("sleepModalOverlay");
@@ -27,15 +26,7 @@ function initModal() {
 
     if (!overlay || !form) return;
 
-    function openModal({
-        mode = "create",
-        id = "",
-        date = "",
-        sleepType = "NIGHT",
-        startTime = "",
-        endTime = "",
-        memo = "",
-    } = {}) {
+    function openModal({ mode = "create", id = "", date = "", sleepType = "NIGHT", startTime = "", endTime = "", memo = "", } = {}) {
         modalTitle.textContent = mode === "edit" ? "睡眠記録を編集する" : "睡眠を記録する";
         recordId.value = id;
         dateInput.value = date || todayIso();
@@ -98,43 +89,42 @@ function initModal() {
         if (input) input.addEventListener("input", () => clearError(input.id));
     });
 
-	[dateInput, startTimeInput, endTimeInput].forEach((input) => {
-		    if (input) input.addEventListener("input", () => {
-		        validateDuration();
-		        updateWakeDateHint();
-		    });
-		});
-		if (sleepTypeInput) {
-		    sleepTypeInput.addEventListener("change", validateDuration);
-		}
-	
-    // バリデーション
-	function validateDuration() {
-	    const minutes = computeSleepMinutes(startTimeInput.value, endTimeInput.value);
-	    if (minutes === null) {
-	        clearError("endTime");
-	        return true;
-	    }
-	    if (minutes <= 0) {
-	        showError("endTime", "起床時刻が正しくありません");
-	        return false;
-	    }
+    [dateInput, startTimeInput, endTimeInput].forEach((input) => {
+        if (input) input.addEventListener("input", () => {
+            validateDuration();
+            updateWakeDateHint();
+        });
+    });
+    if (sleepTypeInput) {
+        sleepTypeInput.addEventListener("change", validateDuration);
+    }
 
-	    const isNap = sleepTypeInput.value === "NAP";
-	    const maxMinutes = isNap ? 5 * 60 : 16 * 60;
-		if (minutes > maxMinutes) {
-		        const h = Math.floor(minutes / 60);
-		        const m = minutes % 60;
-		        const maxHours = maxMinutes / 60;
-		        const message = isNap
-		            ? `昼寝が${maxHours}時間を超えています（現在 ${h}時間${m}分）。長時間の場合は「夜間睡眠」として記録してください`
-		            : `夜間睡眠の記録は${maxHours}時間以内で入力してください（現在 ${h}時間${m}分）`;
-		        showError("endTime", message);
-		        return false;
-		    }
-	    clearError("endTime");
-	    return true;
-	}
+    // バリデーション
+    function validateDuration() {
+        const minutes = computeSleepMinutes(startTimeInput.value, endTimeInput.value);
+        if (minutes === null) {
+            return true;
+        }
+        if (minutes <= 0) {
+            showError("endTime", "起床時刻が正しくありません");
+            return false;
+        }
+
+        const isNap = sleepTypeInput.value === "NAP";
+        const maxMinutes = isNap ? 5 * 60 : 16 * 60;
+        if (minutes > maxMinutes) {
+            const h = Math.floor(minutes / 60);
+            const m = minutes % 60;
+            const maxHours = maxMinutes / 60;
+            const message = isNap
+                ? `昼寝が${maxHours}時間を超えています（現在 ${h}時間${m}分）。長時間の場合は「夜間睡眠」として記録してください`
+                : `夜間睡眠の記録は${maxHours}時間以内で入力してください（現在 ${h}時間${m}分）`;
+            showError("endTime", message);
+            return false;
+        }
+        clearError("endTime");
+        return true;
+    }
 
     function validateDate() {
         if (!dateInput.value) {
@@ -174,10 +164,10 @@ function initModal() {
         const isDateValid = validateDate();
         const isStartValid = validateStartTime();
         const isEndValid = validateEndTime();
-		const isDurationValid = validateDuration();
+        const isDurationValid = validateDuration();
 
-		if (!isDateValid || !isStartValid || !isEndValid || !isDurationValid) {
-		        event.preventDefault();
+        if (!isDateValid || !isStartValid || !isEndValid || !isDurationValid) {
+            event.preventDefault();
         }
     });
 
@@ -253,35 +243,75 @@ function initModal() {
 /* =========================================================
    Chart.js — sleep ページ専用（睡眠時間推移データを描画）
    values は分単位（sleepMinutes）で渡ってくる想定
+   固定表示: 直近7日間 / Y軸は30分刻み
    ========================================================= */
 let sleepChartInstance = null;
 document.addEventListener("DOMContentLoaded", initChart);
+
+const CHART_DAYS = 7;          // 固定表示する日数
+const Y_STEP_HOURS = 0.5;      // Y軸の刻み幅（30分 = 0.5h）
+
 function initChart() {
     const canvas = document.getElementById("sleepChart");
     if (!canvas || typeof Chart === "undefined") return;
-    const chartData = window.sleepChartData || { labels: [], values: [] };
-    if (!chartData.labels || chartData.labels.length === 0) return;
-    const labels = chartData.labels.map(formatShortDate);
-    // 分 → 時間（小数）に変換してグラフのY軸を見やすくする
-    const data = chartData.values.map((v) => Math.round((parseFloat(v) / 60) * 10) / 10);
+    const chartData = window.sleepChartData || { labels: [], values: [], chartMode: "DAY" };
+    const isSearching = document.getElementById("startDateInput")?.value || document.getElementById("endDateInput")?.value;
+
+    // --- 実データを { 日付: 分 } のマップに変換 ---
+    let labels = [];
+    let data = [];
+    if (!isSearching) {
+        const dateRange = buildLastNDaysRange(CHART_DAYS, chartData.labels);
+        const valueMap = {};
+        chartData.labels.forEach((d, i) => { valueMap[d] = chartData.values[i]; });
+        labels = dateRange.map(d => formatLabel(d, "DAY"));
+        data = dateRange.map(d => {
+            const minutes = valueMap[d];
+            if (minutes == null) {
+                return null;
+            }
+            return roundToStep(minutes / 60, Y_STEP_HOURS);
+        });
+    }
+    else {
+        labels = chartData.labels.map(d => formatLabel(d, chartData.chartMode));
+        data = chartData.values.map(v => roundToStep(v / 60, Y_STEP_HOURS));
+    }
+
+    // --- 直近N日間の日付配列（yyyy-MM-dd）を生成する ---
+    function buildLastNDaysRange(n, existingLabels) {
+        let endDate = new Date();
+        endDate.setHours(0, 0, 0, 0);
+        if (existingLabels.length) {
+            const latest = existingLabels.reduce((a, b) => a > b ? a : b);
+            endDate = new Date(latest + "T00:00:00");
+        }
+        const result = [];
+        for (let i = n - 1;i >= 0;i--) {
+            const d = new Date(endDate);
+            d.setDate(d.getDate() - i);
+            result.push(toIsoDate(d));
+        }
+        return result;
+    }
+
+    // --- データが全て null の場合は描画しない ---
+    const hasAnyData = data.some((v) => v !== null);
+    if (!hasAnyData) return;
     const styles = getComputedStyle(document.documentElement);
     const primary = styles.getPropertyValue("--wp-primary").trim() || "#4caf50";
     sleepChartInstance = new Chart(canvas, {
-        type: "line",
+        type: "bar",
         data: {
             labels,
             datasets: [
                 {
                     data,
+                    backgroundColor: hexToRgba(primary, 0.75),
                     borderColor: primary,
-                    backgroundColor: hexToRgba(primary, 0.12),
-                    borderWidth: 2.5,
-                    pointRadius: 4,
-                    pointBackgroundColor: primary,
-                    pointBorderColor: "#ffffff",
-                    pointBorderWidth: 2,
-                    tension: 0.35,
-                    fill: true,
+                    borderWidth: 1,
+                    borderRadius: 8,
+                    maxBarThickness: 40,
                 },
             ],
         },
@@ -292,7 +322,8 @@ function initChart() {
                 legend: { display: false },
                 tooltip: {
                     callbacks: {
-                        label: (ctx) => formatHoursMinutes(ctx.parsed.y),
+                        label: (ctx) =>
+                            ctx.parsed.y === null ? "記録なし" : formatHoursMinutes(ctx.parsed.y),
                     },
                 },
             },
@@ -302,16 +333,33 @@ function initChart() {
                     ticks: { color: "#6b7280", font: { size: 11 } },
                 },
                 y: {
+                    min: 0,
+                    suggestedMax: 10,
                     grid: { color: "#f1f5f9" },
                     ticks: {
+                        stepSize: Y_STEP_HOURS,
                         color: "#6b7280",
                         font: { size: 11 },
-                        callback: (value) => `${value}h`,
+                        // 浮動小数点誤差(8.700000000000001など)を防ぐため toFixed で丸めてから表示
+                        callback: (value) => `${Number(value).toFixed(1)}h`,
                     },
                 },
             },
         },
     });
+}
+
+// 直近N日間の日付配列（yyyy-MM-dd）を生成する。
+function toIsoDate(d) {
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}`;
+}
+
+// value を step 単位で四捨五入する（例: roundToStep(8.7333, 0.5) → 8.5）
+function roundToStep(value, step) {
+    return Math.round(value / step) * step;
 }
 
 // input: 1.5 → output: "1時間30分"
@@ -322,12 +370,22 @@ function formatHoursMinutes(hoursDecimal) {
     return `${h}時間${m}分`;
 }
 
-// input: "2024-06-15" → output: "06-15"
-function formatShortDate(isoDate) {
-    if (!isoDate) return "";
-    const parts = isoDate.split("-");
-    if (parts.length < 3) return isoDate;
-    return `${parts[1]}-${parts[2]}`;
+function formatLabel(value, mode) {
+    if (!value) return "";
+    if (mode === "DAY") {
+        const d = new Date(value + "T00:00:00");
+        const weekdays = ["日", "月", "火", "水", "木", "金", "土"];
+        return `${d.getDate()}(${weekdays[d.getDay()]})`;
+    }
+    if (mode === "WEEK") {
+        const d = new Date(value + "T00:00:00");
+        return `${d.getMonth() + 1}/${d.getDate()}`;
+    }
+    if (mode === "MONTH") {
+        const month = value.substring(5, 7);
+        return `${Number(month)}月`;
+    }
+    return value;
 }
 
 // HEXカラーコードをRGBAに変換する関数

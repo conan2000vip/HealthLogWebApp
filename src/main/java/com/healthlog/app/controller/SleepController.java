@@ -80,6 +80,9 @@ public class SleepController {
 			model.addAttribute("hasNext", false);
 			model.addAttribute("labels", java.util.Collections.emptyList());
 			model.addAttribute("values", java.util.Collections.emptyList());
+			model.addAttribute("chartMode", "DAY");
+			model.addAttribute("chartFrom", startDate);
+			model.addAttribute("chartTo", endDate);
 		}
 
 		// ★追加: フィルター条件に関係なく、実データ全体から常に算出する

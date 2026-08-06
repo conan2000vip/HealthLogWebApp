@@ -687,32 +687,56 @@ body {
 	border-left-color: #ef4444;
 	background: linear-gradient(90deg, #fef2f2 0%, #ffffff 60%);
 }
-.feedback-card--lv4 .feedback-card__icon i { color: #ef4444; }
-.feedback-card--lv4 .feedback-card__badge { background: #ef4444; }
+
+.feedback-card--lv4 .feedback-card__icon i {
+	color: #ef4444;
+}
+
+.feedback-card--lv4 .feedback-card__badge {
+	background: #ef4444;
+}
 
 /* Lv3: 注意 - 橙 */
 .feedback-card--lv3 {
 	border-left-color: #f59e0b;
 	background: linear-gradient(90deg, #fffbeb 0%, #ffffff 60%);
 }
-.feedback-card--lv3 .feedback-card__icon i { color: #f59e0b; }
-.feedback-card--lv3 .feedback-card__badge { background: #f59e0b; }
+
+.feedback-card--lv3 .feedback-card__icon i {
+	color: #f59e0b;
+}
+
+.feedback-card--lv3 .feedback-card__badge {
+	background: #f59e0b;
+}
 
 /* Lv2: アドバイス - 青 */
 .feedback-card--lv2 {
 	border-left-color: #3b82f6;
 	background: linear-gradient(90deg, #eff6ff 0%, #ffffff 60%);
 }
-.feedback-card--lv2 .feedback-card__icon i { color: #3b82f6; }
-.feedback-card--lv2 .feedback-card__badge { background: #3b82f6; }
+
+.feedback-card--lv2 .feedback-card__icon i {
+	color: #3b82f6;
+}
+
+.feedback-card--lv2 .feedback-card__badge {
+	background: #3b82f6;
+}
 
 /* Lv1: 達成 - 緑 */
 .feedback-card--lv1 {
 	border-left-color: #10b981;
 	background: linear-gradient(90deg, #ecfdf5 0%, #ffffff 60%);
 }
-.feedback-card--lv1 .feedback-card__icon i { color: #10b981; }
-.feedback-card--lv1 .feedback-card__badge { background: #10b981; }
+
+.feedback-card--lv1 .feedback-card__icon i {
+	color: #10b981;
+}
+
+.feedback-card--lv1 .feedback-card__badge {
+	background: #10b981;
+}
 
 .feedback-card.is-hidden {
 	display: none;
@@ -738,6 +762,7 @@ body {
 	.feedback-card {
 		flex-wrap: wrap;
 	}
+
 	.feedback-card__meta {
 		flex-direction: row;
 		align-items: center;
@@ -758,13 +783,13 @@ body {
 }
 
 .summary-card {
-	background: #ffffff;
-	border-radius: var(--wp-radius-lg);
-	box-shadow: var(--wp-shadow);
-	padding: 18px 20px;
-	display: flex;
-	flex-direction: column;
-	gap: 6px;
+    background: #fff;
+    border-radius: var(--wp-radius-lg);
+    box-shadow: var(--wp-shadow);
+    padding: 18px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
 }
 
 .summary-card__label {
@@ -774,11 +799,29 @@ body {
 }
 
 .summary-card__value {
-	font-size: 24px;
-	font-weight: 800;
-	display: flex;
-	align-items: baseline;
+    font-size: 24px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 4px;
+}
+
+.summary-card__value .badge {
+    font-size: 14px;
+    padding: 4px 8px;
+    font-weight: 600;
+    line-height: 1.2;
+    align-self: center;
 	gap: 8px;
+	margin-top: 4px;
+}
+
+.summary-card__sub {
+    margin-top: 2px;
+    font-size: 12px;
+    color: #6b7280;
+    line-height: 1.3;
 }
 
 /* =========================================================
@@ -801,7 +844,7 @@ body {
 }
 
 .badge--normal,
-.badge.nomal {
+.badge.normal {
 	background: var(--wp-primary-light);
 	color: var(--wp-primary-dark);
 }
@@ -815,6 +858,7 @@ body {
 	background: #fee2e2;
 	color: #b91c1c;
 }
+
 /* =========================================================
    Filter Bar (Shared)
    ========================================================= */
@@ -832,27 +876,27 @@ body {
 }
 
 .filter-bar__search-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 12px;
-    border: 1px solid #d1d5db;
-    border-radius: 8px;
-    background-color: #f9fafb;
-    color: #374151;
-    font-size: 14px;
-    cursor: pointer;
-    transition: background-color 0.15s ease, border-color 0.15s ease;
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 6px 12px;
+	border: 1px solid #d1d5db;
+	border-radius: 8px;
+	background-color: #f9fafb;
+	color: #374151;
+	font-size: 14px;
+	cursor: pointer;
+	transition: background-color 0.15s ease, border-color 0.15s ease;
 }
 
 .filter-bar__search-btn:hover {
-    background-color: #f3f4f6;
-    border-color: #9ca3af;
+	background-color: #f3f4f6;
+	border-color: #9ca3af;
 }
 
 .filter-bar__search-btn i {
-    width: 16px;
-    height: 16px;
+	width: 16px;
+	height: 16px;
 }
 
 .filter-bar__title {
@@ -999,6 +1043,27 @@ body {
 /* =========================================================
    Table Card / Data Table Scroll (Shared)
    ========================================================= */
+
+.memo-cell {
+	max-width: 200px;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	cursor: pointer;
+	transition: all 0.15s ease;
+}
+
+.memo-cell.is-expanded {
+	max-width: none;
+	white-space: normal;
+	word-break: break-word;
+	background: #f9fafb;
+	border-radius: 6px;
+	padding: 6px 8px;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+	cursor: default;
+	position: relative;
+}
 
 .table-card {
 	background: #ffffff;

@@ -53,37 +53,69 @@
 				
 				<!-- Summary Cards -->
 				<div class="summary-grid">
-					<div class="summary-card">
-						<span class="summary-card__label">最新</span>
-						<span class="summary-card__value">
-							<span
-								th:text="${stats != null && stats.latest != null ? (stats.latest / 60 + '時間' + stats.latest % 60 + '分') : '--'}"></span>
-						</span>
-					</div>
-					<div class="summary-card">
-						<span class="summary-card__label"
-							th:text="${stats?.isCustomRange == true ? '平均' : '今月平均'}">今月平均</span>
-						<span class="summary-card__value">
-							<span
-								th:text="${stats != null && stats.monthlyAverage != null ? (stats.monthlyAverage / 60 + '時間' + stats.monthlyAverage % 60 + '分') : '--'}"></span>
-						</span>
-					</div>
-					<div class="summary-card">
-						<span class="summary-card__label"
-							th:text="${stats?.isCustomRange == true ? '最短' : '最短(今月)'}">最短(今月)</span>
-						<span class="summary-card__value">
-							<span
-								th:text="${stats?.shortest != null ? (stats.shortest / 60 + '時間' + stats.shortest % 60 + '分') : '--'}">6時間0分</span>
-						</span>
-					</div>
-					<div class="summary-card">
-						<span class="summary-card__label"
-							th:text="${stats?.isCustomRange == true ? '最長' : '最長(今月)'}">最長(今月)</span>
-						<span class="summary-card__value">
-							<span
-								th:text="${stats?.longest != null ? (stats.longest / 60 + '時間' + stats.longest % 60 + '分') : '--'}">8時間0分</span>
-						</span>
-					</div>
+				    <!-- 最新 -->
+				    <div class="summary-card">
+				        <span class="summary-card__label">最新睡眠</span>
+				        <span class="summary-card__value">
+				            <span th:text="${stats != null && stats.latest != null
+				                ? (stats.latest / 60 + '時間' + stats.latest % 60 + '分')
+				                : '--'}"></span>
+				        </span>
+				        <span class="summary-card__sub"
+				              th:if="${stats != null && stats.latestDate != null}"
+				              th:text="'最終記録：' + ${#temporals.format(stats.latestDate,'yyyy/MM/dd')}">
+				        </span>
+				    </div>
+
+				    <!-- 平均 -->
+				    <div class="summary-card">
+				        <span class="summary-card__label"
+				              th:text="${stats.isCustomRange} ? '期間平均' : '今月平均'">
+				            今月平均
+				        </span>
+				        <span class="summary-card__value">
+				            <span th:text="${stats != null && stats.monthlyAverage != null
+				                ? (stats.monthlyAverage / 60 + '時間' + stats.monthlyAverage % 60 + '分')
+				                : '--'}"></span>
+				        </span>
+				        <span class="summary-card__sub"
+				              th:text="${stats.isCustomRange} ? '対象期間の1日平均' : '今月の1日平均'">
+				        </span>
+				    </div>
+
+				    <!-- 最短 -->
+				    <div class="summary-card">
+				        <span class="summary-card__label"
+				              th:text="${stats.isCustomRange} ? '期間内最短' : '今月最短'">
+				            今月最短
+				        </span>
+				        <span class="summary-card__value">
+				            <span th:text="${stats != null && stats.shortest != null
+				                ? (stats.shortest / 60 + '時間' + stats.shortest % 60 + '分')
+				                : '--'}"></span>
+				        </span>
+				        <span class="summary-card__sub"
+				              th:if="${stats != null && stats.shortestDate != null}"
+				              th:text="'記録日：' + ${#temporals.format(stats.shortestDate,'yyyy/MM/dd')}">
+				        </span>
+				    </div>
+
+				    <!-- 最長 -->
+				    <div class="summary-card">
+				        <span class="summary-card__label"
+				              th:text="${stats.isCustomRange} ? '期間内最長' : '今月最長'">
+				            今月最長
+				        </span>
+				        <span class="summary-card__value">
+				            <span th:text="${stats != null && stats.longest != null
+				                ? (stats.longest / 60 + '時間' + stats.longest % 60 + '分')
+				                : '--'}"></span>
+				        </span>
+				        <span class="summary-card__sub"
+				              th:if="${stats != null && stats.longestDate != null}"
+				              th:text="'記録日：' + ${#temporals.format(stats.longestDate,'yyyy/MM/dd')}">
+				        </span>
+				    </div>
 				</div>
 
 				<!-- Hiển thị rõ khoảng đang thống kê khi có filter, tránh hiểu nhầm là "今月" -->
@@ -140,10 +172,9 @@
 									<td th:text="${record.endTime}">07:00</td>
 									<td class="sleep-table__duration">
 										<span
-											th:text="${record.sleepMinutes != null ? (record.sleepMinutes / 60 + 'h' + record.sleepMinutes % 60 + 'm') : '--'}"
+											th:text="${record.sleepMinutes != null ? (record.sleepMinutes / 60 + 'h' + record.sleepMinutes % 60 + 'm') : '--'}"></span>
 									</td>
-									<td class="sleep-table__memo" th:text="${record.memo != null ? record.memo : ''}">
-									</td>
+									<td class="sleep-table__memo memo-cell" th:text="${record.memo != null ? record.memo : ''}"></td>
 									<td class="sleep-table__actions">
 										<button type="button" class="icon-btn edit-btn" th:data-id="${record.id}"
 											th:data-date="${record.recordedDate}"
@@ -269,12 +300,13 @@
 		<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 		<script th:src="@{/js/common.js}"></script>
 		<script th:inline="javascript">
-			/*<![CDATA[*/
-			window.sleepChartData = {
-				labels: /*[[${labels}]]*/[],
-				values: /*[[${values}]]*/[]
-			};
-			/*]]>*/
+		    window.sleepChartData = {
+		        labels: /*[[${labels}]]*/ [],
+		        values: /*[[${values}]]*/ [],
+		        chartMode: /*[[${chartMode}]]*/ "DAY",
+		        from: /*[[${chartFrom}]]*/ null,
+		        to: /*[[${chartTo}]]*/ null
+		    };
 		</script>
 		<script th:src="@{/js/sleep.js}"></script>
 
