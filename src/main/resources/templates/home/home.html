@@ -8,6 +8,7 @@
 	<link rel="stylesheet" th:href="@{/css/home.css}" />
 	<!-- Chart.js -->
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+	<!-- Lucide icons (dùng bởi layout/data-controls :: feedbackList / filterBar) -->
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.462.0/umd/lucide.min.js"></script>
 </head>
 
@@ -20,7 +21,7 @@
 
 		<!-- ============ Profile Card ============ -->
 		<section class="profile-card">
-			<img th:src="${currentProfile?.avatarUrl} ?: @{/image/avatar-default.png}" alt=""
+			<img th:src="${currentProfile?.avatarUrl} ?: @{/image/profile.png}" alt=""
 				class="profile-card__avatar" />
 
 			<div class="profile-card__info">
@@ -34,42 +35,45 @@
 							th:text="${currentProfile?.gender}">女性</span>）</span>
 				</h1>
 				<div class="profile-card__facts">
-					<span><img th:src="@{/image/ruler.png}" alt="" /> 身長 <span
-							th:text="${currentProfile?.heightCm}">165</span> cm</span>
-					<span><img th:src="@{/image/cake.png}" alt="" /> 生年月日 <span
-							th:text="${#temporals.format(currentProfile?.birthDate,'yyyy/MM/dd')}">1988/05/12</span></span>
-					<span><img th:src="@{/image/family.png}" alt="" /> 続柄 <span
+					<span>身長 <span th:text="${currentProfile?.heightCm}">165</span> cm</span>
+					<span>生年月日 <span
+							th:text="${currentProfile?.birthDate != null} ? ${#temporals.format(currentProfile.birthDate,'yyyy/MM/dd')} : '-'">1988/05/12</span></span>
+					<span><img th:src="@{/image/profile.png}" alt="" class="icon-sm" /> 続柄 <span
 							th:text="${currentProfile?.isPrimary} ? '本人' : ${currentProfile?.relationship}">母</span></span>
 				</div>
 			</div>
 
 			<div class="profile-card__goals">
 				<div class="goal-chip goal-chip--weight">
-					<span class="goal-chip__icon">⚖️</span>
+					<img th:src="@{/image/scales.png}" alt="" class="goal-chip__icon" />
 					<div>
 						<p class="goal-chip__label">目標体重</p>
-						<p class="goal-chip__value" th:text="${#numbers.formatDecimal(goals?.targetWeight,1,1)} + ' kg'">55.0 kg</p>
+						<p class="goal-chip__value"
+							th:text="${goals?.targetWeight != null} ? ${#numbers.formatDecimal(goals.targetWeight,1,1)} + ' kg' : '-'">55.0 kg</p>
+					</div>
+				</div>
+				<div class="goal-chip goal-chip--sleep">
+					<img th:src="@{/image/sleep.png}" alt="" class="goal-chip__icon" />
+					<div>
+						<p class="goal-chip__label">睡眠目標</p>
+						<p class="goal-chip__value" th:text="${goals?.sleepGoalHour != null} ? ${goals.sleepGoalHour} + ' 時間' : '-'">7.5 時間</p>
 					</div>
 				</div>
 				<div class="goal-chip goal-chip--water">
-					<span class="goal-chip__icon">💧</span>
+					<img th:src="@{/image/water.png}" alt="" class="goal-chip__icon" />
 					<div>
 						<p class="goal-chip__label">水分目標</p>
-						<p class="goal-chip__value" th:text="${goals?.waterGoalMl} + ' ml/日'">2,000 ml/日</p>
+						<p class="goal-chip__value" th:text="${goals?.waterGoalMl != null} ? ${goals.waterGoalMl} + ' ml/日' : '-'">2,000 ml/日</p>
 					</div>
 				</div>
 				<div class="goal-chip goal-chip--step">
-					<span class="goal-chip__icon">👣</span>
+					<img th:src="@{/image/footstep.png}" alt="" class="goal-chip__icon" />
 					<div>
 						<p class="goal-chip__label">歩数目標</p>
-						<p class="goal-chip__value" th:text="${goals?.stepGoal} + ' 歩/日'">8,000 歩/日</p>
+						<p class="goal-chip__value" th:text="${goals?.stepGoal != null} ? ${goals.stepGoal} + ' 歩/日' : '-'">8,000 歩/日</p>
 					</div>
 				</div>
 			</div>
-
-			<a th:href="@{/profile/profile-manage}" class="profile-card__switch">
-				<img th:src="@{/image/switch.png}" alt="" /> プロフィール切替 ▾
-			</a>
 		</section>
 
 		<!-- ============ 4 Stat Cards (mini chart) ============ -->
@@ -77,12 +81,12 @@
 
 			<article class="stat-card stat-card--weight">
 				<div class="stat-card__head">
-					<span class="stat-card__icon">⚖️</span>
+					<img th:src="@{/image/scales.png}" alt="" class="stat-card__icon" />
 					<h3>体重</h3>
 				</div>
 				<p class="stat-card__value">
-					<span th:text="${#numbers.formatDecimal(today?.weightKg,1,1)}">54.8</span> kg
-					<span class="stat-card__pill" th:text="'BMI ' + ${#numbers.formatDecimal(today?.bmi,1,1)}">BMI 20.1</span>
+					<span th:text="${today?.weightKg != null} ? ${#numbers.formatDecimal(today.weightKg,1,1)} : '-'">54.8</span> kg
+					<span class="stat-card__pill" th:if="${today?.bmi != null}" th:text="'BMI ' + ${#numbers.formatDecimal(today.bmi,1,1)}">BMI 20.1</span>
 				</p>
 				<canvas id="miniWeightChart" height="70"></canvas>
 				<a th:href="@{/profile/{profileId}/weight(profileId=${currentProfile?.id})}" class="stat-card__link">詳細を見る ›</a>
@@ -90,7 +94,7 @@
 
 			<article class="stat-card stat-card--sleep">
 				<div class="stat-card__head">
-					<span class="stat-card__icon">🌙</span>
+					<img th:src="@{/image/sleep.png}" alt="" class="stat-card__icon" />
 					<h3>睡眠</h3>
 				</div>
 				<p class="stat-card__value">
@@ -103,31 +107,31 @@
 
 			<article class="stat-card stat-card--water">
 				<div class="stat-card__head">
-					<span class="stat-card__icon">💧</span>
+					<img th:src="@{/image/water.png}" alt="" class="stat-card__icon" />
 					<h3>水分</h3>
 				</div>
 				<p class="stat-card__value">
 					<span th:text="${today?.waterMl}">1,200</span> ml
 				</p>
 				<div class="progress-bar">
-					<div class="progress-bar__fill" th:style="'width:' + ${today?.waterPercent} + '%'"></div>
+					<div class="progress-bar__fill" th:style="'width:' + (${today?.waterPercent} ?: 0) + '%'"></div>
 				</div>
-				<p class="stat-card__sub">目標の <span th:text="${today?.waterPercent}">60</span>%</p>
+				<p class="stat-card__sub">目標の <span th:text="${today?.waterPercent} ?: 0">60</span>%</p>
 				<a th:href="@{/profile/{profileId}/water(profileId=${currentProfile?.id})}" class="stat-card__link">詳細を見る ›</a>
 			</article>
 
 			<article class="stat-card stat-card--step">
 				<div class="stat-card__head">
-					<span class="stat-card__icon">👣</span>
+					<img th:src="@{/image/footstep.png}" alt="" class="stat-card__icon" />
 					<h3>歩数</h3>
 				</div>
 				<p class="stat-card__value">
 					<span th:text="${today?.stepCount}">6,820</span> 歩
 				</p>
 				<div class="progress-bar">
-					<div class="progress-bar__fill progress-bar__fill--green" th:style="'width:' + ${today?.stepPercent} + '%'"></div>
+					<div class="progress-bar__fill progress-bar__fill--green" th:style="'width:' + (${today?.stepPercent} ?: 0) + '%'"></div>
 				</div>
-				<p class="stat-card__sub">目標の <span th:text="${today?.stepPercent}">85</span>%</p>
+				<p class="stat-card__sub">目標の <span th:text="${today?.stepPercent} ?: 0">85</span>%</p>
 				<a th:href="@{/profile/{profileId}/step(profileId=${currentProfile?.id})}" class="stat-card__link">詳細を見る ›</a>
 			</article>
 		</section>
@@ -140,7 +144,7 @@
 
 			<section class="memo-card">
 				<div class="memo-card__header">
-					<h2>📝 最近の健康メモ</h2>
+					<h2><img th:src="@{/image/notes.png}" alt="" class="icon-sm" /> 最近の健康メモ</h2>
 					<a th:href="@{/profile/{profileId}/memo(profileId=${currentProfile?.id})}" class="link-btn">すべて見る ›</a>
 				</div>
 				<ul class="memo-card__list">
@@ -157,7 +161,7 @@
 
 			<section class="family-card">
 				<div class="family-card__header">
-					<h2>👨‍👩‍👧‍👦 家族健康サマリー</h2>
+					<h2><img th:src="@{/image/family.png}" alt="" class="icon-sm" /> 家族健康サマリー</h2>
 					<span class="family-card__note">今日のファミリーヘルス：<span th:text="${familySummary?.doneCount}">3</span>人中<span
 							th:text="${familySummary?.totalCount}">4</span>人が記録完了</span>
 				</div>
@@ -166,17 +170,23 @@
 						th:classappend="${member.status} == 'OK' ? ' is-ok' : (${member.status} == 'WARN' ? ' is-warn' : ' is-danger')">
 						<img th:src="${member.avatarUrl}" alt="" class="family-member__avatar" />
 						<p class="family-member__name" th:text="${member.name} + '（' + ${member.age} + '歳）'">父（37歳）</p>
-						<p class="family-member__status" th:text="${member.statusLabel}">水分未入力</p>
+						<p class="family-member__status">
+							<img th:src="@{/image/check.png}" alt="" class="icon-sm" th:if="${member.status} == 'OK'" />
+							<img th:src="@{/image/warning.png}" alt="" class="icon-sm" th:if="${member.status} != 'OK'" />
+							<span th:text="${member.statusLabel}">水分未入力</span>
+						</p>
 						<p class="family-member__ratio" th:text="${member.doneItems} + ' / ' + ${member.totalItems} + ' 項目'">3 / 4 項目</p>
 						<p class="family-member__time" th:text="${member.updatedTime} + ' 更新'">18:40 更新</p>
 					</article>
 				</div>
-				<a th:href="@{/profile/profile-manage}" class="family-card__select-btn">👤 プロフィール選択へ移動</a>
+				<a th:href="@{/profile/profile-manage}" class="family-card__select-btn">
+					<img th:src="@{/image/profile.png}" alt="" class="icon-sm" /> プロファイル選択へ移動
+				</a>
 			</section>
 
 			<section class="feedback-panel">
 				<div class="feedback-panel__header">
-					<h2>💬 健康フィードバック（重要度の高い順に表示）</h2>
+					<h2><img th:src="@{/image/shield.png}" alt="" class="icon-sm" /> 健康フィードバック（重要度の高い順に表示）</h2>
 					<a th:href="@{/profile/{profileId}/feedback(profileId=${currentProfile?.id})}" class="link-btn">すべて見る ›</a>
 				</div>
 				<div th:replace="~{layout/data-controls :: feedbackList(feedbackList=${feedbackList})}"></div>
@@ -186,7 +196,17 @@
 	</main>
 
 	<script th:inline="javascript">
-	  const trendChartData = /*[[${trendChartJson}]]*/ {};
+		/*<![CDATA[*/
+		const trendChartData = /*[[${trendChart}]]*/ {
+			labels: ["7/4", "7/5", "7/6", "7/7", "7/8", "7/9", "7/10"],
+			weight: [55.2, 54.5, 54.3, 55.4, 55.1, 54.4, 54.8],
+			sleep: [7.5, 7.2, 6.8, 7.3, 7.1, 7.4, 7.8],
+			water: [1500, 1300, 1200, 1600, 1400, 1300, 1600],
+			step: [5200, 4300, 6100, 6800, 5600, 6900, 8100]
+		};
+		const miniWeightData = /*[[${miniWeightData}]]*/ [55.2, 54.5, 54.3, 55.4, 55.1, 54.4, 54.8];
+		const miniSleepData = /*[[${miniSleepData}]]*/ [6.5, 7.2, 6.8, 7.3, 7.1, 7.4, 7.3];
+		/*]]>*/
 	</script>
 	<script th:src="@{/js/home.js}"></script>
 </body>
