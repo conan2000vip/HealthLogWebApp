@@ -68,6 +68,8 @@ public class WeightController {
 		try {
 			Map<String, Object> result = weightService.list(profileId, currentUserId, startDate, endDate, page);
 			model.addAllAttributes(result);
+			// ★追加: Profileに登録されている身長をフォーム初期値として渡す
+			model.addAttribute("defaultHeight", profileService.getProfile(currentUserId, profileId).getHeight());
 		} catch (BusinessException e) {
 			model.addAttribute("error", e.getMessage());
 			model.addAttribute("logs", java.util.Collections.emptyList());
@@ -76,8 +78,12 @@ public class WeightController {
 			model.addAttribute("currentPage", 0);
 			model.addAttribute("hasPrevious", false);
 			model.addAttribute("hasNext", false);
+			model.addAttribute("hasAnyLog", false);
 			model.addAttribute("labels", java.util.Collections.emptyList());
 			model.addAttribute("values", java.util.Collections.emptyList());
+			model.addAttribute("chartMode", "DAY");
+			model.addAttribute("chartFrom", startDate);
+			model.addAttribute("chartTo", endDate);
 		}
 
 		// フィルター条件に関係なく、実データ全体から常に算出する
@@ -85,6 +91,7 @@ public class WeightController {
 		model.addAttribute("feedbackList", feedbackList);
 
 		model.addAttribute("profileId", profileId);
+		model.addAttribute("currentProfile", profileService.getProfile(currentUserId, profileId));
 		model.addAttribute("filterStartDate", startDate);
 		model.addAttribute("filterEndDate", endDate);
 		return "weight/weight_logs";

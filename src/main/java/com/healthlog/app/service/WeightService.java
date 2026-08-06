@@ -3,12 +3,14 @@ package com.healthlog.app.service;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
@@ -77,9 +79,73 @@ public class WeightService {
 				map.put(w.getRecordedDate(), w);
 			}
 		}
-		return map.values().stream()
-				.sorted(Comparator.comparing(Weight::getRecordedDate))
-				.collect(Collectors.toList());
+		return map.values().stream().sorted(Comparator.comparing(Weight::getRecordedDate)).collect(Collectors.toList());
+	}
+
+	private Map<String, Object> buildChartData(List<Weight> logs, String chartMode, LocalDate from, LocalDate to) {
+		List<String> labels = new ArrayList<>();
+		List<BigDecimal> values = new ArrayList<>();
+		if ("DAY".equals(chartMode)) {
+			Map<LocalDate, Weight> daily = new TreeMap<>();
+			for (Weight w : latestPerDate(logs)) {
+				daily.put(w.getRecordedDate(), w);
+			}
+			if (from == null || to == null) {
+				daily.forEach((date, weight) -> {
+					labels.add(date.toString());
+					values.add(weight.getWeight());
+				});
+			} else {
+				LocalDate current = from;
+				while (!current.isAfter(to)) {
+					labels.add(current.toString());
+					Weight w = daily.get(current);
+					values.add(w == null ? null : w.getWeight());
+					current = current.plusDays(1);
+				}
+			}
+		} else if ("MONTH".equals(chartMode)) {
+			Map<String, List<Weight>> monthly = latestPerDate(logs).stream()
+					.collect(Collectors.groupingBy(w -> w.getRecordedDate().getYear() + "-"
+							+ String.format("%02d", w.getRecordedDate().getMonthValue()), TreeMap::new,
+							Collectors.toList()));
+			LocalDate current = from.withDayOfMonth(1);
+			while (!current.isAfter(to)) {
+				String monthKey = current.getYear() + "-" + String.format("%02d", current.getMonthValue());
+				labels.add(monthKey);
+				List<Weight> list = monthly.get(monthKey);
+				if (list == null || list.isEmpty()) {
+					values.add(null);
+				} else {
+					BigDecimal avg = list.stream().map(Weight::getWeight).reduce(BigDecimal.ZERO, BigDecimal::add)
+							.divide(BigDecimal.valueOf(list.size()), 1, RoundingMode.HALF_UP);
+					values.add(avg);
+				}
+				current = current.plusMonths(1);
+			}
+		} else if ("YEAR".equals(chartMode)) {
+			Map<Integer, List<Weight>> yearly = latestPerDate(logs).stream()
+					.collect(Collectors.groupingBy(w -> w.getRecordedDate().getYear(), TreeMap::new,
+							Collectors.toList()));
+			LocalDate current = from.withDayOfYear(1);
+			while (!current.isAfter(to)) {
+				int year = current.getYear();
+				labels.add(String.valueOf(year));
+				List<Weight> list = yearly.get(year);
+				if (list == null || list.isEmpty()) {
+					values.add(null);
+				} else {
+					BigDecimal avg = list.stream().map(Weight::getWeight).reduce(BigDecimal.ZERO, BigDecimal::add)
+							.divide(BigDecimal.valueOf(list.size()), 1, RoundingMode.HALF_UP);
+					values.add(avg);
+				}
+				current = current.plusYears(1);
+			}
+		}
+		Map<String, Object> result = new HashMap<>();
+		result.put("labels", labels);
+		result.put("values", values);
+		return result;
 	}
 
 	// ---------------------------------------------------------
@@ -95,8 +161,10 @@ public class WeightService {
 		List<Weight> allLogs = fetchLogs(profileId, from, to);
 		boolean hasAnyLog = weightRepository.existsByProfile_Id(profileId);
 
-		BigDecimal min = allLogs.stream().map(Weight::getWeight).min(BigDecimal::compareTo).orElse(null);
-		BigDecimal max = allLogs.stream().map(Weight::getWeight).max(BigDecimal::compareTo).orElse(null);
+		Weight minLog = allLogs.stream().min(Comparator.comparing(Weight::getWeight)).orElse(null);
+		Weight maxLog = allLogs.stream().max(Comparator.comparing(Weight::getWeight)).orElse(null);
+		BigDecimal min = minLog != null ? minLog.getWeight() : null;
+		BigDecimal max = maxLog != null ? maxLog.getWeight() : null;
 
 		// 最新の記録は1回だけ計算して latest と BMI の両方に使い回す
 		Weight latestLog = allLogs.stream()
@@ -112,13 +180,24 @@ public class WeightService {
 			overallStatus = bmiStatusOf(bmi);
 		}
 
-		List<Weight> chartLogs = latestPerDate(allLogs);
-		List<String> labels = new ArrayList<>();
-		List<BigDecimal> values = new ArrayList<>();
-		chartLogs.forEach(w -> {
-			labels.add(w.getRecordedDate().toString());
-			values.add(w.getWeight());
-		});
+		String chartMode = "DAY";
+		if (from != null && to != null) {
+			long days = ChronoUnit.DAYS.between(from, to) + 1;
+			if (days <= 31) {
+				// 1か月以内 → 日別
+				chartMode = "DAY";
+			} else if (days <= 1095) {
+				// 3年以内 → 月別
+				chartMode = "MONTH";
+			} else {
+				// 3年以上 → 年別
+				chartMode = "YEAR";
+			}
+		}
+
+		Map<String, Object> chartData = buildChartData(allLogs, chartMode, from, to);
+		List<String> labels = (List<String>) chartData.get("labels");
+		List<BigDecimal> values = (List<BigDecimal>) chartData.get("values");
 
 		// ---- 2) 現在ページのみ: テーブル表示用 ----
 		Pageable pageable = PageRequest.of(page, 20);
@@ -135,11 +214,15 @@ public class WeightService {
 
 		Map<String, Object> stats = new HashMap<>();
 		stats.put("latest", latest);
+		stats.put("latestDate", latestLog != null ? latestLog.getRecordedDate() : null);
 		stats.put("min", min);
 		stats.put("max", max);
 		stats.put("bmi", bmi);
 		stats.put("bmiStatus", overallStatus[0]);
 		stats.put("bmiStatusCode", overallStatus[1]);
+		stats.put("latestDate", latestLog != null ? latestLog.getRecordedDate() : null);
+		stats.put("minDate", minLog != null ? minLog.getRecordedDate() : null);
+		stats.put("maxDate", maxLog != null ? maxLog.getRecordedDate() : null);
 
 		Map<String, Object> result = new HashMap<>();
 		result.put("currentProfile", profile);
@@ -152,6 +235,7 @@ public class WeightService {
 		result.put("totalPages", logPage.getTotalPages());
 		result.put("hasNext", logPage.hasNext());
 		result.put("hasPrevious", logPage.hasPrevious());
+		result.put("chartMode", chartMode);
 
 		return result;
 	}

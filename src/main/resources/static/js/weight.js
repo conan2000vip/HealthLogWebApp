@@ -13,31 +13,62 @@ function initChart() {
     const canvas = document.getElementById("weightChart");
     if (!canvas || typeof Chart === "undefined") return;
 
-    const chartData = window.weightChartData || { labels: [], values: [] };
+    const chartData = window.weightChartData || { labels: [], values: [], chartMode: "DAY" };
     if (!chartData.labels || chartData.labels.length === 0) return;
 
-    const labels = chartData.labels.map(formatShortDate);
-    const data = chartData.values.map((v) => parseFloat(v));
+    const CHART_DAYS = 7;
+    const isSearching =
+        document.getElementById("startDateInput")?.value ||
+        document.getElementById("endDateInput")?.value;
+    let labels = [];
+    let data = [];
+
+    if (!isSearching) {
+        const dateRange = buildLastNDaysRange(CHART_DAYS, chartData.labels);
+        const valueMap = {};
+        chartData.labels.forEach((d, i) => {
+            valueMap[d] = chartData.values[i];
+        });
+        labels = dateRange.map(d => formatLabel(d, "DAY"));
+        data = dateRange.map(d => {
+            const value = valueMap[d];
+            return value == null ? null : parseFloat(value);
+        });
+    } else {
+        labels = chartData.labels.map(d => formatLabel(d, chartData.chartMode));
+        data = chartData.values.map(v => v == null ? null : parseFloat(v));
+    }
+    // --- 直近N日間の日付配列（yyyy-MM-dd）を生成する ---
+    function buildLastNDaysRange(n, existingLabels) {
+        let endDate = new Date();
+        endDate.setHours(0, 0, 0, 0);
+        if (existingLabels.length) {
+            const latest = existingLabels.reduce((a, b) => a > b ? a : b);
+            endDate = new Date(latest + "T00:00:00");
+        }
+        const result = [];
+        for (let i = n - 1;i >= 0;i--) {
+            const d = new Date(endDate);
+            d.setDate(d.getDate() - i);
+            result.push(toIsoDate(d));
+        }
+        return result;
+    }
 
     const styles = getComputedStyle(document.documentElement);
     const primary = styles.getPropertyValue("--wp-primary").trim() || "#14b8a6";
-
     weightChartInstance = new Chart(canvas, {
-        type: "line",
+        type: "bar",
         data: {
             labels,
             datasets: [
                 {
                     data,
+                    backgroundColor: hexToRgba(primary, 0.75),
                     borderColor: primary,
-                    backgroundColor: hexToRgba(primary, 0.12),
-                    borderWidth: 2.5,
-                    pointRadius: 4,
-                    pointBackgroundColor: primary,
-                    pointBorderColor: "#ffffff",
-                    pointBorderWidth: 2,
-                    tension: 0.35,
-                    fill: true,
+                    borderWidth: 1,
+                    borderRadius: 8,
+                    maxBarThickness: 40,
                 },
             ],
         },
@@ -66,11 +97,30 @@ function initChart() {
     });
 }
 
-function formatShortDate(isoDate) {
-    if (!isoDate) return "";
-    const parts = isoDate.split("-");
-    if (parts.length < 3) return isoDate;
-    return `${parts[1]}-${parts[2]}`;
+// 直近N日間の日付配列（yyyy-MM-dd）を生成する。
+function toIsoDate(d) {
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}`;
+}
+
+function formatLabel(value, mode) {
+    if (!value) return "";
+    if (mode === "DAY") {
+        const d = new Date(value + "T00:00:00");
+        const weekdays = ["日", "月", "火", "水", "木", "金", "土"];
+        return `${d.getDate()}(${weekdays[d.getDay()]})`;
+    }
+    if (mode === "WEEK") {
+        const d = new Date(value + "T00:00:00");
+        return `${d.getMonth() + 1}/${d.getDate()}`;
+    }
+    if (mode === "MONTH") {
+        const month = value.substring(5, 7);
+        return `${Number(month)}月`;
+    }
+    return value;
 }
 
 function hexToRgba(hex, alpha) {
@@ -111,11 +161,16 @@ function initModal() {
         modalTitle.textContent = mode === "edit" ? "体重を編集する" : "体重を記録する";
         recordId.value = id;
         measuredAtInput.value = measuredAt || currentDateTimeLocal();
-		measuredAtInput.max = currentDateTimeLocal();
+        measuredAtInput.max = currentDateTimeLocal();
         weightInput.value = weight;
-        heightInput.value = height;
+        // 新規登録の場合はprofileの身長を初期値にする
+        if (mode === "create") {
+            heightInput.value = window.profileHeight ?? "";
+        } else {
+            // 編集の場合は登録時の身長をそのまま表示
+            heightInput.value = height;
+        }
         memoInput.value = memo;
-
         clearAllErrors();
         overlay.classList.add("is-open");
         measuredAtInput.focus();
@@ -157,21 +212,21 @@ function initModal() {
     });
 
     // バリデーション
-	function validateMeasuredAt() {
-	    if (!measuredAtInput.value) {
-	        showError("measuredAt", "日時を入力してください");
-	        return false;
-	    }
+    function validateMeasuredAt() {
+        if (!measuredAtInput.value) {
+            showError("measuredAt", "日時を入力してください");
+            return false;
+        }
 
-	    const selected = new Date(measuredAtInput.value);
-	    const now = new Date();
-	    if (selected > now) {
-	        showError("measuredAt", "未来の日時は入力できません");
-	        return false;
-	    }
-	    clearError("measuredAt");
-	    return true;
-	}
+        const selected = new Date(measuredAtInput.value);
+        const now = new Date();
+        if (selected > now) {
+            showError("measuredAt", "未来の日時は入力できません");
+            return false;
+        }
+        clearError("measuredAt");
+        return true;
+    }
 
     function validateWeight() {
         const value = weightInput.value;
@@ -237,7 +292,7 @@ function initModal() {
         ["measuredAt", "weight", "height"].forEach(clearError);
     }
 
-	// 現在日時を YYYY-MM-DDTHH:MM 形式で返す（datetime-local 用）
+    // 現在日時を YYYY-MM-DDTHH:MM 形式で返す（datetime-local 用）
     function currentDateTimeLocal() {
         const d = new Date();
         const yyyy = d.getFullYear();
