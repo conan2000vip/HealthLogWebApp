@@ -192,6 +192,23 @@ function initDiffBadges() {
     }
 }
 
+function initMemoExpand() {
+    document.querySelectorAll('.memo-cell').forEach(cell => {
+        if (!cell.textContent.trim()) return; // memo rỗng thì không cho click
+        cell.addEventListener('click', () => {
+            cell.classList.toggle('is-expanded');
+        });
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.memo-cell')) {
+            document.querySelectorAll('.memo-cell.is-expanded').forEach(cell => {
+                cell.classList.remove('is-expanded');
+            });
+        }
+    });
+}
+
 document.addEventListener("DOMContentLoaded", () => {
     if (typeof lucide !== "undefined") lucide.createIcons();
     initDeleteConfirm();
@@ -200,6 +217,7 @@ document.addEventListener("DOMContentLoaded", () => {
     initDiffBadges();
 	initPositiveNumberInputs();
 	initFeedbackToggle();
+	initMemoExpand();
 });
 
 /* =========================================================
@@ -285,7 +303,6 @@ function clearFieldError(event) {
         if (span) span.textContent = "";
     }
 }
-
 document.addEventListener("DOMContentLoaded", () => {
     document.querySelectorAll("input, textarea, select").forEach(el => {
         el.addEventListener("input", clearFieldError);

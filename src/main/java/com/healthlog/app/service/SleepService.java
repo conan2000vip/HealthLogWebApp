@@ -2,6 +2,7 @@ package com.healthlog.app.service;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -32,6 +33,9 @@ import lombok.RequiredArgsConstructor;
 public class SleepService {
 	private final SleepRepository sleepRepository;
 	private final ProfileRepository profileRepository;
+
+	private static final int NIGHT_MAX_MINUTES = 16 * 60; // 夜間睡眠の上限
+	private static final int NAP_MAX_MINUTES = 5 * 60; // 昼寝の上限
 
 	// ---------------------------------------------------------
 	// 共通: Profile取得 + 所有者チェック
@@ -82,6 +86,21 @@ public class SleepService {
 		Integer latest = latestLog != null ? latestLog.getSleepMinutes() : null;
 
 		Map<LocalDate, Integer> dailyTotals = computeDailyTotals(statsLogs);
+
+		LocalDate shortestDate = null;
+		LocalDate longestDate = null;
+
+		if (!dailyTotals.isEmpty()) {
+			shortestDate = dailyTotals.entrySet().stream()
+					.min(Map.Entry.comparingByValue())
+					.map(Map.Entry::getKey)
+					.orElse(null);
+
+			longestDate = dailyTotals.entrySet().stream()
+					.max(Map.Entry.comparingByValue())
+					.map(Map.Entry::getKey)
+					.orElse(null);
+		}
 		List<Integer> dailyValues = new ArrayList<>(dailyTotals.values());
 
 		// 平均（選択期間 or 今月、1日単位で算出）
@@ -103,12 +122,29 @@ public class SleepService {
 		stats.put("monthlyAverage", periodAverage);
 		stats.put("shortest", shortest);
 		stats.put("longest", longest);
+		stats.put("latestDate", latestLog != null ? latestLog.getRecordedDate() : null);
+		stats.put("shortestDate", shortestDate);
+		stats.put("longestDate", longestDate);
 		// フラグ: 現在表示中の統計が「今月固定」か「検索期間ベース」かをテンプレート側で判定できるように
 		stats.put("isCustomRange", !(from == null && to == null));
 
 		// グラフ用データ（日付ごとの合計睡眠時間）
 		List<Sleep> allLogs = fetchLogs(profileId, from, to);
-		Map<String, Object> chartData = buildChartData(allLogs);
+		String chartMode = "DAY";
+		if (from != null && to != null) {
+			long days = ChronoUnit.DAYS.between(from, to) + 1;
+			if (days <= 31) {
+				// 1か月以内 → 日別
+				chartMode = "DAY";
+			} else if (days <= 1095) {
+				// 3年以内 → 月別
+				chartMode = "MONTH";
+			} else {
+				// 3年以上 → 年別
+				chartMode = "YEAR";
+			}
+		}
+		Map<String, Object> chartData = buildChartData(allLogs, chartMode, from, to);
 
 		// Result
 		Map<String, Object> result = new HashMap<>();
@@ -122,6 +158,9 @@ public class SleepService {
 		result.put("hasPrevious", logPage.hasPrevious());
 		result.put("labels", chartData.get("labels"));
 		result.put("values", chartData.get("values"));
+		result.put("chartMode", chartMode);
+		result.put("chartFrom", from);
+		result.put("chartTo", to);
 		return result;
 	}
 
@@ -140,14 +179,70 @@ public class SleepService {
 	// buildChartData()共通: 日付ごとに睡眠時間(分)を合計してグラフ用データを作る
 	// （list/chart 共通化）
 	// ---------------------------------------------------------
-	private Map<String, Object> buildChartData(List<Sleep> logs) {
-		Map<LocalDate, Integer> dailySleep = computeDailyTotals(logs);
+	private Map<String, Object> buildChartData(
+			List<Sleep> logs,
+			String chartMode,
+			LocalDate from,
+			LocalDate to) {
+
 		List<String> labels = new ArrayList<>();
 		List<Integer> values = new ArrayList<>();
-		dailySleep.forEach((date, minutes) -> {
-			labels.add(date.toString());
-			values.add(minutes);
-		});
+
+		if ("DAY".equals(chartMode)) {
+			Map<LocalDate, Integer> daily = computeDailyTotals(logs);
+			if (from == null || to == null) {
+				daily.forEach((date, minutes) -> {
+					labels.add(date.toString());
+					values.add(minutes);
+				});
+			} else {
+				LocalDate current = from;
+				while (!current.isAfter(to)) {
+					labels.add(current.toString());
+					Integer value = daily.get(current);
+					values.add(value);
+					current = current.plusDays(1);
+				}
+			}
+
+		} else if ("MONTH".equals(chartMode)) {
+			Map<String, List<Sleep>> monthly = logs.stream()
+					.collect(Collectors.groupingBy(s -> s.getRecordedDate().getYear()
+							+ "-" + String.format("%02d", s.getRecordedDate().getMonthValue()), TreeMap::new,
+							Collectors.toList()));
+			LocalDate current = from.withDayOfMonth(1);
+			while (!current.isAfter(to)) {
+				String key = current.getYear() + "-" + String.format("%02d", current.getMonthValue());
+				labels.add(key);
+				List<Sleep> list = monthly.get(key);
+				if (list == null || list.isEmpty()) {
+					values.add(null);
+				} else {
+					int avg = (int) Math.round(list.stream()
+							.mapToInt(s -> s.getSleepMinutes() == null ? 0 : s.getSleepMinutes()).average().orElse(0));
+					values.add(avg);
+				}
+				current = current.plusMonths(1);
+			}
+
+		} else if ("YEAR".equals(chartMode)) {
+			Map<Integer, List<Sleep>> yearly = logs.stream().collect(Collectors.groupingBy(
+					s -> s.getRecordedDate().getYear(), TreeMap::new, Collectors.toList()));
+			LocalDate current = from.withDayOfYear(1);
+			while (!current.isAfter(to)) {
+				int year = current.getYear();
+				labels.add(String.valueOf(year));
+				List<Sleep> list = yearly.get(year);
+				if (list == null || list.isEmpty()) {
+					values.add(null);
+				} else {
+					int avg = (int) Math.round(list.stream()
+							.mapToInt(s -> s.getSleepMinutes() == null ? 0 : s.getSleepMinutes()).average().orElse(0));
+					values.add(avg);
+				}
+				current = current.plusYears(1);
+			}
+		}
 		Map<String, Object> result = new HashMap<>();
 		result.put("labels", labels);
 		result.put("values", values);
@@ -279,8 +374,14 @@ public class SleepService {
 		if (minutes <= 0) {
 			throw new BusinessException(HttpStatus.BAD_REQUEST, "睡眠時間が不正です");
 		}
-		if (minutes > 16 * 60) {
-			throw new BusinessException(HttpStatus.BAD_REQUEST, "睡眠時間が長すぎます");
+		// ★変更: 種別ごとに上限を分ける
+		int maxMinutes = sleep.getSleepType() == SleepType.NAP ? NAP_MAX_MINUTES : NIGHT_MAX_MINUTES;
+		if (minutes > maxMinutes) {
+			int maxHours = maxMinutes / 60;
+			String message = sleep.getSleepType() == SleepType.NAP
+					? "昼寝が" + maxHours + "時間を超えています。長時間の場合は「夜間睡眠」として記録してください"
+					: "夜間睡眠の記録は" + maxHours + "時間以内で入力してください";
+			throw new BusinessException(HttpStatus.BAD_REQUEST, message);
 		}
 	}
 
