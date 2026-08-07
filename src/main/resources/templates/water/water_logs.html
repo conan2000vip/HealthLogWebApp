@@ -6,8 +6,7 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<title>水分管理 | HealthLog</title>
 		<link rel="preconnect" href="https://fonts.googleapis.com" />
-		<link rel="stylesheet"
-			href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700;800&display=swap" />
+		<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700;800&display=swap" />
 		<link rel="stylesheet" th:href="@{/css/common.css}" />
 		<link rel="stylesheet" th:href="@{/css/water.css}" />
 	</head>
@@ -55,31 +54,31 @@
 				<!-- Summary Cards -->
 				<div class="summary-grid">
 					<div class="summary-card">
-					    <span class="summary-card__label">最新</span>
-					    <span class="summary-card__value">
-					        <span th:text="${stats?.latest ?: '--'}"></span> ml
-					    </span>
+						<span class="summary-card__label">最新</span>
+						<span class="summary-card__value">
+							<span th:text="${stats?.latest ?: '--'}"></span> ml
+						</span>
 					</div>
 
 					<div class="summary-card">
-					    <span class="summary-card__label">今日合計</span>
-					    <span class="summary-card__value">
-					        <span th:text="${stats?.todayTotal ?: '--'}"></span> ml
-					    </span>
+						<span class="summary-card__label">今日合計</span>
+						<span class="summary-card__value">
+							<span th:text="${stats?.todayTotal ?: '--'}"></span> ml
+						</span>
 					</div>
 
 					<div class="summary-card">
-					    <span class="summary-card__label">今月平均</span>
-					    <span class="summary-card__value">
-					        <span th:text="${stats?.monthAverage ?: '--'}"></span> ml
-					    </span>
+						<span class="summary-card__label">今月平均</span>
+						<span class="summary-card__value">
+							<span th:text="${stats?.monthAverage ?: '--'}"></span> ml
+						</span>
 					</div>
 
 					<div class="summary-card">
-					    <span class="summary-card__label">目標達成率</span>
-					    <span class="summary-card__value">
-					        <span th:text="${stats?.goalRate ?: '--'}"></span>%
-					    </span>
+						<span class="summary-card__label">目標達成率</span>
+						<span class="summary-card__value">
+							<span th:text="${stats?.goalRate ?: '--'}"></span>%
+						</span>
 					</div>
 				</div>
 
@@ -114,11 +113,10 @@
 								</tr>
 							</thead>
 							<tbody>
-								<tr th:each="record : ${logs}" th:data-date="${record.recordedDate}"
-									th:data-value="${record.amountMl}">
+								<tr th:each="record : ${logs}" th:data-date="${record.recordedDate}" th:data-value="${record.amountMl}">
 									<td th:text="${record.recordedDate}">2026-08-03</td>
 									<td class="water-table__time"
-									    th:text="${record.recordedTime != null ? #temporals.format(record.recordedTime,'HH:mm') : '--'}">
+										th:text="${record.recordedTime != null ? #temporals.format(record.recordedTime,'HH:mm') : '--'}">
 									</td>
 									<td><span class="water-drink" th:text="${record.drinkType}">水</span></td>
 									<td class="water-table__amount">
@@ -128,29 +126,24 @@
 									</td>
 									<td>
 										<span th:if="${record.goalRate != null}" class="badge"
-											th:classappend="${record.goalRate < 20 ? ' badge--danger' :record.goalRate < 50 ? ' badge--warning' :record.goalRate < 100 ? ' badge--info' :' badge--success'}"
-											th:text="${record.goalRate + '%'}">
+											  th:classappend="${record.goalRate < 20 ? ' badge--danger' :record.goalRate < 50 ? ' badge--warning' :record.goalRate < 100 ? ' badge--info' :' badge--success'}"
+											  th:text="${record.goalRate + '%'}">
 										</span>
 										<span th:unless="${record.goalRate != null}" class="text-muted">--</span>
 									</td>
-									<td class="water-table__memo memo-cell"
-									    th:text="${record.memo != null ? record.memo : ''}"
-									    th:attr="data-full-memo=${record.memo != null ? record.memo : ''}">
+									<td class="water-table__memo memo-cell" th:text="${record.memo != null ? record.memo : ''}"
+										th:attr="data-full-memo=${record.memo != null ? record.memo : ''}">
 									</td>
 									<td class="water-table__actions">
-										<button type="button" class="icon-btn edit-btn"
-										    th:data-id="${record.id}"
-											th:data-date="${record.recordedDate}"
-											th:data-drink-type="${record.drinkType}"
-											th:data-amount="${record.amountMl}"
-											th:data-time="${record.recordedTime}"
-											th:data-memo="${record.memo}" aria-label="編集">
+										<button type="button" class="icon-btn edit-btn" th:data-id="${record.id}"
+												th:data-date="${record.recordedDate}" th:data-drink-type="${record.drinkType}"
+												th:data-amount="${record.amountMl}" th:data-time="${record.recordedTime}"
+												th:data-memo="${record.memo}" aria-label="編集">
 											<img th:src="@{/image/edit.png}" alt="編集" class="icon-btn-img" />
 										</button>
-										<form
-											th:action="@{/profile/{profileId}/water/{id}/delete(profileId=${profileId},id=${record.id})}"
-											method="post" class="delete-form"
-											th:attr="data-confirm-message='「' + ${record.recordedDate} + '」の水分記録を削除しますか？&#10;この操作は取り消せません。'">
+										<form th:action="@{/profile/{profileId}/water/{id}/delete(profileId=${profileId},id=${record.id})}"
+											  method="post" class="delete-form"
+											  th:attr="data-confirm-message='「' + ${record.recordedDate} + '」の水分記録を削除しますか？&#10;この操作は取り消せません。'">
 											<button type="submit" class="icon-btn icon-btn--danger" aria-label="削除">
 												<img th:src="@{/image/delete.png}" alt="削除" class="icon-btn-img" />
 											</button>
@@ -163,8 +156,8 @@
 
 					<div class="pagination" th:if="${totalPages > 1}">
 						<a th:if="${hasPrevious}"
-							th:href="@{/profile/{profileId}/water(profileId=${profileId}, startDate=${filterStartDate}, endDate=${filterEndDate}, page=${currentPage - 1})}"
-							class="pagination__nav">← 前へ</a>
+						   th:href="@{/profile/{profileId}/water(profileId=${profileId}, startDate=${filterStartDate}, endDate=${filterEndDate}, page=${currentPage - 1})}"
+						   class="pagination__nav">← 前へ</a>
 
 						<a th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
 							th:href="@{/profile/{profileId}/water(profileId=${profileId}, startDate=${filterStartDate}, endDate=${filterEndDate}, page=${i})}"
@@ -177,7 +170,7 @@
 					</div>
 
 					<!-- Empty State : -->
-					<div class="empty-state" th:if="${#lists.isEmpty(logs)} and ${!hasAnyLog}">
+					<div class="empty-state" th:if="${#lists.isEmpty(logs) and !hasAnyLog}">
 					    <i data-lucide="droplets"></i>
 					    <p>まだ水分が記録されていません</p>
 					    <button type="button" class="btn btn--primary" id="openAddModalBtnEmpty">
@@ -186,7 +179,7 @@
 					</div>
 
 					<!-- Empty State for Filtered Results -->
-					<div class="empty-state" th:if="${#lists.isEmpty(logs)} and ${hasAnyLog}">
+					<div class="empty-state" th:if="${#lists.isEmpty(logs) and hasAnyLog}">
 					    <i data-lucide="calendar-days"></i>
 					    <p>選択した期間に記録がありません</p>
 					    <button type="button" class="btn btn--primary" id="openAddModalBtnFiltered"
@@ -217,12 +210,8 @@
 					    <input id="recordedDate" name="recordedDate" type="date" th:max="${T(java.time.LocalDate).now()}" required>
 					    <div id="recordedDateError" class="field-error"><span></span></div>
 					</div>
-					
-					<div class="input-group">
-					    <label for="recordedTime">時間</label>
-					    <input id="recordedTime" name="recordedTime" type="time">
-					    <div id="recordedTimeError" class="field-error"><span></span></div>
-					</div>
+
+					<input type="hidden" id="recordedTime" name="recordedTime">
 
 					<div class="input-group">
 						<label for="drinkType">飲み物<span class="required">*</span></label>
@@ -242,7 +231,9 @@
 					<div class="input-group">
 						<label for="amountMl">水分量 (ml)<span class="required">*</span></label>
 						<input type="number" id="amountMl" name="amountMl" min="1" max="5000" placeholder="250" required>
-						<div id="amountError" class="field-error"><span></span></div>
+						<div id="amountMlError" class="field-error">
+						    <span></span>
+						</div>
 					</div>
 
 					<div class="input-group">
@@ -268,11 +259,11 @@
 		<script th:src="@{/js/common.js}"></script>
 		<script th:inline="javascript">
 			window.waterChartData = {
-			    labels: /*[[${labels}]]*/ [],
-			    values: /*[[${values}]]*/ [],
-			    chartMode: /*[[${chartMode}]]*/ "DAY",
-			    from: /*[[${chartFrom}]]*/ null,
-			    to: /*[[${chartTo}]]*/ null
+				labels: /*[[${labels}]]*/[],
+				values: /*[[${values}]]*/[],
+				chartMode: /*[[${chartMode}]]*/ "DAY",
+				from: /*[[${chartFrom}]]*/ null,
+				to: /*[[${chartTo}]]*/ null
 			};
 		</script>
 		<script th:src="@{/js/water.js}"></script>

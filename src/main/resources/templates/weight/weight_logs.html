@@ -63,7 +63,7 @@
 						<span class="summary-card__sub" th:if="${stats != null && stats.latestDate != null}" th:text="'最終記録：' + ${#temporals.format(stats.latestDate,'yyyy/MM/dd')}">
 				        </span>
 				    </div>
-					
+
 					<!-- BMI -->
 					<div class="summary-card">
 					    <span class="summary-card__label">現在のBMI</span>
@@ -150,12 +150,12 @@
 											th:text="${record.bmi}">21.2</span>
 										<span class="text-muted" th:unless="${record.bmi != null}">--</span>
 									</td>
-									
+
 									<td class="weight-table__memo memo-cell"
 									    th:text="${record.memo != null ? record.memo : ''}"
 									    th:attr="data-full-memo=${record.memo != null ? record.memo : ''}">
 									</td>
-									
+
 									<td class="weight-table__actions">
 										<button type="button" class="icon-btn edit-btn"
 										    th:data-id="${record.id}"
@@ -278,7 +278,5 @@
 			window.profileHeight = /*[[${currentProfile.height}]]*/ null;
 		</script>
 		<script th:src="@{/js/weight.js}"></script>
-
 	</body>
-
 </html>
