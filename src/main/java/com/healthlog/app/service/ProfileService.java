@@ -1,6 +1,5 @@
 package com.healthlog.app.service;
 
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -20,12 +19,10 @@ public class ProfileService {
 
 	private static final int MAX_PROFILES = 10;
 
-	// 続柄が重複不可（1人のユーザーにつき1件まで）の関係性
-	// 子供のように複数人あり得る続柄はここに含めない
+	// Relationships that can only exist once per user / 1ユーザーにつき1件のみ登録可能な続柄
 	private static final List<String> UNIQUE_RELATIONSHIPS = List.of("父", "母", "配偶者");
+
 	private final ProfileRepository profileRepository;
-	private static final Integer DEFAULT_WATER_GOAL_ML = 1500;
-	private static final BigDecimal DEFAULT_SLEEP_GOAL_HOURS = new BigDecimal("8.0");
 
 	public ProfileService(ProfileRepository profileRepository) {
 		this.profileRepository = profileRepository;
@@ -47,6 +44,7 @@ public class ProfileService {
 	@Transactional
 	public Profile create(Profile profile) {
 		long count = profileRepository.countByUser_Id(profile.getUser().getId());
+
 		if (count >= MAX_PROFILES) {
 			throw new BusinessException(HttpStatus.BAD_REQUEST, "プロファイルは最大" + MAX_PROFILES + "件までです");
 		}
@@ -65,20 +63,17 @@ public class ProfileService {
 			}
 		}
 
-		// 作成時にデフォルト値と異なる目標が指定されていれば「ユーザー設定済み」とみなす
-		applyGoalSetFlags(profile, null);
-
 		return profileRepository.save(profile);
 	}
 
 	@Transactional
 	public Profile update(Profile profile) {
-
 		Profile dbProfile = profileRepository.findById(profile.getId())
 				.orElseThrow(() -> new BusinessException(
 						HttpStatus.NOT_FOUND,
 						"プロファイルが見つかりません"));
 
+		// Keep the primary profile relationship unchanged / 本人プロファイルの続柄は変更しない
 		if (Boolean.TRUE.equals(dbProfile.getIsPrimary())) {
 			profile.setRelationship(dbProfile.getRelationship());
 		} else if (UNIQUE_RELATIONSHIPS.contains(profile.getRelationship())
@@ -89,34 +84,22 @@ public class ProfileService {
 					"「" + profile.getRelationship() + "」はすでに登録されています");
 		}
 
-		// 目標値が変更されていれば「ユーザー設定済み」に更新し、以後は自動で外れない
-		applyGoalSetFlags(profile, dbProfile);
+		// Update editable profile information / 編集可能なプロフィール情報を更新
+		dbProfile.setName(profile.getName());
+		dbProfile.setBirthDate(profile.getBirthDate());
+		dbProfile.setRelationship(profile.getRelationship());
+		dbProfile.setGender(profile.getGender());
+		dbProfile.setHeight(profile.getHeight());
+		dbProfile.setProfileColor(profile.getProfileColor());
 
-		return profileRepository.save(profile);
-	}
+		// Update goals / 目標値を更新
+		// NULL means that the goal has not been set / NULLは目標未設定を表す
+		dbProfile.setTargetWeight(profile.getTargetWeight());
+		dbProfile.setWaterGoalMl(profile.getWaterGoalMl());
+		dbProfile.setStepGoal(profile.getStepGoal());
+		dbProfile.setSleepGoalHours(profile.getSleepGoalHours());
 
-	// 目標値がデフォルト（新規時）または既存値（更新時）と異なる場合に設定済みフラグを立てる
-	private static final Integer DEFAULT_STEP_GOAL = 8000;
-
-	private void applyGoalSetFlags(Profile incoming, Profile existing) {
-		Integer previousWaterGoal = existing != null ? existing.getWaterGoalMl() : DEFAULT_WATER_GOAL_ML;
-		BigDecimal previousSleepGoal = existing != null ? existing.getSleepGoalHours() : DEFAULT_SLEEP_GOAL_HOURS;
-		Integer previousStepGoal = existing != null ? existing.getStepGoal() : DEFAULT_STEP_GOAL;
-
-		boolean waterAlreadySet = existing != null && Boolean.TRUE.equals(existing.getWaterGoalSet());
-		boolean sleepAlreadySet = existing != null && Boolean.TRUE.equals(existing.getSleepGoalSet());
-		boolean stepAlreadySet = existing != null && Boolean.TRUE.equals(existing.getStepGoalSet());
-
-		boolean waterChanged = incoming.getWaterGoalMl() != null
-				&& !incoming.getWaterGoalMl().equals(previousWaterGoal);
-		boolean sleepChanged = incoming.getSleepGoalHours() != null
-				&& incoming.getSleepGoalHours().compareTo(previousSleepGoal) != 0;
-		boolean stepChanged = incoming.getStepGoal() != null
-				&& !incoming.getStepGoal().equals(previousStepGoal);
-
-		incoming.setWaterGoalSet(waterAlreadySet || waterChanged);
-		incoming.setSleepGoalSet(sleepAlreadySet || sleepChanged);
-		incoming.setStepGoalSet(stepAlreadySet || stepChanged);
+		return profileRepository.save(dbProfile);
 	}
 
 	@Transactional
@@ -130,9 +113,12 @@ public class ProfileService {
 		profileRepository.delete(profile);
 
 		Long currentId = (Long) session.getAttribute(SessionConstants.CURRENT_PROFILE_ID);
+
 		if (currentId != null && currentId.equals(profileId)) {
 			profileRepository.findByUser_IdAndIsPrimaryTrue(userId)
-					.ifPresent(primary -> session.setAttribute(SessionConstants.CURRENT_PROFILE_ID, primary.getId()));
+					.ifPresent(primary -> session.setAttribute(
+							SessionConstants.CURRENT_PROFILE_ID,
+							primary.getId()));
 		}
 	}
 
@@ -147,12 +133,18 @@ public class ProfileService {
 
 		if (currentId != null) {
 			Optional<Profile> profile = profileRepository.findByIdAndUser_Id(currentId, userId);
-			if (profile.isPresent())
+
+			if (profile.isPresent()) {
 				return profile.get();
+			}
 		}
 
 		Optional<Profile> primary = profileRepository.findByUser_IdAndIsPrimaryTrue(userId);
-		primary.ifPresent(p -> session.setAttribute(SessionConstants.CURRENT_PROFILE_ID, p.getId()));
+
+		primary.ifPresent(profile -> session.setAttribute(
+				SessionConstants.CURRENT_PROFILE_ID,
+				profile.getId()));
+
 		return primary.orElse(null);
 	}
 }

@@ -1,0 +1,119 @@
+/* =========================================================
+   Memo Page
+========================================================= */
+
+.memo-page {
+	min-height: calc(100vh - 72px);
+}
+
+.memo-page__inner {
+	max-width: 1080px;
+	margin: 0 auto;
+	padding: 32px 24px 64px;
+}
+
+/* ---------- Page Header ---------- */
+
+.memo-page__header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 16px;
+	margin-bottom: 24px;
+}
+
+.memo-page__heading {
+	display: flex;
+	align-items: center;
+	gap: 14px;
+}
+
+.memo-page__icon-img {
+	width: 35px;
+	height: 35px;
+	max-width: 35px;
+	max-height: 35px;
+	object-fit: contain;
+	display: block;
+}
+
+.memo-page__heading h1 {
+	margin: 0;
+	font-size: 22px;
+	font-weight: 800;
+}
+
+.memo-page__heading p {
+	margin: 2px 0 0;
+	font-size: 13px;
+	color: var(--wp-text-muted);
+}
+
+/* =========================================================
+   Memo Table Only
+========================================================= */
+
+.memo-table {
+	width: 100%;
+	table-layout: fixed;
+}
+
+/* 日付 */
+.memo-table th:nth-child(1),
+.memo-table td:nth-child(1) {
+	width: 140px;
+	white-space: nowrap;
+}
+
+/* メモ */
+.memo-table th:nth-child(2),
+.memo-table td:nth-child(2) {
+	text-align: left;
+}
+
+.memo-table__memo {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	color: var(--wp-text);
+}
+
+/* 操作 */
+.memo-table__actions {
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+	gap: 6px;
+}
+
+.memo-table__actions-col {
+	width: 90px;
+}
+
+/* =========================================================
+   Responsive
+========================================================= */
+
+@media (max-width: 768px) {
+	.memo-table {
+		table-layout: auto;
+	}
+
+	.memo-page__inner {
+		padding: 20px 14px 48px;
+	}
+
+	.memo-page__header {
+		flex-direction: column;
+		align-items: flex-start;
+	}
+
+	.memo-table th,
+	.memo-table td {
+		width: auto !important;
+	}
+
+	.memo-table {
+		font-size: 13px;
+	}
+}

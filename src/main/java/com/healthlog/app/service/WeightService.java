@@ -36,6 +36,9 @@ public class WeightService {
 	private final WeightRepository weightRepository;
 	private final ProfileRepository profileRepository;
 
+	private record ChartData(List<String> labels, List<BigDecimal> values) {
+	}
+
 	// 子供は記録時の身長、成人はprofileの身長を使う
 	private BigDecimal resolveHeight(Profile profile, Weight weight) {
 		if (weight.getHeight() != null) {
@@ -82,7 +85,7 @@ public class WeightService {
 		return map.values().stream().sorted(Comparator.comparing(Weight::getRecordedDate)).collect(Collectors.toList());
 	}
 
-	private Map<String, Object> buildChartData(List<Weight> logs, String chartMode, LocalDate from, LocalDate to) {
+	private ChartData buildChartData(List<Weight> logs, String chartMode, LocalDate from, LocalDate to) {
 		List<String> labels = new ArrayList<>();
 		List<BigDecimal> values = new ArrayList<>();
 		if ("DAY".equals(chartMode)) {
@@ -142,10 +145,7 @@ public class WeightService {
 				current = current.plusYears(1);
 			}
 		}
-		Map<String, Object> result = new HashMap<>();
-		result.put("labels", labels);
-		result.put("values", values);
-		return result;
+		return new ChartData(labels, values);
 	}
 
 	// ---------------------------------------------------------
@@ -195,9 +195,9 @@ public class WeightService {
 			}
 		}
 
-		Map<String, Object> chartData = buildChartData(allLogs, chartMode, from, to);
-		List<String> labels = (List<String>) chartData.get("labels");
-		List<BigDecimal> values = (List<BigDecimal>) chartData.get("values");
+		ChartData chartData = buildChartData(allLogs, chartMode, from, to);
+		List<String> labels = chartData.labels();
+		List<BigDecimal> values = chartData.values();
 
 		// ---- 2) 現在ページのみ: テーブル表示用 ----
 		Pageable pageable = PageRequest.of(page, 20);

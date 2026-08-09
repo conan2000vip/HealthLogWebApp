@@ -1,5 +1,6 @@
 package com.healthlog.app.entity;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -16,6 +17,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -24,7 +26,7 @@ import lombok.Setter;
 @Getter
 @Entity
 @Table(name = "step_logs", indexes = {
-		@Index(name = "idx_step_profile_date", columnList = "profile_id, recorded_date"),
+		@Index(name = "idx_step_profile_date", columnList = "profile_id, recorded_date")
 })
 public class Step {
 
@@ -41,10 +43,13 @@ public class Step {
 	private LocalDate recordedDate;
 
 	@Column(name = "steps", nullable = false)
-	private Integer steps; // 0〜100,000歩
+	private Integer steps;
 
-	@Column(name = "memo")
-	private String memo; // nullable
+	@Column(name = "memo", length = 500)
+	private String memo;
+
+	@Transient
+	private BigDecimal goalRate;
 
 	@Column(name = "created_at", nullable = false, updatable = false)
 	private LocalDateTime createdAt = LocalDateTime.now();

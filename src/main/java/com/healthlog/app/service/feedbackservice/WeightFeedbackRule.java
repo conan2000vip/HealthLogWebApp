@@ -84,8 +84,8 @@ public class WeightFeedbackRule {
 			LocalDate today,
 			List<FeedbackItem> items) {
 		Weight latest = logs.get(0);
-		BigDecimal target = profile.getTargetWeight(); // TODO: 実際のgetter名に合わせて修正
-		boolean hasGoal = target != null;
+		BigDecimal target = profile.getTargetWeight();
+		boolean hasGoal = target != null && target.compareTo(BigDecimal.ZERO) > 0;
 
 		if (hasGoal && latest.getWeight() != null) {
 			BigDecimal diff = latest.getWeight().subtract(target).abs();
@@ -145,7 +145,7 @@ public class WeightFeedbackRule {
 		Weight previous = logs.get(1);
 		BigDecimal current = latest.getWeight();
 		BigDecimal before = previous.getWeight();
-		if (before == null || before.compareTo(BigDecimal.ZERO) == 0) {
+		if (current == null || before == null || before.compareTo(BigDecimal.ZERO) == 0) {
 			return;
 		}
 

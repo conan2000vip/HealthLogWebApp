@@ -31,7 +31,6 @@ public class SleepFeedbackRule {
 
 	private static final int LV4_CONSECUTIVE_DAYS = 5;
 	private static final int LV4_DAILY_MINUTES_THRESHOLD = 6 * 60; // 6時間
-	private static final int DEFAULT_SLEEP_GOAL_MINUTES = 6 * 60;
 
 	public List<FeedbackItem> evaluate(Long profileId) {
 		Profile profile = profileRepository.findById(profileId).orElseThrow();
@@ -60,18 +59,35 @@ public class SleepFeedbackRule {
 					"昨日分の睡眠データが記録されていません。忘れずに記録しましょう。"));
 		}
 
-		// ---- メイン評価: LV4 > LV3/LV2 > LV1（互いに排他） ----
+		// ---- Main evaluation / メイン評価: LV4 > LV3/LV2 > Goal check > LV1 ----
 		List<FeedbackItem> mainFeedback = new ArrayList<>();
+
 		checkContinuousShortSleep(dailyTotals, today, mainFeedback); // LV4
+
 		if (mainFeedback.isEmpty()) {
-			checkShortAverageSleep(dailyTotals, today, mainFeedback); // LV3 or LV2 fallback
-		}
-		if (mainFeedback.isEmpty()) {
-			boolean hasGoal = Boolean.TRUE.equals(profile.getSleepGoalSet());
-			int sleepGoalMinutes = profile.getSleepGoalHours().multiply(BigDecimal.valueOf(60)).intValue();
-			checkGoodSleep(dailyTotals, today, sleepGoalMinutes, hasGoal, mainFeedback); // LV1
+			checkShortAverageSleep(dailyTotals, today, mainFeedback); // LV3 / LV2
 		}
 
+		if (mainFeedback.isEmpty()) {
+			BigDecimal sleepGoalHours = profile.getSleepGoalHours();
+			boolean hasGoal = sleepGoalHours != null && sleepGoalHours.compareTo(BigDecimal.ZERO) > 0;
+
+			if (!hasGoal) {
+				mainFeedback.add(new FeedbackItem(
+						FeedbackType.SLEEP_NO_GOAL,
+						FeedbackLevel.LV0,
+						"睡眠の目標が設定されていません",
+						"目標を設定すると、あなたに合ったフィードバックが受け取れます。",
+						today.atStartOfDay(),
+						"target"));
+			} else {
+				int sleepGoalMinutes = sleepGoalHours
+						.multiply(BigDecimal.valueOf(60))
+						.intValue();
+
+				checkGoodSleep(dailyTotals, today, sleepGoalMinutes, mainFeedback); // LV1
+			}
+		}
 		items.addAll(mainFeedback);
 		return items;
 	}
@@ -131,12 +147,11 @@ public class SleepFeedbackRule {
 				"今日の睡眠は" + hours + "時間" + mins + "分でした。十分な休息を心がけましょう。", today.atStartOfDay(), "lightbulb"));
 	}
 
-	// ---- Lv1: 睡眠目標達成（目標あり / なし で文言を分岐） ----
+	// ---- LV1: Sleep goal achieved / 睡眠目標達成 ----
 	private void checkGoodSleep(
 			Map<LocalDate, Integer> dailyTotals,
 			LocalDate today,
 			int sleepGoalMinutes,
-			boolean hasGoal,
 			List<FeedbackItem> items) {
 		Integer minutes = dailyTotals.get(today);
 		if (minutes == null || minutes < sleepGoalMinutes) {
@@ -144,11 +159,13 @@ public class SleepFeedbackRule {
 		}
 		int hours = minutes / 60;
 		int mins = minutes % 60;
-		String message = hasGoal
-				? "今日の睡眠時間は" + hours + "時間" + mins + "分でした。設定した目標を達成しました！"
-				: "今日の睡眠時間は" + hours + "時間" + mins + "分でした。目標を設定すると、より詳しいフィードバックが受け取れます。";
-		items.add(new FeedbackItem(FeedbackType.SLEEP_GOOD, FeedbackLevel.LV1, "睡眠目標達成です",
-				message, today.atStartOfDay(), "check-circle"));
+		items.add(new FeedbackItem(
+				FeedbackType.SLEEP_GOOD,
+				FeedbackLevel.LV1,
+				"睡眠目標達成です",
+				"今日の睡眠時間は" + hours + "時間" + mins + "分でした。設定した目標を達成しました！",
+				today.atStartOfDay(),
+				"check-circle"));
 	}
 
 	private FeedbackItem buildReminder(LocalDate today, String title, String message) {

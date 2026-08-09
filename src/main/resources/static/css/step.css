@@ -1,0 +1,168 @@
+/* =========================================================
+   Step Page
+========================================================= */
+
+.step-page {
+	min-height: calc(100vh - 72px);
+}
+
+.step-page__inner {
+	max-width: 1080px;
+	margin: 0 auto;
+	padding: 32px 24px 64px;
+}
+
+/* ---------- Page Header ---------- */
+
+.step-page__header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 16px;
+	margin-bottom: 24px;
+}
+
+.step-page__heading {
+	display: flex;
+	align-items: center;
+	gap: 14px;
+}
+
+.step-page__icon-img {
+	width: 35px;
+	height: 35px;
+	max-width: 35px;
+	max-height: 35px;
+	object-fit: contain;
+	display: block;
+}
+
+.step-page__heading h1 {
+	margin: 0;
+	font-size: 22px;
+	font-weight: 800;
+}
+
+.step-page__heading p {
+	margin: 2px 0 0;
+	font-size: 13px;
+	color: var(--wp-text-muted);
+}
+
+/* =========================================================
+   Step Table Only
+========================================================= */
+
+.step-table {
+	width: 100%;
+	table-layout: fixed;
+}
+
+/* 日付 */
+.step-table th:nth-child(1),
+.step-table td:nth-child(1) {
+	width: 130px;
+	white-space: nowrap;
+}
+
+/* 歩数 */
+.step-table th:nth-child(2),
+.step-table td:nth-child(2) {
+	width: 160px;
+	text-align: center;
+	white-space: nowrap;
+}
+
+/* 目標比 */
+.step-table th:nth-child(3),
+.step-table td:nth-child(3) {
+	width: 130px;
+	text-align: center;
+	white-space: nowrap;
+}
+
+/* メモ */
+.step-table th:nth-child(4),
+.step-table td:nth-child(4) {
+	text-align: left;
+}
+
+.step-table__steps {
+	font-weight: 700;
+	text-align: center;
+}
+
+.step-table__memo {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	color: var(--wp-text-muted);
+}
+
+.step-table__actions {
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+	gap: 6px;
+}
+
+.step-table__actions-col {
+	width: 90px;
+}
+
+/* =========================================================
+   Goal Rate Badge
+========================================================= */
+
+.badge--danger {
+	background: #fee2e2;
+	color: #b91c1c;
+}
+
+.badge--warning {
+	background: #fef3c7;
+	color: #b45309;
+}
+
+.badge--info {
+	background: #dbeafe;
+	color: #1d4ed8;
+}
+
+.badge--success {
+	background: #d1fae5;
+	color: #047857;
+}
+
+/* =========================================================
+   Responsive
+========================================================= */
+
+@media (max-width: 768px) {
+	.step-table {
+		table-layout: auto;
+	}
+
+	.step-page__inner {
+		padding: 20px 14px 48px;
+	}
+
+	.step-page__header {
+		flex-direction: column;
+		align-items: flex-start;
+	}
+
+	.step-table th,
+	.step-table td {
+		width: auto !important;
+	}
+
+	.step-table th:nth-child(4),
+	.step-table td:nth-child(4) {
+		display: none;
+	}
+
+	.step-table {
+		font-size: 13px;
+	}
+}

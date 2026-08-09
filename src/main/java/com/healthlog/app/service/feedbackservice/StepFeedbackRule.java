@@ -25,8 +25,7 @@ public class StepFeedbackRule {
 	private final StepRepository stepRepository;
 	private final ProfileRepository profileRepository;
 
-	/** 目標達成率 */
-	// TODO: 歩数向けの閾値として妥当か確認してください（Waterと同じ値を仮置き）
+	//目標達成率
 	private static final int ALMOST_MIN_PERCENT = 80;
 	private static final int LOW_THRESHOLD_PERCENT = 50;
 
@@ -52,10 +51,10 @@ public class StepFeedbackRule {
 			items.add(buildNoRecordReminder(today, "昨日の歩数記録がありません", "昨日分の歩数データが記録されていません。忘れずに記録しましょう。"));
 		}
 
-		// ---- メイン評価: 目標未設定チェック → LV3/LV2/LV1（互いに排他） ----
+		// ---- Main evaluation / メイン評価: Goal check → LV3/LV2/LV1 ----
 		List<FeedbackItem> mainFeedback = new ArrayList<>();
 		Integer goal = profile.getStepGoal();
-		boolean hasGoal = Boolean.TRUE.equals(profile.getStepGoalSet());
+		boolean hasGoal = goal != null && goal > 0;
 
 		if (!hasGoal) {
 			mainFeedback.add(new FeedbackItem(
@@ -74,7 +73,6 @@ public class StepFeedbackRule {
 				checkComplete(dailyTotals, today, goal, mainFeedback); // LV1
 			}
 		}
-
 		items.addAll(mainFeedback);
 		return items;
 	}

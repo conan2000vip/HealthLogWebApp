@@ -65,23 +65,14 @@ public class Profile {
 	@Column(name = "target_weight", precision = 5, scale = 1)
 	private BigDecimal targetWeight; // nullable
 
-	@Column(name = "water_goal_ml", nullable = false)
-	private Integer waterGoalMl = 1500;
+	@Column(name = "water_goal_ml")
+	private Integer waterGoalMl;
 
-	@Column(name = "step_goal", nullable = false)
-	private Integer stepGoal = 8000;
+	@Column(name = "step_goal")
+	private Integer stepGoal;
 
-	@Column(name = "daily_sleep_goal", precision = 3, scale = 1, nullable = false)
-	private BigDecimal sleepGoalHours = new BigDecimal("8.0");
-
-	@Column(name = "water_goal_set", nullable = false)
-	private Boolean waterGoalSet = false;
-
-	@Column(name = "sleep_goal_set", nullable = false)
-	private Boolean sleepGoalSet = false;
-
-	@Column(name = "step_goal_set", nullable = false)
-	private Boolean stepGoalSet = false;
+	@Column(name = "daily_sleep_goal", precision = 3, scale = 1)
+	private BigDecimal sleepGoalHours;
 
 	@Column(name = "profile_color", length = 20)
 	private String profileColor; // nullable

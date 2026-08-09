@@ -12,10 +12,12 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
+import com.healthlog.app.entity.Memo;
 import com.healthlog.app.entity.Profile;
 import com.healthlog.app.exception.BusinessException;
 import com.healthlog.app.service.AuthService;
 import com.healthlog.app.service.FeedbackService;
+import com.healthlog.app.service.MemoService;
 import com.healthlog.app.service.ProfileService;
 import com.healthlog.app.service.SleepService;
 import com.healthlog.app.service.WeightService;
@@ -31,6 +33,11 @@ public class HomeController {
 	private final WeightService weightService;
 	private final SleepService sleepService;
 	private final FeedbackService feedbackService;
+	private final MemoService memoService;
+
+	private List<Memo> getRecentMemos(Long profileId, Long currentUserId) {
+		return memoService.getRecentThreeDays(profileId, currentUserId);
+	}
 
 	@GetMapping("/profile/{profileId}/home")
 	public String home(@PathVariable Long profileId, Model model) {
@@ -59,7 +66,8 @@ public class HomeController {
 		model.addAttribute("trendChart", trendChart.isEmpty() ? null : trendChart);
 
 		// ============ 健康メモ ============
-		model.addAttribute("recentMemos", getRecentMemos(profileId));
+		model.addAttribute("recentMemos", getRecentMemos(profileId, currentUserId));
+
 
 		// ============ 家族健康サマリー：上で取得した profileList から現在表示中のプロフィールを除外 ============
 		List<Profile> otherProfiles = profileList.stream()
@@ -87,9 +95,6 @@ public class HomeController {
 		today.put("stepCount", 0);
 		today.put("stepPercent", 0);
 
-		// TODO: buildFamilyMembers() と同じパターンで weightService.list(...) / sleepService.list(...) を連携する
-		// TODO: waterService / stepService ができ次第、対応する
-
 		return today;
 	}
 
@@ -112,11 +117,6 @@ public class HomeController {
 		chart.put("water", new ArrayList<Integer>());
 		chart.put("step", new ArrayList<Integer>());
 		return chart;
-	}
-
-	private List<Object> getRecentMemos(Long profileId) {
-		// TODO: memoService.findRecent(profileId, 3)
-		return List.of();
 	}
 
 	// ---------------------------------------------------------------------

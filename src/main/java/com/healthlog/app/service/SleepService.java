@@ -264,24 +264,23 @@ public class SleepService {
 	// create()
 	// ---------------------------------------------------------
 	public Sleep create(Long profileId, Long currentUserId, Sleep sleep) {
-		Profile profile = findProfile(profileId, currentUserId) ;
-		validateSleepInput(sleep) ;
+		Profile profile = findProfile(profileId, currentUserId);
+		validateSleepInput(sleep);
+
 		Optional<Sleep> existing = sleepRepository.findFirstByProfile_IdAndRecordedDateAndSleepType(
 				profileId,
 				sleep.getRecordedDate(),
-				sleep.getSleepType()) ;
+				sleep.getSleepType());
+
 		if (existing.isPresent()) {
-			throw new BusinessException(HttpStatus.BAD_REQUEST, sleep.getSleepType().equals(SleepType.NIGHT)
-					? "この日の夜間睡眠は既に登録されています"
-					: "この日の昼寝は既に登録されています") ;
+			throw new BusinessException(HttpStatus.BAD_REQUEST,
+					sleep.getSleepType().equals(SleepType.NIGHT)
+							? "この日の夜間睡眠は既に登録されています"
+							: "この日の昼寝は既に登録されています");
 		}
-		// 未選択の場合は夜間睡眠
-		if (sleep.getSleepType() == null) {
-			sleep.setSleepType(SleepType.NIGHT) ;
-		}
-		sleep.setProfile(profile) ;
-		sleep.setSleepMinutes(calculateSleepMinutes(sleep.getStartTime(), sleep.getEndTime())) ;
-		return sleepRepository.save(sleep) ;
+		sleep.setProfile(profile);
+		sleep.setSleepMinutes(calculateSleepMinutes(sleep.getStartTime(), sleep.getEndTime()));
+		return sleepRepository.save(sleep);
 	}
 
 	// ---------------------------------------------------------

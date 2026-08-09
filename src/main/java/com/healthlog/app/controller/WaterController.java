@@ -97,7 +97,7 @@ public class WaterController {
 			@RequestParam LocalDate recordedDate,
 			@RequestParam(required = false) LocalTime recordedTime,
 			@RequestParam DrinkType drinkType,
-			@RequestParam Integer amount,
+			@RequestParam Integer amountMl,
 			@RequestParam(required = false) String memo,
 			RedirectAttributes redirectAttributes) {
 
@@ -107,7 +107,7 @@ public class WaterController {
 		input.setRecordedDate(recordedDate);
 		input.setRecordedTime(recordedTime);
 		input.setDrinkType(drinkType);
-		input.setAmountMl(amount);
+		input.setAmountMl(amountMl);
 		input.setMemo(memo);
 		try {
 			String profileName = profileService.getProfile(currentUserId, profileId).getName();

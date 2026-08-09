@@ -106,7 +106,7 @@
 					</div>
 				</div>
 
-				<!-- Filter Bar (dùng chung) -->
+				<!-- Filter Bar  -->
 				<div th:replace="~{layout/data-controls :: filterBar(
 					actionUrl=@{/profile/{profileId}/weight(profileId=${profileId})},
 					clearUrl=@{/profile/{profileId}/weight(profileId=${profileId})},
@@ -114,7 +114,7 @@
 					filterEndDate=${filterEndDate})}">
 				</div>
 
-				<!-- Chart Card (dùng chung) -->
+				<!-- Chart Card  -->
 				<div th:replace="~{layout/data-controls :: chartCard(
 					title='体重推移グラフ',
 					canvasId='weightChart',
@@ -167,8 +167,7 @@
 										</button>
 
 										<form
-											th:action="@{/profile/{profileId}/weight/{id}/delete(profileId=${profileId},id=${record.id})}"
-											method="post" class="delete-form"
+											th:action="@{/profile/{profileId}/weight/{id}/delete(profileId=${profileId},id=${record.id})}" method="post" class="delete-form"
 											th:attr="data-confirm-message='「' + ${record.recordedDate} + '」の体重記録を削除しますか？&#10;この操作は取り消せません。'">
 											<button type="submit" class="icon-btn icon-btn--danger" aria-label="削除">
 												<img th:src="@{/image/delete.png}" alt="削除" class="icon-btn-img" />
