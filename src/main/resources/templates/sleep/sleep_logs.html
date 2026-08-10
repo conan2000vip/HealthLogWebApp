@@ -27,7 +27,7 @@
 						</span>
 						<div>
 							<h1>睡眠管理</h1>
-							<p th:text="${currentProfile != null ? currentProfile.name + ' の睡眠記録' : 'ゲスト の睡眠記録'}">
+							<p th:text="${currentProfile != null ? currentProfile.name + ' の睡眠記録' : 'ゲスト の睡眠記録'}"></p>
 						</div>
 					</div>
 					<button type="button" class="btn btn--primary" id="openAddModalBtn">
@@ -141,7 +141,8 @@
 				<div th:replace="~{layout/data-controls :: chartCard(
 					title='睡眠時間推移グラフ',
 					canvasId='sleepChart',
-					hasData=${not #lists.isEmpty(logs)})}">
+					hasData=${not #lists.isEmpty(logs)},
+					chartUrl=@{/profile/{profileId}/sleep/chart-data(profileId=${profileId})})}">
 				</div>
 
 				<!-- Table / Empty state -->
@@ -224,7 +225,7 @@
 					</div>
 
 					<!-- Trường hợp 2: đã từng có bản ghi, nhưng bộ lọc hiện tại không có kết quả -->
-					<div class="empty-state" th:if="${#lists.isEmpty(logs)} and ${hasAnyLog}">
+					<div class="empty-state" th:if="${#lists.isEmpty(logs) and hasAnyLog}">
 						<i data-lucide="calendar-days"></i>
 						<p>選択した期間に記録がありません</p>
 						<button type="button" class="btn btn--primary" id="openAddModalBtnFiltered"

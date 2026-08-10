@@ -7,21 +7,30 @@ document.addEventListener( "DOMContentLoaded", () => {
    水分摂取量推移グラフ
    共通の HealthChart を使用する
    ========================================================= */
-function initChart() {
-    const isSearching = Boolean(
-        document.getElementById( "startDateInput" )?.value ||
-        document.getElementById( "endDateInput" )?.value,
-    )
+   function initChart() {
+       const isSearching = Boolean(
+           document.getElementById("startDateInput")?.value ||
+           document.getElementById("endDateInput")?.value
+       );
 
-    HealthChart.create( {
-        canvasId: "waterChart",
-        data: window.waterChartData,
-        unit: "ml",
-        type: "bar",
-        days: 7,
-        isSearching: isSearching,
-    } )
-}
+       const chart = HealthChart.create({
+           canvasId: "waterChart",
+           data: window.waterChartData,
+           unit: "ml",
+           type: "bar",
+           days: 7,
+           isSearching: isSearching,
+       });
+
+       const wrapper = document.getElementById("chartWrapper");
+       const chartUrl = wrapper?.closest(".chart-card")?.dataset.chartUrl;
+       const from = window.waterChartData?.from;
+       const to = window.waterChartData?.to;
+
+       if (chart && wrapper && chartUrl && from && to) {
+           initChartSwipe({ chart, wrapperEl: wrapper, chartUrl, initialFrom: from, initialTo: to });
+       }
+   }
 
 /* =========================================================
    水分記録モーダル（新規登録 / 編集）

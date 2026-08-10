@@ -26,7 +26,7 @@ import lombok.Setter;
 @Getter
 @Entity
 @Table(name = "step_logs", indexes = {
-		@Index(name = "idx_step_profile_date", columnList = "profile_id, recorded_date")
+		@Index(name = "uk_step_profile_date", columnList = "profile_id, recorded_date", unique = true)
 })
 public class Step {
 

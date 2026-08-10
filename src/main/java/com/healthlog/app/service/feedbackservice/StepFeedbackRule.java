@@ -1,10 +1,12 @@
 package com.healthlog.app.service.feedbackservice;
 
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.stereotype.Component;
 
@@ -29,6 +31,9 @@ public class StepFeedbackRule {
 	private static final int ALMOST_MIN_PERCENT = 80;
 	private static final int LOW_THRESHOLD_PERCENT = 50;
 
+	// 何日以上記録がない場合に「しばらく記録がありません」を出すか（歩数は1日1回記録が前提のためWeightと同じ3日）
+	private static final long NO_RECORD_DAYS_THRESHOLD = 3;
+
 	public List<FeedbackItem> evaluate(Long profileId) {
 		List<FeedbackItem> items = new ArrayList<>();
 		Profile profile = profileRepository.findById(profileId).orElseThrow();
@@ -36,22 +41,53 @@ public class StepFeedbackRule {
 		LocalDate today = LocalDate.now();
 		LocalDate yesterday = today.minusDays(1);
 
+		// ---- お知らせ: 一度も記録がない、または長期間記録がない ----
+		Optional<Step> lastEverOpt = stepRepository.findTopByProfile_IdOrderByRecordedDateDesc(profileId);
+		if (lastEverOpt.isEmpty()) {
+			items.add(buildNoRecordReminder(today, "歩数記録がありません", "まだ歩数データが記録されていません。記録を始めてみましょう。"));
+			return items;
+		}
+
+		long daysSinceLast = ChronoUnit.DAYS.between(lastEverOpt.get().getRecordedDate(), today);
+		if (daysSinceLast >= NO_RECORD_DAYS_THRESHOLD) {
+			items.add(new FeedbackItem(
+					FeedbackType.STEP_NO_RECORD,
+					FeedbackLevel.LV2,
+					"最近、歩数記録がありません",
+					"最後の記録から" + daysSinceLast + "日経っています。今日の歩数を記録してみましょう。",
+					lastEverOpt.get().getRecordedDate().atStartOfDay(),
+					"lightbulb"));
+			return items;
+		}
+
 		List<Step> logs = stepRepository
 				.findByProfile_IdAndRecordedDateGreaterThanEqualOrderByRecordedDateDesc(profileId, yesterday);
 		Map<LocalDate, Integer> dailyTotals = computeDailyTotals(logs);
 
-		// ---- お知らせ: 今日まだ記録されていない → ここで終了、評価はしない ----
 		if (!dailyTotals.containsKey(today)) {
 			items.add(buildNoRecordReminder(today, "歩数記録がありません", "今日の歩数データがまだ記録されていません。記録すると、あなたに合ったフィードバックが受け取れます。"));
 			return items;
 		}
 
-		// ---- お知らせ: 昨日の記録漏れ（今日の評価は継続して行う） ----
-		if (!dailyTotals.containsKey(yesterday)) {
-			items.add(buildNoRecordReminder(today, "昨日の歩数記録がありません", "昨日分の歩数データが記録されていません。忘れずに記録しましょう。"));
+		// ---- 今日は記録あり：直前の記録（今日以外）との間隔を見て、空白があれば「再開」を1件だけ表示 ----
+		Optional<Step> previousBeforeToday = stepRepository
+				.findTopByProfile_IdAndRecordedDateLessThanOrderByRecordedDateDesc(profileId, today);
+		if (previousBeforeToday.isPresent()) {
+			long gapDays = ChronoUnit.DAYS.between(previousBeforeToday.get().getRecordedDate(), today);
+			if (gapDays > 1) {
+				items.add(new FeedbackItem(
+						FeedbackType.STEP_RESUMED,
+						FeedbackLevel.LV0,
+						"記録を再開しました",
+						"前回の記録から" + gapDays + "日空きましたが、今日また記録できました。この調子で続けましょう。",
+						today.atStartOfDay(),
+						"calendar-check"));
+			} else if (!dailyTotals.containsKey(yesterday)) {
+				items.add(buildNoRecordReminder(today, "昨日の歩数記録がありません", "昨日分の歩数データが記録されていません。忘れずに記録しましょう。"));
+			}
 		}
 
-		// ---- Main evaluation / メイン評価: Goal check → LV3/LV2/LV1 ----
+		// ---- Main evaluation：目標比などは今日の実データに対してそのまま評価する ----
 		List<FeedbackItem> mainFeedback = new ArrayList<>();
 		Integer goal = profile.getStepGoal();
 		boolean hasGoal = goal != null && goal > 0;

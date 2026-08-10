@@ -43,31 +43,48 @@
 					<i data-lucide="x"></i>
 				</button>
 			</div>
+			
 			<!-- Feedback / フィードバック -->
 			<div th:replace="~{layout/data-controls :: feedbackList(feedbackList=${feedbackList})}"></div>
+			
 			<!-- Summary Cards / サマリーカード -->
 			<div class="summary-grid">
 				<div class="summary-card">
 					<span class="summary-card__label">最新歩数</span>
 					<span class="summary-card__value">
-						<span th:text="${stats?.latest ?: '--'}"></span> 歩 </span>
+						<span th:text="${stats?.latest ?: '--'}"></span> 歩
+					</span>
+					<span class="summary-card__sub" th:if="${stats?.latestUpdatedAt != null}"
+					      th:text="'最終更新：' + ${#temporals.format(stats.latestUpdatedAt, 'yyyy/MM/dd HH:mm')}">
+					</span>
 				</div>
+
 				<div class="summary-card">
-					<span class="summary-card__label">今日の歩数</span>
+					<span class="summary-card__label">今日の歩数合計</span>
 					<span class="summary-card__value">
-						<span th:text="${stats?.todaySteps ?: '--'}"></span> 歩 </span>
+						<span th:text="${stats?.todaySteps ?: '--'}"></span> 歩
+					</span>
+					<span class="summary-card__sub" th:if="${stats?.todayDate != null}"
+						th:text="${#temporals.format(stats.todayDate,'yyyy/MM/dd')} + ' 時点'"></span>
 				</div>
+
 				<div class="summary-card">
 					<span class="summary-card__label">今月平均</span>
 					<span class="summary-card__value">
-						<span th:text="${stats?.monthAverage ?: '--'}"></span> 歩 </span>
+						<span th:text="${stats?.monthAverage ?: '--'}"></span> 歩
+					</span>
+					<span class="summary-card__sub" th:if="${stats?.monthAverage != null}">今月の1日平均</span>
 				</div>
+
 				<div class="summary-card">
 					<span class="summary-card__label">目標達成率</span>
 					<span class="summary-card__value">
-						<span th:text="${stats?.goalRate ?: '--'}"></span>% </span>
+						<span th:text="${stats?.goalRate ?: '--'}"></span>%
+					</span>
+					<span class="summary-card__sub" th:if="${stats?.goalRate != null}">本日の目標に対する割合</span>
 				</div>
 			</div>
+			
 			<!-- Shared Filter Bar / 共通フィルターバー -->
 			<div th:replace="~{layout/data-controls :: filterBar(
 				actionUrl=@{/profile/{profileId}/step(profileId=${profileId})},
@@ -77,9 +94,10 @@
 			</div>
 			<!-- Shared Chart Card / 共通グラフカード -->
 			<div th:replace="~{layout/data-controls :: chartCard(
-				title='歩数推移',
-				canvasId='stepChart',
-				hasData=${not #lists.isEmpty(logs)})}">
+			    title='歩数推移',
+			    canvasId='stepChart',
+			    hasData=${not #lists.isEmpty(logs)},
+			    chartUrl=@{/profile/{profileId}/step/chart-data(profileId=${profileId})})}">
 			</div>
 			<!-- Data Table / データテーブル -->
 			<section class="table-card">
@@ -90,6 +108,7 @@
 								<th>日付</th>
 								<th>歩数</th>
 								<th>目標比</th>
+								<th>最終更新</th>
 								<th>メモ</th>
 								<th class="step-table__actions-col"></th>
 							</tr>
@@ -105,6 +124,11 @@
 										th:classappend="${record.goalRate < 50 ? ' badge--danger' : record.goalRate < 80 ? ' badge--warning' : record.goalRate < 100 ? ' badge--info' : ' badge--success'}"
 										th:text="${record.goalRate + '%'}"></span>
 									<span th:unless="${record.goalRate != null}" class="text-muted">--</span>
+								</td>
+								<td
+								    th:text="${record.updatedAt != null
+								        ? #temporals.format(record.updatedAt, 'HH:mm')
+								        : '--'}">
 								</td>
 								<td class="step-table__memo memo-cell" th:text="${record.memo != null ? record.memo : ''}"
 									th:attr="data-full-memo=${record.memo != null ? record.memo : ''}"></td>
@@ -164,7 +188,7 @@
 				</button>
 			</div>
 			<form id="stepForm" th:action="@{/profile/{profileId}/step/save(profileId=${profileId})}" method="post" class="form" novalidate>
-				<input type="hidden" name="recordId" id="recordId" value="">
+				<input type="hidden" name="recordId" id="recordId">
 				<div class="input-group">
 					<label for="recordedDate">日付 <span class="required">*</span></label>
 					<input type="date" id="recordedDate" name="recordedDate" th:max="${T(java.time.LocalDate).now()}" required>

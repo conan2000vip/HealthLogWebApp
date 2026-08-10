@@ -57,7 +57,8 @@ public class StepController {
 
 	@GetMapping
 	public String list(@PathVariable Long profileId, @RequestParam(required = false) LocalDate startDate,
-			@RequestParam(required = false) LocalDate endDate, @RequestParam(defaultValue = "0") int page, Model model) {
+			@RequestParam(required = false) LocalDate endDate, @RequestParam(defaultValue = "0") int page,
+			Model model) {
 		Long currentUserId = currentUserId();
 		try {
 			Map<String, Object> result = stepService.list(profileId, currentUserId, startDate, endDate, page);
@@ -88,12 +89,21 @@ public class StepController {
 		return "step/step_logs";
 	}
 
+	@org.springframework.web.bind.annotation.ResponseBody
+	@GetMapping("/chart-data")
+	public Map<String, Object> chartData(@PathVariable Long profileId,
+			@RequestParam(required = false) LocalDate startDate, @RequestParam(required = false) LocalDate endDate) {
+		return stepService.chartData(profileId, currentUserId(), startDate, endDate);
+	}
+
 	// 新規登録・編集: recordId の有無で判定
 	@PostMapping("/save")
 	public String save(@PathVariable Long profileId, @RequestParam(required = false) Long recordId,
 			@RequestParam LocalDate recordedDate, @RequestParam Integer steps,
 			@RequestParam(required = false) String memo, RedirectAttributes redirectAttributes) {
+
 		Long currentUserId = currentUserId();
+
 		Step input = new Step();
 		input.setRecordedDate(recordedDate);
 		input.setSteps(steps);
@@ -101,7 +111,6 @@ public class StepController {
 
 		try {
 			String profileName = profileService.getProfile(currentUserId, profileId).getName();
-
 			if (recordId == null) {
 				stepService.create(profileId, currentUserId, input);
 				redirectAttributes.addFlashAttribute("message", "「" + profileName + "」の歩数記録を保存しました");
@@ -112,11 +121,13 @@ public class StepController {
 		} catch (BusinessException e) {
 			redirectAttributes.addFlashAttribute("error", e.getMessage());
 		}
+
 		return "redirect:/profile/" + profileId + "/step";
 	}
 
 	@PostMapping("/{logId}/delete")
-	public String delete(@PathVariable Long profileId, @PathVariable Long logId, RedirectAttributes redirectAttributes) {
+	public String delete(@PathVariable Long profileId, @PathVariable Long logId,
+			RedirectAttributes redirectAttributes) {
 		Long currentUserId = currentUserId();
 		try {
 			String profileName = profileService.getProfile(currentUserId, profileId).getName();

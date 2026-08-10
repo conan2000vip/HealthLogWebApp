@@ -150,10 +150,8 @@ function initAutoHideAlerts() {
    選択/Enterで自動submit。weight/sleep/water/step 共通で使う。
    ========================================================= */
 function initFilterForm() {}
-
 window.HealthChart = (() => {
     const DEFAULT_DAYS = 7;
-
     function create({
         canvasId,
         data,
@@ -163,28 +161,21 @@ window.HealthChart = (() => {
         isSearching = false,
     }) {
         const canvas = document.getElementById(canvasId);
-
         if (!canvas || typeof Chart === "undefined") {
             return;
         }
-
         if (!data || !data.labels || data.labels.length === 0) {
             return;
         }
-
         let labels = [];
         let values = [];
-
         if (!isSearching) {
             const dateRange = buildLastNDaysRange(days);
             const valueMap = {};
-
             data.labels.forEach((date, index) => {
                 valueMap[date] = data.values[index];
             });
-
             labels = dateRange.map((date) => formatLabel(date, "DAY"));
-
             values = dateRange.map((date) => {
                 const value = valueMap[date];
                 return value == null ? null : parseFloat(value);
@@ -195,10 +186,8 @@ window.HealthChart = (() => {
                 value == null ? null : parseFloat(value)
             );
         }
-
         const styles = getComputedStyle(document.documentElement);
         const primary = styles.getPropertyValue("--chart-primary").trim() || "#4caf50";
-
         return new Chart(canvas, {
             type: type,
             data: {
@@ -314,6 +303,68 @@ function initChartToggle() {
 }
 
 /* =========================================================
+   汎用: グラフを左右スワイプで前後の期間に切り替える（全画面共通）
+   使い方: 各ページの initChart() で、フィルター中のときだけ呼び出す
+   ========================================================= */
+function initChartSwipe({ chart, wrapperEl, chartUrl, initialFrom, initialTo }) {
+    if (!chart || !wrapperEl || !chartUrl || !initialFrom || !initialTo) return;
+
+    let currentFrom = new Date(initialFrom + "T00:00:00");
+    let currentTo = new Date(initialTo + "T00:00:00");
+
+    function toIso(d) {
+        const yyyy = d.getFullYear();
+        const mm = String(d.getMonth() + 1).padStart(2, "0");
+        const dd = String(d.getDate()).padStart(2, "0");
+        return `${yyyy}-${mm}-${dd}`;
+    }
+
+    async function loadRange(from, to) {
+        const sep = chartUrl.includes("?") ? "&" : "?";
+        const url = `${chartUrl}${sep}startDate=${toIso(from)}&endDate=${toIso(to)}`;
+        let res;
+        try {
+            res = await fetch(url, { headers: { Accept: "application/json" } });
+        } catch (e) {
+            return;
+        }
+        if (!res.ok) return;
+        const data = await res.json();
+        currentFrom = from;
+        currentTo = to;
+        chart.data.labels = data.labels.map((l) => HealthChart.formatLabel(l, data.chartMode));
+        chart.data.datasets[0].data = data.values.map((v) => (v == null ? null : parseFloat(v)));
+        chart.update();
+    }
+
+    let touchStartX = null;
+    wrapperEl.addEventListener("touchstart", (e) => {
+        touchStartX = e.touches[0].clientX;
+    }, { passive: true });
+
+    wrapperEl.addEventListener("touchend", (e) => {
+        if (touchStartX === null) return;
+        const dx = e.changedTouches[0].clientX - touchStartX;
+        touchStartX = null;
+        if (Math.abs(dx) < 40) return; // ngưỡng vuốt tối thiểu
+
+        const spanDays = Math.round((currentTo - currentFrom) / 86400000) + 1;
+        const from = new Date(currentFrom);
+        const to = new Date(currentTo);
+
+        if (dx < 0) {
+            from.setDate(from.getDate() + spanDays);
+            to.setDate(to.getDate() + spanDays);
+            if (from > new Date()) return; // không cho vuốt sang tương lai
+        } else {
+            from.setDate(from.getDate() - spanDays);
+            to.setDate(to.getDate() - spanDays);
+        }
+        loadRange(from, to);
+    }, { passive: true });
+}
+
+/* =========================================================
    汎用: 前回比バッジ（↘ -1.0 / ↗ +1.0）（全画面共通）
    使い方: 履歴テーブルに data-history-table 属性を付ける。
    各行は th:data-value="${record.xxx}" のような形で
@@ -370,6 +421,7 @@ document.addEventListener("DOMContentLoaded", () => {
     initPositiveNumberInputs();
     initFeedbackToggle();
     initMemoExpand();
+    initFilterForm();
 });
 
 /* =========================================================
@@ -467,3 +519,57 @@ document.addEventListener("DOMContentLoaded", () => {
         el.addEventListener("change", clearFieldError);
     });
 });
+
+/* =========================================================
+   汎用: クイック期間フィルター（1日/1週/1ヶ月/6ヶ月/1年）
+   全画面共通で filterBar フラグメントに使用
+   ========================================================= */
+function initFilterForm() {
+    const bar = document.getElementById("quickRangeBar");
+    const form = document.getElementById("filterForm");
+    const startInput = document.getElementById("startDateInput");
+    const endInput = document.getElementById("endDateInput");
+    if (!bar || !form || !startInput || !endInput) return;
+
+    function toIso(date) {
+        const yyyy = date.getFullYear();
+        const mm = String(date.getMonth() + 1).padStart(2, "0");
+        const dd = String(date.getDate()).padStart(2, "0");
+        return `${yyyy}-${mm}-${dd}`;
+    }
+
+    function computeRange(code) {
+        const to = new Date();
+        to.setHours(0, 0, 0, 0);
+        const from = new Date(to);
+        switch (code) {
+            case "1D": break;
+            case "1W": from.setDate(from.getDate() - 6); break;
+            case "1M": from.setMonth(from.getMonth() - 1); from.setDate(from.getDate() + 1); break;
+            case "6M": from.setMonth(from.getMonth() - 6); from.setDate(from.getDate() + 1); break;
+            case "1Y": from.setFullYear(from.getFullYear() - 1); from.setDate(from.getDate() + 1); break;
+        }
+        return [from, to];
+    }
+
+    // Highlight
+    function syncActiveButton() {
+        bar.querySelectorAll(".quick-btn").forEach((b) => b.classList.remove("is-active"));
+        if (!startInput.value || !endInput.value) return;
+        bar.querySelectorAll(".quick-btn").forEach((btn) => {
+            const [from, to] = computeRange(btn.dataset.range);
+            if (toIso(from) === startInput.value && toIso(to) === endInput.value) {
+                btn.classList.add("is-active");
+            }
+        });
+    }
+    bar.querySelectorAll(".quick-btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+            const [from, to] = computeRange(btn.dataset.range);
+            startInput.value = toIso(from);
+            endInput.value = toIso(to);
+            form.submit();
+        });
+    });
+    syncActiveButton();
+}

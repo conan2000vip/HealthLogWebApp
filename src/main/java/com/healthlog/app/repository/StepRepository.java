@@ -16,13 +16,18 @@ public interface StepRepository extends JpaRepository<Step, Long> {
 
 	boolean existsByProfile_Id(Long profileId);
 
+	Optional<Step> findTopByProfile_IdAndRecordedDateLessThanOrderByRecordedDateDesc(Long profileId, LocalDate date);
+
 	Optional<Step> findTopByProfile_IdOrderByRecordedDateDescIdDesc(Long profileId);
 
 	Optional<Step> findFirstByProfile_IdAndRecordedDate(Long profileId, LocalDate recordedDate);
 
+	Optional<Step> findTopByProfile_IdOrderByRecordedDateDesc(Long profileId);
+
 	List<Step> findByProfile_IdOrderByRecordedDateDesc(Long profileId);
 
-	List<Step> findByProfile_IdAndRecordedDateBetweenOrderByRecordedDateDesc(Long profileId, LocalDate from, LocalDate to);
+	List<Step> findByProfile_IdAndRecordedDateBetweenOrderByRecordedDateDesc(Long profileId, LocalDate from,
+			LocalDate to);
 
 	List<Step> findByProfile_IdAndRecordedDateGreaterThanEqualOrderByRecordedDateDesc(Long profileId, LocalDate from);
 
@@ -30,9 +35,13 @@ public interface StepRepository extends JpaRepository<Step, Long> {
 
 	Page<Step> findByProfile_IdOrderByRecordedDateDesc(Long profileId, Pageable pageable);
 
-	Page<Step> findByProfile_IdAndRecordedDateBetweenOrderByRecordedDateDesc(Long profileId, LocalDate from, LocalDate to, Pageable pageable);
+	Page<Step> findByProfile_IdAndRecordedDateBetweenOrderByRecordedDateDesc(Long profileId, LocalDate from,
+			LocalDate to, Pageable pageable);
 
-	Page<Step> findByProfile_IdAndRecordedDateGreaterThanEqualOrderByRecordedDateDesc(Long profileId, LocalDate from, Pageable pageable);
+	Page<Step> findByProfile_IdAndRecordedDateGreaterThanEqualOrderByRecordedDateDesc(Long profileId, LocalDate from,
+			Pageable pageable);
 
-	Page<Step> findByProfile_IdAndRecordedDateLessThanEqualOrderByRecordedDateDesc(Long profileId, LocalDate to, Pageable pageable);
+	Page<Step> findByProfile_IdAndRecordedDateLessThanEqualOrderByRecordedDateDesc(Long profileId, LocalDate to,
+			Pageable pageable);
+
 }

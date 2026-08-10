@@ -246,18 +246,27 @@ function initModal() {
    睡眠時間推移グラフ
    共通の HealthChart を使用する
    ========================================================= */
-function initChart() {
-    const isSearching = Boolean(
-        document.getElementById("startDateInput")?.value ||
-        document.getElementById("endDateInput")?.value
-    );
+   function initChart() {
+       const isSearching = Boolean(
+           document.getElementById("startDateInput")?.value ||
+           document.getElementById("endDateInput")?.value
+       );
 
-    HealthChart.create({
-        canvasId: "sleepChart",
-        data: window.sleepChartData,
-        unit: "時間",
-        type: "bar",
-        days: 7,
-        isSearching: isSearching
-    });
-}
+       const chart = HealthChart.create({
+           canvasId: "sleepChart",
+           data: window.sleepChartData,
+           unit: "時間",
+           type: "bar",
+           days: 7,
+           isSearching: isSearching,
+       });
+
+       const wrapper = document.getElementById("chartWrapper");
+       const chartUrl = wrapper?.closest(".chart-card")?.dataset.chartUrl;
+       const from = window.sleepChartData?.from;
+       const to = window.sleepChartData?.to;
+
+       if (chart && wrapper && chartUrl && from && to) {
+           initChartSwipe({ chart, wrapperEl: wrapper, chartUrl, initialFrom: from, initialTo: to });
+       }
+   }

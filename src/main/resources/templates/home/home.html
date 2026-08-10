@@ -109,11 +109,18 @@
 				</div>
 
 				<p class="stat-card__value">
-					<span th:text="${today.weightKg != null ? #numbers.formatDecimal(today.weightKg,1,1) : '-'}">54.8</span>kg
-					<span class="stat-card__pill" th:if="${today.bmi != null}"
-						th:text="${'BMI ' + #numbers.formatDecimal(today.bmi,1,1)}">
-						BMI 20.1
-					</span>
+				    <span th:text="${today.weightKg != null ? #numbers.formatDecimal(today.weightKg,1,1) : '-'}">59.0</span>kg
+				    <span class="stat-card__pill" th:if="${today.bmi != null}"
+				        th:text="${'BMI ' + #numbers.formatDecimal(today.bmi,1,1)}">BMI 21.7
+				    </span>
+				</p>
+				<p class="stat-card__sub" th:if="${today.targetWeight != null}">目標：
+				    <span th:text="${#numbers.formatDecimal(today.targetWeight,1,1)}">55.0</span>kg
+				</p>
+				<p class="stat-card__goal-status"
+				   th:if="${today.weightGoalText != null}"
+				   th:text="${today.weightGoalText}">
+				    目標まであと4.0 kg
 				</p>
 
 				<a th:href="@{/profile/{profileId}/weight(profileId=${currentProfile.id})}" class="stat-card__link">詳細を見る ›</a>
@@ -128,13 +135,17 @@
 				</div>
 
 				<p class="stat-card__value">
-					<span th:text="${today.sleepHour ?: '-'}">7</span>時間
-					<span th:text="${today.sleepMinute ?: 0}">20</span>分
-					<span class="stat-card__pill stat-card__pill--ok" th:if="${today.sleepStatus != null}"
-						th:text="${today.sleepStatus}">正常
-					</span>
+				    <span th:text="${today.sleepHour != null ? today.sleepHour : '-'}">6</span>時間
+				    <span th:text="${today.sleepMinute != null ? today.sleepMinute : 0}">50</span>分
 				</p>
-
+				<p class="stat-card__sub" th:if="${today.sleepGoalMinutes != null}">目標：
+				    <span th:text="${today.sleepGoalMinutes / 60}">8</span>時間
+				</p>
+				<p class="stat-card__goal-status"
+				   th:if="${today.sleepGoalText != null}"
+				   th:text="${today.sleepGoalText}">
+				    目標まであと1時間10分
+				</p>
 				<a th:href="@{/profile/{profileId}/sleep(profileId=${currentProfile.id})}" class="stat-card__link">詳細を見る ›</a>
 			</article>
 
@@ -145,12 +156,11 @@
 					<img th:src="@{/image/water.png}" alt="" class="stat-card__icon" />
 					<h3>水分</h3>
 				</div>
-				<p class="stat-card__value"><span th:text="${today.waterMl ?: 0}">1200</span>ml</p>
+				<p class="stat-card__value"><span th:text="${today['waterMl'] ?: 0}">1200</span>ml</p>
 				<div class="progress-bar">
-					<div class="progress-bar__fill" th:style="${'width:' + (today.waterPercent ?: 0) + '%'}">
-					</div>
+					<div class="progress-bar__fill" th:style="${'width:' + (today['waterPercent'] ?: 0) + '%'}"></div>
 				</div>
-				<p class="stat-card__sub">目標の<span th:text="${today.waterPercent ?: 0}">60</span>%</p>
+				<p class="stat-card__sub">目標の<span th:text="${today['waterPercent'] ?: 0}">60</span>%</p>
 				<a th:href="@{/profile/{profileId}/water(profileId=${currentProfile.id})}" class="stat-card__link">詳細を見る ›</a>
 			</article>
 
@@ -161,16 +171,13 @@
 					<img th:src="@{/image/footstep.png}" alt="" class="stat-card__icon" />
 					<h3>歩数</h3>
 				</div>
-
-				<p class="stat-card__value"><span th:text="${today.stepCount ?: 0}">6820</span>歩</p>
-
+				<p class="stat-card__value"><span th:text="${today['stepCount'] ?: 0}">6820</span>歩</p>
 				<div class="progress-bar">
 					<div class="progress-bar__fill progress-bar__fill--green"
-						th:style="${'width:' + (today.stepPercent ?: 0) + '%'}">
+						th:style="${'width:' + (today['stepPercent'] ?: 0) + '%'}">
 					</div>
 				</div>
-
-				<p class="stat-card__sub">目標の<span th:text="${today.stepPercent ?: 0}">85</span>%</p>
+				<p class="stat-card__sub">目標の<span th:text="${today['stepPercent'] ?: 0}">85</span>%</p>
 				<a th:href="@{/profile/{profileId}/step(profileId=${currentProfile.id})}" class="stat-card__link">詳細を見る ›</a>
 			</article>
 		</section>

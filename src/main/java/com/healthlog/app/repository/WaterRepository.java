@@ -43,4 +43,8 @@ public interface WaterRepository extends JpaRepository<Water, Long> {
 
 	// 全期間の最新1件（日付→id の順で最新を判定）
 	Optional<Water> findTopByProfile_IdOrderByRecordedDateDescIdDesc(Long profileId);
+
+	Optional<Water> findTopByProfile_IdAndRecordedDateLessThanOrderByRecordedDateDesc(Long profileId, LocalDate date);
+
+	Optional<Water> findTopByProfile_IdOrderByRecordedDateDesc(Long profileId);
 }

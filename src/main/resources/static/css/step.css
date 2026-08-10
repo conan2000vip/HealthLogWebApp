@@ -50,94 +50,78 @@
 }
 
 /* =========================================================
-   Step Table Only
+Step Table Only
 ========================================================= */
 
 .step-table {
-	width: 100%;
-	table-layout: fixed;
+    width: 100%;
+    table-layout: fixed;
 }
 
 /* 日付 */
 .step-table th:nth-child(1),
 .step-table td:nth-child(1) {
-	width: 130px;
-	white-space: nowrap;
+    width: 130px;
+    white-space: nowrap;
 }
 
 /* 歩数 */
 .step-table th:nth-child(2),
 .step-table td:nth-child(2) {
-	width: 160px;
-	text-align: center;
-	white-space: nowrap;
+    width: 160px;
+    text-align: center;
+    white-space: nowrap;
 }
 
 /* 目標比 */
 .step-table th:nth-child(3),
 .step-table td:nth-child(3) {
-	width: 130px;
-	text-align: center;
-	white-space: nowrap;
+    width: 130px;
+    text-align: center;
+    white-space: nowrap;
+}
+
+/* 最終更新 */
+.step-table th:nth-child(4),
+.step-table td:nth-child(4) {
+    width: 100px;
+    text-align: center;
+    white-space: nowrap;
 }
 
 /* メモ */
-.step-table th:nth-child(4),
-.step-table td:nth-child(4) {
-	text-align: left;
+.step-table th:nth-child(5),
+.step-table td:nth-child(5) {
+    text-align: left;
 }
 
+/* 歩数 */
 .step-table__steps {
-	font-weight: 700;
-	text-align: center;
+    font-weight: 700;
+    text-align: center;
 }
 
+/* メモ */
 .step-table__memo {
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
-	color: var(--wp-text-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--wp-text-muted);
 }
 
+/* 操作 */
 .step-table__actions {
-	display: flex;
-	align-items: center;
-	justify-content: flex-end;
-	gap: 6px;
+    text-align: right;
+    white-space: nowrap;
 }
 
 .step-table__actions-col {
-	width: 90px;
-}
-
-/* =========================================================
-   Goal Rate Badge
-========================================================= */
-
-.badge--danger {
-	background: #fee2e2;
-	color: #b91c1c;
-}
-
-.badge--warning {
-	background: #fef3c7;
-	color: #b45309;
-}
-
-.badge--info {
-	background: #dbeafe;
-	color: #1d4ed8;
-}
-
-.badge--success {
-	background: #d1fae5;
-	color: #047857;
+    width: 90px;
 }
 
 /* =========================================================
    Responsive
 ========================================================= */
-
 @media (max-width: 768px) {
 	.step-table {
 		table-layout: auto;
@@ -157,8 +141,8 @@
 		width: auto !important;
 	}
 
-	.step-table th:nth-child(4),
-	.step-table td:nth-child(4) {
+	.step-table th:nth-child(5),
+	.step-table td:nth-child(5) {
 		display: none;
 	}
 

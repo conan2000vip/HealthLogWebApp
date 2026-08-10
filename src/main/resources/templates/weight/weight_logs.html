@@ -27,7 +27,7 @@
 						</span>
 						<div>
 							<h1>体重管理</h1>
-							<p th:text="${currentProfile != null ? currentProfile.name + ' の体重記録' : 'ゲスト の体重記録'}">
+							<p th:text="${currentProfile != null ? currentProfile.name + ' の体重記録' : 'ゲスト の体重記録'}"></p>
 						</div>
 					</div>
 					<button type="button" class="btn btn--primary" id="openAddModalBtn">
@@ -116,9 +116,10 @@
 
 				<!-- Chart Card  -->
 				<div th:replace="~{layout/data-controls :: chartCard(
-					title='体重推移グラフ',
-					canvasId='weightChart',
-					hasData=${not #lists.isEmpty(logs)})}">
+				    title='体重推移グラフ',
+				    canvasId='weightChart',
+				    hasData=${not #lists.isEmpty(logs)},
+				    chartUrl=@{/profile/{profileId}/weight/chart-data(profileId=${profileId})})}">
 				</div>
 
 				<!-- Table / Empty state -->
@@ -195,7 +196,7 @@
 					</div>
 
 					<!-- Trường hợp 1: chưa từng có bản ghi nào (không liên quan đến việc có đang lọc hay không) -->
-					<div class="empty-state" th:if="${#lists.isEmpty(logs)} and ${!hasAnyLog}">
+					<div class="empty-state" th:if="${#lists.isEmpty(logs) and !hasAnyLog}">
 					    <img th:src="@{/image/scales.png}" alt="" class="weight-page__icon-img" />
 					    <p>まだ体重が記録されていません</p>
 					    <button type="button" class="btn btn--primary" id="openAddModalBtnEmpty">
@@ -238,7 +239,7 @@
 
 					<div class="input-group">
 						<label for="weight">体重 (kg) <span class="required">*</span></label>
-						<input id="weight" name="weight" type="number" step="0.1" min="1" max="500" placeholder="例: 65.0" />
+						<input id="weight" name="weight" type="number" step="0.1" min="1" max="300" placeholder="例: 65.0" />
 						<div id="weightError" class="field-error"><span></span></div>
 					</div>
 

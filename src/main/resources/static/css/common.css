@@ -750,13 +750,14 @@ body {
 }
 
 .summary-card__value .badge {
-	font-size: 14px;
-	padding: 4px 8px;
-	font-weight: 600;
-	line-height: 1.2;
+	min-width: 58px;
+	height: 28px;
+	padding: 0 10px;
+	font-size: 13px;
+	font-weight: 700;
+	line-height: 1;
 	align-self: center;
-	gap: 8px;
-	margin-top: 4px;
+	margin-top: 0;
 }
 
 .summary-card__sub {
@@ -767,45 +768,71 @@ body {
 }
 
 /* =========================================================
-   共通バッジ
-   注意・正常・低値・高値などの状態表示に使用
+   Common Health Status Badge
+   目標達成率に応じた4段階の状態表示
    ========================================================= */
-
 .badge {
 	display: inline-flex;
 	align-items: center;
-	font-size: 12px;
-	font-weight: 700;
-	padding: 4px 12px;
+	justify-content: center;
+	min-width: 58px;
+	height: 28px;
+	padding: 0 12px;
 	border-radius: 999px;
-	line-height: 1.4;
+	font-size: 13px;
+	font-weight: 700;
+	line-height: 1;
+	white-space: nowrap;
+	box-sizing: border-box;
 }
 
+/* BMI: bình thường */
+.badge--normal {
+	background: #e8f5e9;
+	color: #2e7d32;
+}
+
+/* BMI: thiếu cân */
+.badge--underweight {
+	background: #e3f2fd;
+	color: #1976d2;
+}
+
+/* BMI: thừa cân */
+.badge--overweight {
+	background: #fff3cd;
+	color: #d97706;
+}
+
+/* BMI: béo phì */
+.badge--obese {
+	background: #fde8e8;
+	color: #dc2626;
+}
+
+/* < 50% */
+.badge--danger {
+	background: #fee2e2;
+	color: #b91c1c;
+}
+
+/* 50% - 79% */
 .badge--warning {
 	background: #fef3c7;
 	color: #b45309;
 }
 
-.badge--normal,
-.badge.normal {
-	background: var(--wp-primary-light);
-	color: var(--wp-primary-dark);
+/* 80% - 99% */
+.badge--info {
+	background: #dbeafe;
+	color: #1d4ed8;
 }
 
-.badge--low {
-	background: #fef9c3;
-	color: #a16207;
+/* >= 100% */
+.badge--success {
+	background: #d1fae5;
+	color: #047857;
 }
-
-.badge--high {
-	background: #fee2e2;
-	color: #b91c1c;
-}
-
-/* =========================================================
-   共通期間フィルター
-   開始日・終了日による履歴検索に使用
-   ========================================================= */
 
 .filter-bar {
 	display: flex;
@@ -892,6 +919,34 @@ body {
 	text-decoration: underline;
 }
 
+.filter-bar__quick {
+	display: flex;
+	gap: 6px;
+	flex-shrink: 0;
+}
+
+.quick-btn {
+	padding: 6px 12px;
+	border: 1px solid var(--wp-border);
+	border-radius: 999px;
+	background: #fff;
+	color: var(--wp-text-muted);
+	font-size: 13px;
+	font-weight: 600;
+	cursor: pointer;
+	transition: 0.15s;
+}
+
+.quick-btn:hover {
+	background: #f3f4f6;
+}
+
+.quick-btn.is-active {
+	background: var(--wp-primary);
+	border-color: var(--wp-primary);
+	color: #fff;
+}
+
 /* =========================================================
    共通グラフカード
    体重・睡眠・水分・歩数などの推移グラフを表示
@@ -942,6 +997,7 @@ body {
 	position: relative;
 	height: 300px;
 	width: 100%;
+	touch-action: pan-y;
 }
 
 .chart-card__empty {
@@ -987,6 +1043,8 @@ body {
 .data-table-scroll {
 	max-height: 320px;
 	overflow-y: auto;
+	overflow-x: auto;
+	-webkit-overflow-scrolling: touch;
 }
 
 .data-table-scroll table {
@@ -1098,6 +1156,21 @@ body {
    共通ページネーション
    履歴一覧のページ切り替えに使用
    ========================================================= */
+.stats-period-note {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	margin-top: -8px;
+	margin-bottom: 16px;
+	font-size: 0.8rem;
+	color: #888;
+}
+
+.stats-period-note i {
+	width: 14px;
+	height: 14px;
+	flex-shrink: 0;
+}
 
 .pagination {
 	display: flex;

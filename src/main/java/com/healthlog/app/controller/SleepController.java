@@ -58,11 +58,8 @@ public class SleepController {
 	}
 
 	@GetMapping
-	public String list(
-			@PathVariable Long profileId,
-			@RequestParam(required = false) LocalDate startDate,
-			@RequestParam(required = false) LocalDate endDate,
-			@RequestParam(defaultValue = "0") int page,
+	public String list(@PathVariable Long profileId, @RequestParam(required = false) LocalDate startDate,
+			@RequestParam(required = false) LocalDate endDate, @RequestParam(defaultValue = "0") int page,
 			Model model) {
 		Long currentUserId = currentUserId();
 		try {
@@ -95,16 +92,19 @@ public class SleepController {
 		return "sleep/sleep_logs";
 	}
 
+	@org.springframework.web.bind.annotation.ResponseBody
+	@GetMapping("/chart-data")
+	public Map<String, Object> chartData(@PathVariable Long profileId,
+			@RequestParam(required = false) LocalDate startDate, @RequestParam(required = false) LocalDate endDate) {
+		return sleepService.chartData(profileId, currentUserId(), startDate, endDate);
+	}
+
 	// 新規登録・編集: フォームは共通、recordId の有無で判定
 	@PostMapping("/save")
-	public String save(
-			@PathVariable Long profileId,
-			@RequestParam(required = false) Long recordId,
+	public String save(@PathVariable Long profileId, @RequestParam(required = false) Long recordId,
 			@RequestParam LocalDate recordedDate, // ★sửa: "date" → "recordedDate"
-			@RequestParam LocalTime startTime,
-			@RequestParam LocalTime endTime,
-			@RequestParam(required = false) SleepType sleepType,
-			@RequestParam(required = false) String memo,
+			@RequestParam LocalTime startTime, @RequestParam LocalTime endTime,
+			@RequestParam(required = false) SleepType sleepType, @RequestParam(required = false) String memo,
 			RedirectAttributes redirectAttributes) {
 		Long currentUserId = currentUserId();
 		Sleep input = new Sleep();
@@ -118,13 +118,11 @@ public class SleepController {
 			if (recordId == null) {
 				// 新規登録
 				sleepService.create(profileId, currentUserId, input);
-				redirectAttributes.addFlashAttribute("message",
-						"「" + profileName + "」の睡眠記録を保存しました");
+				redirectAttributes.addFlashAttribute("message", "「" + profileName + "」の睡眠記録を保存しました");
 			} else {
 				// 編集
 				sleepService.update(profileId, currentUserId, recordId, input);
-				redirectAttributes.addFlashAttribute("message",
-						"「" + profileName + "」の睡眠記録を更新しました");
+				redirectAttributes.addFlashAttribute("message", "「" + profileName + "」の睡眠記録を更新しました");
 			}
 		} catch (BusinessException e) {
 			redirectAttributes.addFlashAttribute("error", e.getMessage());
@@ -133,16 +131,13 @@ public class SleepController {
 	}
 
 	@PostMapping("/{logId}/delete")
-	public String delete(
-			@PathVariable Long profileId,
-			@PathVariable Long logId,
+	public String delete(@PathVariable Long profileId, @PathVariable Long logId,
 			RedirectAttributes redirectAttributes) {
 		Long currentUserId = currentUserId();
 		try {
 			String profileName = profileService.getProfile(currentUserId, profileId).getName();
 			sleepService.delete(profileId, currentUserId, logId);
-			redirectAttributes.addFlashAttribute("message",
-					"「" + profileName + "」の睡眠記録を削除しました");
+			redirectAttributes.addFlashAttribute("message", "「" + profileName + "」の睡眠記録を削除しました");
 		} catch (BusinessException e) {
 			redirectAttributes.addFlashAttribute("error", e.getMessage());
 		}

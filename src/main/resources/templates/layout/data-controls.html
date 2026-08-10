@@ -7,6 +7,15 @@
 		    <span class="filter-bar__title">
 		        <span class="filter-bar__label">期間:</span>
 		    </span>
+
+		    <div class="filter-bar__quick" id="quickRangeBar">
+		        <button type="button" class="quick-btn" data-range="1D">1日</button>
+		        <button type="button" class="quick-btn" data-range="1W">1週</button>
+		        <button type="button" class="quick-btn" data-range="1M">1ヶ月</button>
+		        <button type="button" class="quick-btn" data-range="6M">6ヶ月</button>
+		        <button type="button" class="quick-btn" data-range="1Y">1年</button>
+		    </div>
+
 		    <input type="date" name="startDate" th:value="${filterStartDate}" id="startDateInput"
 		        th:max="${T(java.time.LocalDate).now()}" />
 		    <span class="filter-bar__sep">〜</span>
@@ -48,7 +57,8 @@
 		</section>
 
 		<!-- ============ Chart Card ============-->
-		<section th:fragment="chartCard(title, canvasId, hasData)" class="chart-card" th:if="${hasData}">
+		<section th:fragment="chartCard(title, canvasId, hasData, chartUrl)" class="chart-card" th:if="${hasData}"
+			th:attr="data-chart-url=${chartUrl}">
 			<div class="chart-card__header">
 				<h2 th:text="${title}">推移グラフ</h2>
 				<button type="button" class="link-btn" id="toggleChartBtn">非表示</button>
@@ -58,5 +68,4 @@
 			</div>
 		</section>
 	</body>
-
 </html>

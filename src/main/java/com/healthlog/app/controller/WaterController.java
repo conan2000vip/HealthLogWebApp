@@ -57,11 +57,8 @@ public class WaterController {
 	}
 
 	@GetMapping
-	public String list(
-			@PathVariable Long profileId,
-			@RequestParam(required = false) LocalDate startDate,
-			@RequestParam(required = false) LocalDate endDate,
-			@RequestParam(defaultValue = "0") int page,
+	public String list(@PathVariable Long profileId, @RequestParam(required = false) LocalDate startDate,
+			@RequestParam(required = false) LocalDate endDate, @RequestParam(defaultValue = "0") int page,
 			Model model) {
 		Long currentUserId = currentUserId();
 		try {
@@ -90,16 +87,18 @@ public class WaterController {
 		return "water/water_logs";
 	}
 
+	@org.springframework.web.bind.annotation.ResponseBody
+	@GetMapping("/chart-data")
+	public Map<String, Object> chartData(@PathVariable Long profileId,
+			@RequestParam(required = false) LocalDate startDate, @RequestParam(required = false) LocalDate endDate) {
+		return waterService.chartData(profileId, currentUserId(), startDate, endDate);
+	}
+
 	@PostMapping("/save")
-	public String save(
-			@PathVariable Long profileId,
-			@RequestParam(required = false) Long recordId,
-			@RequestParam LocalDate recordedDate,
-			@RequestParam(required = false) LocalTime recordedTime,
-			@RequestParam DrinkType drinkType,
-			@RequestParam Integer amountMl,
-			@RequestParam(required = false) String memo,
-			RedirectAttributes redirectAttributes) {
+	public String save(@PathVariable Long profileId, @RequestParam(required = false) Long recordId,
+			@RequestParam LocalDate recordedDate, @RequestParam(required = false) LocalTime recordedTime,
+			@RequestParam DrinkType drinkType, @RequestParam Integer amountMl,
+			@RequestParam(required = false) String memo, RedirectAttributes redirectAttributes) {
 
 		Long currentUserId = currentUserId();
 
@@ -113,12 +112,10 @@ public class WaterController {
 			String profileName = profileService.getProfile(currentUserId, profileId).getName();
 			if (recordId == null) {
 				waterService.create(profileId, currentUserId, input);
-				redirectAttributes.addFlashAttribute("message",
-						"「" + profileName + "」の水分記録を保存しました");
+				redirectAttributes.addFlashAttribute("message", "「" + profileName + "」の水分記録を保存しました");
 			} else {
 				waterService.update(profileId, currentUserId, recordId, input);
-				redirectAttributes.addFlashAttribute("message",
-						"「" + profileName + "」の水分記録を更新しました");
+				redirectAttributes.addFlashAttribute("message", "「" + profileName + "」の水分記録を更新しました");
 			}
 		} catch (BusinessException e) {
 			redirectAttributes.addFlashAttribute("error", e.getMessage());
@@ -127,16 +124,13 @@ public class WaterController {
 	}
 
 	@PostMapping("/{logId}/delete")
-	public String delete(
-			@PathVariable Long profileId,
-			@PathVariable Long logId,
+	public String delete(@PathVariable Long profileId, @PathVariable Long logId,
 			RedirectAttributes redirectAttributes) {
 		Long currentUserId = currentUserId();
 		try {
 			String profileName = profileService.getProfile(currentUserId, profileId).getName();
 			waterService.delete(profileId, currentUserId, logId);
-			redirectAttributes.addFlashAttribute("message",
-					"「" + profileName + "」の水分記録を削除しました");
+			redirectAttributes.addFlashAttribute("message", "「" + profileName + "」の水分記録を削除しました");
 		} catch (BusinessException e) {
 			redirectAttributes.addFlashAttribute("error", e.getMessage());
 		}

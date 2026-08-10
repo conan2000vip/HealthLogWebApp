@@ -5,9 +5,7 @@ import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -33,13 +31,11 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Transactional
 public class WaterService {
-
 	private final WaterRepository waterRepository;
 	private final ProfileRepository profileRepository;
 
-	// ---------------------------------------------------------
-	// 共通: Profile取得 + 所有者チェック
-	// ---------------------------------------------------------
+// --------------------------------------------------------- 共通: Profile取得 +
+// 所有者チェック ---------------------------------------------------------
 	private Profile findProfile(Long profileId, Long currentUserId) {
 		Profile profile = profileRepository.findById(profileId)
 				.orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "データが見つかりません"));
@@ -60,33 +56,20 @@ public class WaterService {
 		}
 	}
 
-	// 同日に複数回記録した場合、最新(id最大)のみ残す
-	private List<Water> latestPerDate(List<Water> logs) {
-		Map<LocalDate, Water> map = new LinkedHashMap<>();
-		for (Water w : logs) {
-			Water existing = map.get(w.getRecordedDate());
-			if (existing == null || w.getId() > existing.getId()) {
-				map.put(w.getRecordedDate(), w);
-			}
-		}
-		return map.values().stream().sorted(Comparator.comparing(Water::getRecordedDate)).collect(Collectors.toList());
-	}
-
-	// ---------------------------------------------------------
-	// list()
-	// ---------------------------------------------------------
+// --------------------------------------------------------- list()
+// ---------------------------------------------------------
 	public Map<String, Object> list(Long profileId, Long currentUserId, LocalDate from, LocalDate to, int page) {
 		Profile profile = findProfile(profileId, currentUserId);
 		if (from != null && to != null && from.isAfter(to)) {
 			throw new BusinessException(HttpStatus.BAD_REQUEST, "開始日が終了日より後になっているため、期間指定が正しくありません。");
 		}
-
 		boolean hasAnyLog = waterRepository.existsByProfile_Id(profileId);
 		Integer goal = profile.getWaterGoalMl(); // カラムがNOT NULLのため常に非null
 
 		// ---- 最新（全期間で最新の1件） ----
 		Optional<Water> latestOpt = waterRepository.findTopByProfile_IdOrderByRecordedDateDescIdDesc(profileId);
 		Integer latest = latestOpt.map(Water::getAmountMl).orElse(null);
+		LocalDate latestDate = latestOpt.map(Water::getRecordedDate).orElse(null);
 
 		// ---- 今日合計・目標達成率 ----
 		LocalDate today = LocalDate.now();
@@ -112,24 +95,16 @@ public class WaterService {
 		for (Water w : pageLogs) {
 			w.setGoalRate(calculateGoalRate(w.getAmountMl(), goal));
 		}
-
 		// ---- グラフ用データ（日付ごとの合計摂取量） ----
 		List<Water> allLogs = fetchLogs(profileId, from, to);
-		String chartMode = "DAY";
-		if (from != null && to != null) {
-			long days = ChronoUnit.DAYS.between(from, to) + 1;
-			if (days <= 31) {
-				chartMode = "DAY";
-			} else if (days <= 1095) {
-				chartMode = "MONTH";
-			} else {
-				chartMode = "YEAR";
-			}
-		}
+		String chartMode = determineChartMode(from, to);
 		Map<String, Object> chartData = buildChartData(allLogs, chartMode, from, to);
+
 		Map<String, Object> stats = new HashMap<>();
 		stats.put("latest", latest);
+		stats.put("latestDate", latestDate);
 		stats.put("todayTotal", todayTotal);
+		stats.put("todayDate", today);
 		stats.put("monthAverage", monthAverage);
 		stats.put("goalRate", goalRatePercent);
 
@@ -150,19 +125,45 @@ public class WaterService {
 		return result;
 	}
 
-	// 1件ごとの、その日の目標に対する割合(%)
+// 1件ごとの、その日の目標に対する割合(%)
+	private String determineChartMode(LocalDate from, LocalDate to) {
+		if (from == null || to == null)
+			return "DAY";
+		if (from.equals(to))
+			return "HOUR";
+		long days = ChronoUnit.DAYS.between(from, to) + 1;
+		if (days <= 7)
+			return "DAY";
+		if (days <= 31)
+			return "WEEK";
+		if (days <= 1095)
+			return "MONTH";
+		return "YEAR";
+	}
+
+	// スワイプ用: グラフデータのみをJSONで返す（一覧・統計は含まない
+	public Map<String, Object> chartData(Long profileId, Long currentUserId, LocalDate from, LocalDate to) {
+		findProfile(profileId, currentUserId);
+		if (from != null && to != null && from.isAfter(to)) {
+			throw new BusinessException(HttpStatus.BAD_REQUEST, "開始日が終了日より後になっているため、期間指定が正しくありません。");
+		}
+		String chartMode = determineChartMode(from, to);
+		List<Water> logs = fetchLogs(profileId, from, to);
+		Map<String, Object> result = buildChartData(logs, chartMode, from, to);
+		result.put("chartMode", chartMode);
+		return result;
+	}
+
 	private BigDecimal calculateGoalRate(Integer amountMl, Integer goal) {
 		if (amountMl == null || goal == null || goal <= 0) {
 			return null;
 		}
-		return BigDecimal.valueOf(amountMl)
-				.multiply(BigDecimal.valueOf(100))
-				.divide(BigDecimal.valueOf(goal), 0, RoundingMode.HALF_UP);
+		return BigDecimal.valueOf(amountMl).multiply(BigDecimal.valueOf(100)).divide(BigDecimal.valueOf(goal), 0,
+				RoundingMode.HALF_UP);
 	}
 
-	// ---------------------------------------------------------
-	// create()
-	// ---------------------------------------------------------
+// --------------------------------------------------------- create()
+// ---------------------------------------------------------
 	public Water create(Long profileId, Long currentUserId, Water water) {
 		Profile profile = findProfile(profileId, currentUserId);
 		validateWaterInput(water);
@@ -170,15 +171,13 @@ public class WaterService {
 		return waterRepository.save(water);
 	}
 
-	// ---------------------------------------------------------
-	// update()
-	// ---------------------------------------------------------
+// --------------------------------------------------------- update()
+// ---------------------------------------------------------
 	public Water update(Long profileId, Long currentUserId, Long logId, Water input) {
 		findProfile(profileId, currentUserId);
 		Water log = findWater(logId);
 		validateProfileOwner(log, profileId);
 		validateWaterInput(input);
-
 		log.setRecordedDate(input.getRecordedDate());
 		log.setRecordedTime(input.getRecordedTime());
 		log.setDrinkType(input.getDrinkType());
@@ -187,9 +186,8 @@ public class WaterService {
 		return waterRepository.save(log);
 	}
 
-	// ---------------------------------------------------------
-	// delete()
-	// ---------------------------------------------------------
+// --------------------------------------------------------- delete()
+// ---------------------------------------------------------
 	public void delete(Long profileId, Long currentUserId, Long logId) {
 		findProfile(profileId, currentUserId);
 		Water log = findWater(logId);
@@ -197,9 +195,8 @@ public class WaterService {
 		waterRepository.delete(log);
 	}
 
-	// ---------------------------------------------------------
-	// fetchLogs() / fetchLogsPage()
-	// ---------------------------------------------------------
+// --------------------------------------------------------- fetchLogs() /
+// fetchLogsPage() ---------------------------------------------------------
 	private List<Water> fetchLogs(Long profileId, LocalDate from, LocalDate to) {
 		if (from != null && to != null) {
 			return waterRepository.findByProfile_IdAndRecordedDateBetweenOrderByRecordedDateDesc(profileId, from, to);
@@ -230,20 +227,28 @@ public class WaterService {
 		return waterRepository.findByProfile_IdOrderByRecordedDateDesc(profileId, pageable);
 	}
 
-	// ---------------------------------------------------------
-	// computeDailyTotals() / buildChartData()
-	// ---------------------------------------------------------
+// ---------------------------------------------------------
+// computeDailyTotals() / buildChartData()
+// ---------------------------------------------------------
 	private Map<LocalDate, Integer> computeDailyTotals(List<Water> logs) {
-		return logs.stream()
-				.collect(Collectors.groupingBy(Water::getRecordedDate, TreeMap::new,
-						Collectors.summingInt(w -> w.getAmountMl() == null ? 0 : w.getAmountMl())));
+		return logs.stream().collect(Collectors.groupingBy(Water::getRecordedDate, TreeMap::new,
+				Collectors.summingInt(w -> w.getAmountMl() == null ? 0 : w.getAmountMl())));
 	}
 
 	private Map<String, Object> buildChartData(List<Water> logs, String chartMode, LocalDate from, LocalDate to) {
 		List<String> labels = new ArrayList<>();
 		List<Integer> values = new ArrayList<>();
-		if ("DAY".equals(chartMode)) {
-			Map<LocalDate, Integer> daily = computeDailyTotals(latestPerDate(logs));
+		if ("HOUR".equals(chartMode)) {
+			Map<Integer, Integer> hourly = logs.stream().filter(w -> w.getRecordedTime() != null)
+					.collect(Collectors.groupingBy(w -> w.getRecordedTime().getHour(), TreeMap::new,
+							Collectors.summingInt(w -> w.getAmountMl() == null ? 0 : w.getAmountMl())));
+			for (int h = 0; h < 24; h++) {
+				labels.add(String.format("%02d:00", h));
+				values.add(hourly.get(h));
+			}
+		} else if ("DAY".equals(chartMode)) {
+			Map<LocalDate, Integer> daily = logs.stream().collect(Collectors.groupingBy(Water::getRecordedDate,
+					TreeMap::new, Collectors.summingInt(Water::getAmountMl)));
 			if (from == null || to == null) {
 				daily.forEach((date, total) -> {
 					labels.add(date.toString());
@@ -257,38 +262,58 @@ public class WaterService {
 					current = current.plusDays(1);
 				}
 			}
-
+		} else if ("WEEK".equals(chartMode)) {
+			Map<LocalDate, Integer> daily = logs.stream().collect(Collectors.groupingBy(Water::getRecordedDate,
+					TreeMap::new, Collectors.summingInt(w -> w.getAmountMl() == null ? 0 : w.getAmountMl())));
+			LocalDate current = from;
+			while (!current.isAfter(to)) {
+				LocalDate weekEnd = current.plusDays(6).isAfter(to) ? to : current.plusDays(6);
+				labels.add(current.toString());
+				List<Integer> weekValues = new ArrayList<>();
+				LocalDate d = current;
+				while (!d.isAfter(weekEnd)) {
+					Integer v = daily.get(d);
+					if (v != null)
+						weekValues.add(v);
+					d = d.plusDays(1);
+				}
+				values.add(weekValues.isEmpty() ? null
+						: (int) Math.round(weekValues.stream().mapToInt(Integer::intValue).average().orElse(0)));
+				current = current.plusDays(7);
+			}
 		} else if ("MONTH".equals(chartMode)) {
-			Map<String, List<Water>> monthly = latestPerDate(logs).stream().collect(Collectors.groupingBy(
-					w -> w.getRecordedDate().getYear() + "-" + String.format("%02d",
-							w.getRecordedDate().getMonthValue()),
-					TreeMap::new, Collectors.toList()));
-
+			Map<LocalDate, Integer> dailyTotals = computeDailyTotals(logs);
+			Map<String, List<Integer>> monthly = dailyTotals.entrySet().stream()
+					.collect(Collectors.groupingBy(
+							e -> e.getKey().getYear() + "-" + String.format("%02d", e.getKey().getMonthValue()),
+							TreeMap::new, Collectors.mapping(Map.Entry::getValue, Collectors.toList())));
 			LocalDate current = from.withDayOfMonth(1);
 			while (!current.isAfter(to)) {
 				String monthKey = current.getYear() + "-" + String.format("%02d", current.getMonthValue());
 				labels.add(monthKey);
-				List<Water> list = monthly.get(monthKey);
+				List<Integer> list = monthly.get(monthKey);
 				if (list == null) {
 					values.add(null);
 				} else {
-					int avg = (int) Math.round(list.stream().mapToInt(Water::getAmountMl).average().orElse(0));
+					int avg = (int) Math.round(list.stream().mapToInt(Integer::intValue).average().orElse(0));
 					values.add(avg);
 				}
 				current = current.plusMonths(1);
 			}
 		} else {
-			Map<Integer, List<Water>> yearly = latestPerDate(logs).stream().collect(Collectors.groupingBy(
-					w -> w.getRecordedDate().getYear(), TreeMap::new, Collectors.toList()));
+			Map<LocalDate, Integer> dailyTotals = computeDailyTotals(logs);
+			Map<Integer, List<Integer>> yearly = dailyTotals.entrySet().stream()
+					.collect(Collectors.groupingBy(e -> e.getKey().getYear(), TreeMap::new,
+							Collectors.mapping(Map.Entry::getValue, Collectors.toList())));
 			LocalDate current = from.withDayOfYear(1);
 			while (!current.isAfter(to)) {
 				int year = current.getYear();
 				labels.add(String.valueOf(year));
-				List<Water> list = yearly.get(year);
+				List<Integer> list = yearly.get(year);
 				if (list == null) {
 					values.add(null);
 				} else {
-					int avg = (int) Math.round(list.stream().mapToInt(Water::getAmountMl).average().orElse(0));
+					int avg = (int) Math.round(list.stream().mapToInt(Integer::intValue).average().orElse(0));
 					values.add(avg);
 				}
 				current = current.plusYears(1);
@@ -300,9 +325,9 @@ public class WaterService {
 		return result;
 	}
 
-	// ---------------------------------------------------------
-	// 共通: create/updateの入力チェック
-	// ---------------------------------------------------------
+// --------------------------------------------------------- 共通:
+// create/updateの入力チェック
+// ---------------------------------------------------------
 	private void validateWaterInput(Water w) {
 		if (w.getRecordedDate() == null) {
 			throw new BusinessException(HttpStatus.BAD_REQUEST, "日付を入力してください");
