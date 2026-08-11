@@ -19,7 +19,8 @@ target/
 *.iml
 *.ipr
 
-### NetBeans ###
+### NetBeans
+
 /nbproject/private/
 /nbbuild/
 /dist/
@@ -29,21 +30,32 @@ build/
 !**/src/main/**/build/
 !**/src/test/**/build/
 
-### VS Code ###
+### VS Code
+
 .vscode/
 
-### Environment / secrets ###
+### Environment / secrets
+
 .env
 *.env
 !.env.example
 
-### Docker ###
+### Docker
+
 docker-data/
 *.pid
+
+### Build
 
 target/
 bin/
 *.class
 
+### IDE
+
 .metadata/
-Servers/.DS_Store
+Servers/
+
+### macOS
+
+.DS_Store
