@@ -77,12 +77,12 @@
 /* 飲み物 */
 .water-table th:nth-child(3),
 .water-table td:nth-child(3) {
-	width: 110px;
+	width: 150px;
 	text-align: center;
 	white-space: nowrap;
 }
 
-/* 量 (ml) */
+/* 量 */
 .water-table th:nth-child(4),
 .water-table td:nth-child(4) {
 	width: 120px;
@@ -98,7 +98,7 @@
 	white-space: nowrap;
 }
 
-/* メモ: 残り幅を使う（table-layout:fixed のため列幅は指定しない） */
+/* メモ */
 .water-table th:nth-child(6),
 .water-table td:nth-child(6) {
 	text-align: left;
@@ -139,9 +139,9 @@
    Responsive
    ========================================================= */
 @media (max-width: 768px) {
-
 	.water-table {
 		table-layout: auto;
+		font-size: 13px;
 	}
 
 	.water-page__inner {
@@ -158,13 +158,8 @@
 		width: auto !important;
 	}
 
-	/* メモ列を非表示（一覧を狭い画面でも見やすくする） */
 	.water-table th:nth-child(6),
 	.water-table td:nth-child(6) {
 		display: none;
-	}
-
-	.water-table {
-		font-size: 13px;
 	}
 }

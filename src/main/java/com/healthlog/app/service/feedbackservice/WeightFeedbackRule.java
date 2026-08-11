@@ -113,7 +113,8 @@ public class WeightFeedbackRule {
 		// 目標体重達成（±0.5kg以内）
 		if (absDiff.compareTo(TARGET_ACHIEVED_TOLERANCE_KG) <= 0) {
 			items.add(new FeedbackItem(FeedbackType.WEIGHT_GOAL_ACHIEVED, FeedbackLevel.LV1, "目標体重を達成しました",
-					"現在の体重は" + current + "kgです。設定した目標体重に達しています！", latest.getMeasuredAt(), "check-circle"));
+					"現在の体重は" + current + "kgです。設定した目標体重に達しています！",
+					latest.getMeasuredAt(), "check-circle"));
 			return;
 		}
 

@@ -1,15 +1,33 @@
 -- ============================================
--- create_table.sql
+-- createtable.sql
 -- HealthLogWebApp データベース構築用SQLファイル
 -- ============================================
 
 CREATE DATABASE IF NOT EXISTS healthlog;
 USE healthlog;
 
+-- ============================================
+-- Existing tables cleanup
+-- ============================================
+
+SET FOREIGN_KEY_CHECKS = 0;
+
+DROP TABLE IF EXISTS `memo_logs`;
+DROP TABLE IF EXISTS `sleep_logs`;
+DROP TABLE IF EXISTS `step_logs`;
+DROP TABLE IF EXISTS `water_logs`;
+DROP TABLE IF EXISTS `weight_logs`;
+DROP TABLE IF EXISTS `auth_tokens`;
+DROP TABLE IF EXISTS `profiles`;
+DROP TABLE IF EXISTS `users`;
+
+SET FOREIGN_KEY_CHECKS = 1;
+
+
 -- --------------------------------------------
 -- Table: users
 -- --------------------------------------------
-DROP TABLE IF EXISTS `users`;
+
 CREATE TABLE `users` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `email` varchar(255) NOT NULL,
@@ -19,12 +37,15 @@ CREATE TABLE `users` (
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `email` (`email`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB
+  DEFAULT CHARSET=utf8mb4
+  COLLATE=utf8mb4_0900_ai_ci;
+
 
 -- --------------------------------------------
 -- Table: auth_tokens
 -- --------------------------------------------
-DROP TABLE IF EXISTS `auth_tokens`;
+
 CREATE TABLE `auth_tokens` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `user_id` bigint unsigned NOT NULL,
@@ -35,15 +56,21 @@ CREATE TABLE `auth_tokens` (
   `used_flg` tinyint(1) NOT NULL DEFAULT '0' COMMENT '0=未使用, 1=使用済み',
   PRIMARY KEY (`id`),
   UNIQUE KEY `idx_auth_tokens_token` (`token`),
-  KEY `idx_auth_tokens_user_type` (`user_id`,`token_type`),
+  KEY `idx_auth_tokens_user_type` (`user_id`, `token_type`),
   KEY `idx_auth_tokens_expires` (`expires_at`),
-  CONSTRAINT `fk_auth_tokens_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  CONSTRAINT `fk_auth_tokens_user`
+    FOREIGN KEY (`user_id`)
+    REFERENCES `users` (`id`)
+    ON DELETE CASCADE
+) ENGINE=InnoDB
+  DEFAULT CHARSET=utf8mb4
+  COLLATE=utf8mb4_0900_ai_ci;
+
 
 -- --------------------------------------------
 -- Table: profiles
 -- --------------------------------------------
-DROP TABLE IF EXISTS `profiles`;
+
 CREATE TABLE `profiles` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `user_id` bigint unsigned NOT NULL,
@@ -53,23 +80,29 @@ CREATE TABLE `profiles` (
   `gender` varchar(10) DEFAULT NULL,
   `height` decimal(5,1) DEFAULT NULL,
   `target_weight` decimal(5,1) DEFAULT NULL,
-  `water_goal_ml` int NOT NULL DEFAULT '1500',
-  `step_goal` int NOT NULL DEFAULT '8000',
-  `daily_sleep_goal` int NOT NULL DEFAULT '480',
+  `water_goal_ml` int DEFAULT NULL,
+  `step_goal` int DEFAULT NULL,
+  `daily_sleep_goal` decimal(3,1) DEFAULT NULL,
   `profile_color` varchar(20) DEFAULT NULL,
   `is_primary` tinyint(1) NOT NULL DEFAULT '0',
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `idx_profiles_user_id` (`user_id`),
-  KEY `idx_profiles_user_primary` (`user_id`,`is_primary`),
-  CONSTRAINT `fk_profiles_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  KEY `idx_profiles_user_primary` (`user_id`, `is_primary`),
+  CONSTRAINT `fk_profiles_user`
+    FOREIGN KEY (`user_id`)
+    REFERENCES `users` (`id`)
+    ON DELETE CASCADE
+) ENGINE=InnoDB
+  DEFAULT CHARSET=utf8mb4
+  COLLATE=utf8mb4_0900_ai_ci;
+
 
 -- --------------------------------------------
 -- Table: memo_logs
 -- --------------------------------------------
-DROP TABLE IF EXISTS `memo_logs`;
+
 CREATE TABLE `memo_logs` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `profile_id` bigint unsigned NOT NULL,
@@ -80,13 +113,19 @@ CREATE TABLE `memo_logs` (
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `idx_memo_profile_date` (`profile_id`, `recorded_date`),
-  CONSTRAINT `fk_memo_logs_profile` FOREIGN KEY (`profile_id`) REFERENCES `profiles` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  CONSTRAINT `fk_memo_logs_profile`
+    FOREIGN KEY (`profile_id`)
+    REFERENCES `profiles` (`id`)
+    ON DELETE CASCADE
+) ENGINE=InnoDB
+  DEFAULT CHARSET=utf8mb4
+  COLLATE=utf8mb4_0900_ai_ci;
+
 
 -- --------------------------------------------
 -- Table: sleep_logs
 -- --------------------------------------------
-DROP TABLE IF EXISTS `sleep_logs`;
+
 CREATE TABLE `sleep_logs` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `profile_id` bigint unsigned NOT NULL,
@@ -99,14 +138,20 @@ CREATE TABLE `sleep_logs` (
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  KEY `idx_sleep_profile_date` (`profile_id`,`recorded_date`),
-  CONSTRAINT `fk_sleep_logs_profile` FOREIGN KEY (`profile_id`) REFERENCES `profiles` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  KEY `idx_sleep_profile_date` (`profile_id`, `recorded_date`),
+  CONSTRAINT `fk_sleep_logs_profile`
+    FOREIGN KEY (`profile_id`)
+    REFERENCES `profiles` (`id`)
+    ON DELETE CASCADE
+) ENGINE=InnoDB
+  DEFAULT CHARSET=utf8mb4
+  COLLATE=utf8mb4_0900_ai_ci;
+
 
 -- --------------------------------------------
 -- Table: step_logs
 -- --------------------------------------------
-DROP TABLE IF EXISTS `step_logs`;
+
 CREATE TABLE `step_logs` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `profile_id` bigint unsigned NOT NULL,
@@ -116,15 +161,21 @@ CREATE TABLE `step_logs` (
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `uk_step_profile_date` (`profile_id`,`recorded_date`),
-  KEY `idx_step_profile_date` (`profile_id`,`recorded_date`),
-  CONSTRAINT `fk_step_logs_profile` FOREIGN KEY (`profile_id`) REFERENCES `profiles` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  UNIQUE KEY `uk_step_profile_date` (`profile_id`, `recorded_date`),
+  KEY `idx_step_profile_date` (`profile_id`, `recorded_date`),
+  CONSTRAINT `fk_step_logs_profile`
+    FOREIGN KEY (`profile_id`)
+    REFERENCES `profiles` (`id`)
+    ON DELETE CASCADE
+) ENGINE=InnoDB
+  DEFAULT CHARSET=utf8mb4
+  COLLATE=utf8mb4_0900_ai_ci;
+
 
 -- --------------------------------------------
 -- Table: water_logs
 -- --------------------------------------------
-DROP TABLE IF EXISTS `water_logs`;
+
 CREATE TABLE `water_logs` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `profile_id` bigint unsigned NOT NULL,
@@ -136,14 +187,20 @@ CREATE TABLE `water_logs` (
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  KEY `idx_water_profile_date` (`profile_id`,`recorded_date`),
-  CONSTRAINT `fk_water_logs_profile` FOREIGN KEY (`profile_id`) REFERENCES `profiles` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  KEY `idx_water_profile_date` (`profile_id`, `recorded_date`),
+  CONSTRAINT `fk_water_logs_profile`
+    FOREIGN KEY (`profile_id`)
+    REFERENCES `profiles` (`id`)
+    ON DELETE CASCADE
+) ENGINE=InnoDB
+  DEFAULT CHARSET=utf8mb4
+  COLLATE=utf8mb4_0900_ai_ci;
+
 
 -- --------------------------------------------
 -- Table: weight_logs
 -- --------------------------------------------
-DROP TABLE IF EXISTS `weight_logs`;
+
 CREATE TABLE `weight_logs` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `profile_id` bigint unsigned NOT NULL,
@@ -155,6 +212,11 @@ CREATE TABLE `weight_logs` (
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  KEY `idx_weight_profile_date` (`profile_id`,`recorded_date`),
-  CONSTRAINT `fk_weight_logs_profile` FOREIGN KEY (`profile_id`) REFERENCES `profiles` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  KEY `idx_weight_profile_date` (`profile_id`, `recorded_date`),
+  CONSTRAINT `fk_weight_logs_profile`
+    FOREIGN KEY (`profile_id`)
+    REFERENCES `profiles` (`id`)
+    ON DELETE CASCADE
+) ENGINE=InnoDB
+  DEFAULT CHARSET=utf8mb4
+  COLLATE=utf8mb4_0900_ai_ci;

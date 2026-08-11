@@ -556,69 +556,65 @@ body {
 
 /* =========================================================
    共通フィードバックカード
-   健康フィードバックの重要度別表示に使用
    ========================================================= */
 
 .feedback-list {
 	display: flex;
 	flex-direction: column;
-	gap: 10px;
+	gap: 12px;
 	margin-bottom: 20px;
 }
 
 .feedback-card {
-	display: flex;
-	align-items: flex-start;
-	gap: 12px;
-	padding: 14px 18px;
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto;
+	align-items: start;
+	column-gap: 16px;
+	padding: 14px 16px;
 	border-radius: 12px;
 	border-left: 4px solid transparent;
 	background: #ffffff;
 	box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+	box-sizing: border-box;
 }
 
 .feedback-card__icon {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	width: 22px;
-	height: 22px;
-	flex-shrink: 0;
-	margin-top: 1px;
-}
-
-.feedback-card__icon i {
-	width: 20px;
-	height: 20px;
+	display: none;
 }
 
 .feedback-card__content {
-	flex: 1;
+	grid-column: 1;
 	min-width: 0;
+	width: 100%;
 	display: flex;
 	flex-direction: column;
-	gap: 3px;
+	gap: 4px;
 }
 
 .feedback-card__title {
-	font-size: 14.5px;
+	font-size: 14px;
 	font-weight: 700;
+	line-height: 1.45;
 	color: #1f2937;
 }
 
 .feedback-card__message {
+	width: 100%;
 	font-size: 13px;
+	line-height: 1.6;
 	color: #6b7280;
+	word-break: normal;
+	overflow-wrap: break-word;
 }
 
 .feedback-card__meta {
+	grid-column: 2;
 	display: flex;
 	flex-direction: column;
 	align-items: flex-end;
 	gap: 6px;
-	flex-shrink: 0;
-	margin-left: auto;
-	padding-left: 10px;
+	margin: 0;
+	padding: 0;
 }
 
 .feedback-card__time {
@@ -636,56 +632,40 @@ body {
 	white-space: nowrap;
 }
 
-/* レベル4：重要（赤） */
+/* Level 4 */
 .feedback-card--lv4 {
 	border-left-color: #ef4444;
 	background: linear-gradient(90deg, #fef2f2 0%, #ffffff 60%);
-}
-
-.feedback-card--lv4 .feedback-card__icon i {
-	color: #ef4444;
 }
 
 .feedback-card--lv4 .feedback-card__badge {
 	background: #ef4444;
 }
 
-/* レベル3：注意（オレンジ） */
+/* Level 3 */
 .feedback-card--lv3 {
 	border-left-color: #f59e0b;
 	background: linear-gradient(90deg, #fffbeb 0%, #ffffff 60%);
-}
-
-.feedback-card--lv3 .feedback-card__icon i {
-	color: #f59e0b;
 }
 
 .feedback-card--lv3 .feedback-card__badge {
 	background: #f59e0b;
 }
 
-/* レベル2：アドバイス（青） */
+/* Level 2 */
 .feedback-card--lv2 {
 	border-left-color: #3b82f6;
 	background: linear-gradient(90deg, #eff6ff 0%, #ffffff 60%);
-}
-
-.feedback-card--lv2 .feedback-card__icon i {
-	color: #3b82f6;
 }
 
 .feedback-card--lv2 .feedback-card__badge {
 	background: #3b82f6;
 }
 
-/* レベル1：達成（緑） */
+/* Level 1 */
 .feedback-card--lv1 {
 	border-left-color: #10b981;
 	background: linear-gradient(90deg, #ecfdf5 0%, #ffffff 60%);
-}
-
-.feedback-card--lv1 .feedback-card__icon i {
-	color: #10b981;
 }
 
 .feedback-card--lv1 .feedback-card__badge {
@@ -716,7 +696,6 @@ body {
    共通サマリーカード
    最新値・平均値・最大値などの統計情報を表示
    ========================================================= */
-
 .summary-grid {
 	display: grid;
 	grid-template-columns: repeat(4, 1fr);
@@ -732,6 +711,12 @@ body {
 	display: flex;
 	flex-direction: column;
 	gap: 6px;
+	transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.summary-card:hover {
+	transform: translateY(-3px);
+	box-shadow: 0 10px 24px rgba(15, 23, 42, 0.10);
 }
 
 .summary-card__label {
@@ -834,36 +819,124 @@ body {
 	color: #047857;
 }
 
+/* =========================================================
+   Common Filter Bar
+   ========================================================= */
 .filter-bar {
 	display: flex;
 	align-items: center;
-	gap: 10px;
+	gap: 18px;
 	background: #ffffff;
 	border-radius: var(--wp-radius-lg);
 	box-shadow: var(--wp-shadow);
-	padding: 14px 20px;
+	padding: 12px 18px;
 	margin-bottom: 20px;
-	flex-wrap: wrap;
+}
+
+.filter-bar__quick-area {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	flex-shrink: 0;
+}
+
+.filter-bar__label {
+	font-size: 13px;
+	font-weight: 600;
+	color: var(--wp-text-muted);
+	white-space: nowrap;
+}
+
+.filter-bar__quick {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	flex-shrink: 0;
+}
+
+.quick-btn {
+	height: 34px;
+	padding: 0 14px;
+	border: 1px solid var(--wp-border);
+	border-radius: 999px;
+	background: #fff;
+	color: var(--wp-text-muted);
+	font-size: 13px;
+	font-weight: 600;
+	cursor: pointer;
+	transition: 0.15s ease;
+}
+
+.quick-btn:hover {
+	background: #f3f4f6;
+	border-color: #d1d5db;
+}
+
+.quick-btn.is-active {
+	background: #ecfdf5;
+	border-color: var(--wp-primary);
+	color: var(--wp-primary-dark);
+}
+
+.filter-bar__divider {
+	width: 1px;
+	height: 30px;
+	background: var(--wp-border);
+	flex-shrink: 0;
+}
+
+.filter-bar__date-area {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	min-width: 0;
+}
+
+.filter-bar__date-label {
+	font-size: 13px;
+	font-weight: 600;
+	color: var(--wp-text-muted);
+	white-space: nowrap;
+}
+
+.filter-bar input[type="date"] {
+	height: 36px;
+	box-sizing: border-box;
+	border: 1px solid var(--wp-border);
+	border-radius: 8px;
+	padding: 0 10px;
+	font-family: var(--wp-font);
+	font-size: 13px;
+	color: var(--wp-text);
+	background: #fff;
+}
+
+.filter-bar__sep {
+	color: var(--wp-text-muted);
+	font-weight: 600;
+	flex-shrink: 0;
 }
 
 .filter-bar__search-btn {
+	height: 36px;
 	display: inline-flex;
 	align-items: center;
+	justify-content: center;
 	gap: 6px;
-	padding: 6px 12px;
+	padding: 0 14px;
 	border: 1px solid #d1d5db;
 	border-radius: 8px;
-	background-color: #f9fafb;
+	background: #f9fafb;
 	color: #374151;
-	font-size: 14px;
+	font-size: 13px;
+	font-weight: 600;
 	cursor: pointer;
-	transition:
-		background-color 0.15s ease,
-		border-color 0.15s ease;
+	white-space: nowrap;
+	transition: 0.15s ease;
 }
 
 .filter-bar__search-btn:hover {
-	background-color: #f3f4f6;
+	background: #f3f4f6;
 	border-color: #9ca3af;
 }
 
@@ -872,86 +945,21 @@ body {
 	height: 16px;
 }
 
-.filter-bar__title {
-	display: inline-flex;
-	align-items: center;
-	gap: 6px;
-	flex-shrink: 0;
-}
-
-.filter-bar i {
-	width: 16px;
-	height: 16px;
-	color: var(--wp-text-muted);
-}
-
-.filter-bar__label {
-	flex-shrink: 0;
-	white-space: nowrap;
-	font-size: 13px;
-	color: var(--wp-text-muted);
-	font-weight: 500;
-}
-
-.filter-bar input[type="date"] {
-	border: 1px solid var(--wp-border);
-	border-radius: var(--wp-radius-sm);
-	padding: 8px 10px;
-	font-family: var(--wp-font);
-	font-size: 13px;
-	color: var(--wp-text);
-}
-
-.filter-bar__sep {
-	color: var(--wp-text-muted);
-	flex-shrink: 0;
-}
-
 .filter-bar__reset {
 	font-size: 13px;
 	color: var(--wp-primary-dark);
 	text-decoration: none;
-	margin-left: auto;
-	flex-shrink: 0;
+	white-space: nowrap;
 }
 
 .filter-bar__reset:hover {
 	text-decoration: underline;
 }
 
-.filter-bar__quick {
-	display: flex;
-	gap: 6px;
-	flex-shrink: 0;
-}
-
-.quick-btn {
-	padding: 6px 12px;
-	border: 1px solid var(--wp-border);
-	border-radius: 999px;
-	background: #fff;
-	color: var(--wp-text-muted);
-	font-size: 13px;
-	font-weight: 600;
-	cursor: pointer;
-	transition: 0.15s;
-}
-
-.quick-btn:hover {
-	background: #f3f4f6;
-}
-
-.quick-btn.is-active {
-	background: var(--wp-primary);
-	border-color: var(--wp-primary);
-	color: #fff;
-}
-
 /* =========================================================
    共通グラフカード
    体重・睡眠・水分・歩数などの推移グラフを表示
    ========================================================= */
-
 .chart-card {
 	background: #ffffff;
 	border-radius: var(--wp-radius-lg);
@@ -1524,20 +1532,40 @@ body {
    共通レスポンシブ設定
    画面幅に応じてサマリー・ヘッダー・フィルター・モーダルを調整
    ========================================================= */
-
-/* 860px以下：サマリーカードを2列表示 */
+/* 860px以下 */
 @media (max-width: 860px) {
 	.summary-grid {
 		grid-template-columns: repeat(2, 1fr);
 	}
+
+	.filter-bar {
+		flex-direction: column;
+		align-items: stretch;
+		gap: 12px;
+	}
+
+	.filter-bar__quick-area {
+		width: 100%;
+	}
+
+	.filter-bar__divider {
+		width: 100%;
+		height: 1px;
+	}
+
+	.filter-bar__date-area {
+		width: 100%;
+		flex-wrap: wrap;
+	}
 }
 
-/* 600px以下：モバイル向け共通調整 */
+/* 600px以下 */
 @media (max-width: 600px) {
 	:root {
 		--app-header-height: 61px;
 	}
 
+	/* Header */
 	.app-header__inner {
 		padding: 10px 12px;
 		gap: 10px;
@@ -1583,50 +1611,118 @@ body {
 		max-height: 20px;
 	}
 
+	/* Feedback */
 	.feedback-card {
-		flex-wrap: wrap;
+		grid-template-columns: minmax(0, 1fr);
+		row-gap: 8px;
+		padding: 11px 12px;
 	}
 
-	.feedback-card__meta {
-		flex-direction: row;
-		align-items: center;
-		margin-left: 34px;
-		padding-left: 0;
-	}
-
-	.filter-bar {
-		row-gap: 10px;
-		padding: 14px 16px;
-	}
-
-	.filter-bar>i {
+	.feedback-card__icon {
 		display: none;
 	}
 
-	.filter-bar__label {
-		flex: 1 1 100%;
-		order: 1;
+	.feedback-card__content {
+		grid-column: 1;
+		grid-row: 1;
+		width: 100%;
+		min-width: 0;
+	}
+
+	.feedback-card__title {
+		font-size: 13px;
+		line-height: 1.45;
+	}
+
+	.feedback-card__message {
+		font-size: 12px;
+		line-height: 1.6;
+		width: 100%;
+	}
+
+	.feedback-card__meta {
+		grid-column: 1;
+		grid-row: 2;
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		justify-content: flex-start;
+		gap: 8px;
+		margin: 0;
+		padding: 0;
+	}
+
+	.feedback-card__time {
+		font-size: 11px;
+	}
+
+	.feedback-card__badge {
+		font-size: 10px;
+		padding: 3px 8px;
+	}
+
+	/* Filter */
+	.filter-bar {
+		padding: 14px;
+		gap: 12px;
+	}
+
+	.filter-bar__quick-area {
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 8px;
+	}
+
+	.filter-bar__quick {
+		width: 100%;
+		display: grid;
+		grid-template-columns: repeat(5, 1fr);
+		gap: 6px;
+	}
+
+	.quick-btn {
+		width: 100%;
+		height: 34px;
+		padding: 0 6px;
+		font-size: 12px;
+	}
+
+	.filter-bar__date-area {
+		display: grid;
+		grid-template-columns: 1fr 18px 1fr;
+		gap: 8px;
+		align-items: center;
+	}
+
+	.filter-bar__date-label {
+		grid-column: 1 / -1;
 	}
 
 	.filter-bar input[type="date"] {
-		flex: 1 1 0;
+		width: 100%;
 		min-width: 0;
-		width: auto;
-		order: 2;
+		height: 38px;
+		padding: 0 8px;
+		font-size: 12px;
 	}
 
 	.filter-bar__sep {
-		flex: 0 0 auto;
-		order: 2;
+		text-align: center;
+	}
+
+	.filter-bar__search-btn {
+		grid-column: 1 / -1;
+		width: 100%;
+		height: 38px;
 	}
 
 	.filter-bar__reset {
-		flex: 1 1 100%;
-		order: 3;
-		margin-left: 0;
+		grid-column: 1 / -1;
 		text-align: right;
+		margin-top: -2px;
 	}
 
+	/* Modal */
 	.modal-overlay {
 		padding: 12px;
 	}
@@ -1636,7 +1732,7 @@ body {
 	}
 }
 
-/* 560px以下：サマリーとモーダルフッターを小画面向けに調整 */
+/* 560px以下 */
 @media (max-width: 560px) {
 	.summary-grid {
 		grid-template-columns: 1fr 1fr;
@@ -1651,4 +1747,33 @@ body {
 		width: 100%;
 		flex: none;
 	}
+}
+
+/* 420px以下 */
+@media (max-width: 420px) {
+	.filter-bar__quick {
+		grid-template-columns: repeat(3, 1fr);
+	}
+
+	.filter-bar__date-area {
+		grid-template-columns: 1fr;
+	}
+
+	.filter-bar__sep {
+		display: none;
+	}
+
+	.filter-bar input[type="date"],
+	.filter-bar__search-btn,
+	.filter-bar__reset,
+	.filter-bar__date-label {
+		grid-column: 1;
+	}
+}
+/* =========================================================
+   共通履歴テーブル
+   ========================================================= */
+.data-table-scroll th,
+.data-table-scroll td {
+	box-sizing: border-box;
 }

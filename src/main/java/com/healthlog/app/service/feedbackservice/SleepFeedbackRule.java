@@ -178,7 +178,8 @@ public class SleepFeedbackRule {
 
 		if (minutes >= sleepGoalMinutes) {
 			items.add(new FeedbackItem(FeedbackType.SLEEP_GOOD, FeedbackLevel.LV1, "睡眠目標を達成しました",
-					"今日の睡眠時間は" + hours + "時間" + mins + "分でした。設定した睡眠目標を達成しました！", today.atStartOfDay(), "check-circle"));
+					"今日の睡眠時間は" + hours + "時間" + mins + "分です。設定した睡眠目標を達成しました！",
+					today.atStartOfDay(), "check-circle"));
 			return;
 		}
 

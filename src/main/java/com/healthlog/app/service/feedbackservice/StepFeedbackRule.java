@@ -153,8 +153,9 @@ public class StepFeedbackRule {
 		if (rate < 100) {
 			return;
 		}
-		items.add(new FeedbackItem(FeedbackType.STEP_COMPLETE, FeedbackLevel.LV1, "目標達成です",
-				"本日の歩数目標を達成しました。", today.atStartOfDay(), "check-circle"));
+		items.add(new FeedbackItem(FeedbackType.STEP_COMPLETE, FeedbackLevel.LV1, "歩数目標を達成しました",
+				"本日の歩数は" + total + "歩です。設定した歩数目標を達成しました！",
+				today.atStartOfDay(), "check-circle"));
 	}
 
 	private FeedbackItem buildNoRecordReminder(LocalDate today, String title, String message) {

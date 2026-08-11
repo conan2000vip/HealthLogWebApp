@@ -152,8 +152,9 @@ public class WaterFeedbackRule {
 		if (rate < 100) {
 			return;
 		}
-		items.add(new FeedbackItem(FeedbackType.WATER_COMPLETE, FeedbackLevel.LV1, "目標達成です",
-				"本日の水分目標を達成しました。", today.atStartOfDay(), "check-circle"));
+		items.add(new FeedbackItem(FeedbackType.WATER_COMPLETE, FeedbackLevel.LV1, "水分目標を達成しました",
+				"本日の水分摂取量は" + total + "mlです。設定した水分目標を達成しました！",
+				today.atStartOfDay(), "check-circle"));
 	}
 
 	//目標の50%未満

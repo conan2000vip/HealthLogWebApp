@@ -1,7 +1,6 @@
 /* =========================================================
    Memo Page
 ========================================================= */
-
 .memo-page {
 	min-height: calc(100vh - 72px);
 }
@@ -13,7 +12,6 @@
 }
 
 /* ---------- Page Header ---------- */
-
 .memo-page__header {
 	display: flex;
 	align-items: center;
@@ -51,8 +49,7 @@
 
 /* =========================================================
    Memo Table Only
-========================================================= */
-
+   ========================================================= */
 .memo-table {
 	width: 100%;
 	table-layout: fixed;
@@ -61,21 +58,37 @@
 /* 日付 */
 .memo-table th:nth-child(1),
 .memo-table td:nth-child(1) {
-	width: 140px;
+	width: 120px;
 	white-space: nowrap;
 }
 
-/* メモ */
+/* タイトル */
 .memo-table th:nth-child(2),
 .memo-table td:nth-child(2) {
+	width: 200px;
 	text-align: left;
 }
 
+/* メモ */
+.memo-table th:nth-child(3),
+.memo-table td:nth-child(3) {
+	text-align: left;
+}
+
+/* タイトル */
+.memo-table__title {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	font-weight: 600;
+}
+
+/* メモ */
 .memo-table__memo {
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
-	color: var(--wp-text);
+	color: var(--wp-text-muted);
 }
 
 /* 操作 */
@@ -93,10 +106,10 @@
 /* =========================================================
    Responsive
 ========================================================= */
-
 @media (max-width: 768px) {
 	.memo-table {
 		table-layout: auto;
+		font-size: 13px;
 	}
 
 	.memo-page__inner {
@@ -113,7 +126,9 @@
 		width: auto !important;
 	}
 
-	.memo-table {
-		font-size: 13px;
+	/* メモ内容はモバイルでは非表示 */
+	.memo-table th:nth-child(3),
+	.memo-table td:nth-child(3) {
+		display: none;
 	}
 }

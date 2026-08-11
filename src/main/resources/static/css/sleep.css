@@ -120,6 +120,9 @@
    ========================================================= */
 
 @media (max-width: 768px) {
+	.sleep-page__inner {
+		padding: 20px 14px 48px;
+	}
 
 	.sleep-table {
 		table-layout: auto;

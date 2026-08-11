@@ -50,73 +50,73 @@
 }
 
 /* =========================================================
-Step Table Only
-========================================================= */
+   Step Table Only
+   ========================================================= */
 
 .step-table {
-    width: 100%;
-    table-layout: fixed;
+	width: 100%;
+	table-layout: fixed;
 }
 
 /* 日付 */
 .step-table th:nth-child(1),
 .step-table td:nth-child(1) {
-    width: 130px;
-    white-space: nowrap;
+	width: 120px;
+	white-space: nowrap;
 }
 
 /* 歩数 */
 .step-table th:nth-child(2),
 .step-table td:nth-child(2) {
-    width: 160px;
-    text-align: center;
-    white-space: nowrap;
+	width: 140px;
+	text-align: center;
+	white-space: nowrap;
 }
 
 /* 目標比 */
 .step-table th:nth-child(3),
 .step-table td:nth-child(3) {
-    width: 130px;
-    text-align: center;
-    white-space: nowrap;
+	width: 100px;
+	text-align: center;
+	white-space: nowrap;
 }
 
 /* 最終更新 */
 .step-table th:nth-child(4),
 .step-table td:nth-child(4) {
-    width: 100px;
-    text-align: center;
-    white-space: nowrap;
+	width: 100px;
+	text-align: center;
+	white-space: nowrap;
+	color: var(--wp-text-muted);
 }
 
 /* メモ */
 .step-table th:nth-child(5),
 .step-table td:nth-child(5) {
-    text-align: left;
+	text-align: left;
 }
 
-/* 歩数 */
 .step-table__steps {
-    font-weight: 700;
-    text-align: center;
+	font-weight: 700;
+	text-align: center;
 }
 
-/* メモ */
 .step-table__memo {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    color: var(--wp-text-muted);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	color: var(--wp-text-muted);
 }
 
-/* 操作 */
 .step-table__actions {
-    text-align: right;
-    white-space: nowrap;
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+	gap: 6px;
 }
 
 .step-table__actions-col {
-    width: 90px;
+	width: 90px;
 }
 
 /* =========================================================
@@ -125,6 +125,7 @@ Step Table Only
 @media (max-width: 768px) {
 	.step-table {
 		table-layout: auto;
+		font-size: 13px;
 	}
 
 	.step-page__inner {
@@ -144,9 +145,5 @@ Step Table Only
 	.step-table th:nth-child(5),
 	.step-table td:nth-child(5) {
 		display: none;
-	}
-
-	.step-table {
-		font-size: 13px;
 	}
 }

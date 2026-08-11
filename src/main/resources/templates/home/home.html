@@ -3,273 +3,250 @@
 
 <head>
 	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 	<title>Home | HealthLog</title>
 	<link rel="stylesheet" th:href="@{/css/common.css}" />
 	<link rel="stylesheet" th:href="@{/css/home.css}" />
-	<!-- Chart.js -->
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.462.0/umd/lucide.min.js"></script>
 </head>
 
 <body>
-
 	<!-- ============ Header ============ -->
 	<div th:replace="~{layout/header :: header('home')}"></div>
-
 	<main class="home">
 		<!-- ============ Profile Card ============ -->
 		<section class="profile-card">
-
 			<div class="profile-card__avatar"
 				th:style="${'background:' + (currentProfile.profileColor != null ? currentProfile.profileColor : '#6ec1e4')}">
 				<span th:text="${#strings.substring(currentProfile.name,0,1)}">A</span>
 			</div>
-
 			<div class="profile-card__info">
 				<div class="profile-card__title-row">
 					<span class="profile-card__label">現在のプロファイル</span>
 					<span class="profile-card__badge" th:if="${currentProfile.isPrimary}">本人</span>
 				</div>
-
 				<h1 class="profile-card__name">
 					<span th:text="${currentProfile.name}">母</span>
-					<span class="profile-card__meta">（
-						<span th:text="${currentProfile.age != null ? currentProfile.age : '-'}">35</span>歳・
-						<span th:text="${currentProfile.gender != null ? currentProfile.gender : '-'}">女性</span>）
-					</span>
+					<span class="profile-card__meta">（ <span th:text="${currentProfile.age != null ? currentProfile.age : '-'}">35</span>歳・ <span
+							th:text="${currentProfile.gender == 'MALE' ? '男性' :
+						(currentProfile.gender == 'FEMALE' ? '女性' :
+						(currentProfile.gender == 'OTHER' ? 'その他' : '-'))}">女性</span>） </span>
 				</h1>
-
 				<div class="profile-card__facts">
-					<span>身長：<span
-							th:text="${currentProfile.height != null ? currentProfile.height : '-'}">165</span>cm</span>
+					<span>身長：<span th:text="${currentProfile.height != null ? currentProfile.height : '-'}">165</span>cm</span>
 					<span>生年月日：<span
 							th:text="${currentProfile.birthDate != null ? #temporals.format(currentProfile.birthDate,'yyyy/MM/dd') : '-'}">1988/05/12</span></span>
 					<span>
-						<img th:src="@{/image/profile.png}" alt="" class="icon-sm" />続柄：
-						<span th:text="${currentProfile.isPrimary ? '本人' : currentProfile.relationship}">母</span>
+						<img th:src="@{/image/profile.png}" alt="" class="icon-sm" />続柄： <span
+							th:text="${currentProfile.isPrimary ? '本人' : currentProfile.relationship}">母</span>
 					</span>
 				</div>
 			</div>
-
 			<div class="profile-card__goals">
-
 				<div class="goal-chip goal-chip--weight">
 					<img th:src="@{/image/scales.png}" alt="" class="goal-chip__icon" />
 					<div>
 						<p class="goal-chip__label">目標体重</p>
 						<p class="goal-chip__value"
 							th:text="${goals != null and goals.targetWeight != null ? #numbers.formatDecimal(goals.targetWeight,1,1) + ' kg' : '-'}">
-							55.0 kg
-						</p>
+							55.0 kg </p>
 					</div>
 				</div>
-
 				<div class="goal-chip goal-chip--sleep">
 					<img th:src="@{/image/sleep.png}" alt="" class="goal-chip__icon" />
 					<div>
 						<p class="goal-chip__label">睡眠目標</p>
-						<p class="goal-chip__value"
-							th:text="${goals != null and goals.sleepGoalHours != null ? goals.sleepGoalHours + ' 時間' : '-'}">
-							8.0 時間
-						</p>
+						<p class="goal-chip__value" th:text="${goals != null and goals.sleepGoalHours != null ? goals.sleepGoalHours + ' 時間' : '-'}">
+							8.0 時間 </p>
 					</div>
 				</div>
-
 				<div class="goal-chip goal-chip--water">
 					<img th:src="@{/image/water.png}" alt="" class="goal-chip__icon" />
 					<div>
 						<p class="goal-chip__label">水分目標</p>
-						<p class="goal-chip__value"
-							th:text="${goals != null and goals.waterGoalMl != null ? goals.waterGoalMl + ' ml/日' : '-'}">
-							1500 ml/日
-						</p>
+						<p class="goal-chip__value" th:text="${goals != null and goals.waterGoalMl != null ? goals.waterGoalMl + ' ml/日' : '-'}"> 1500
+							ml/日 </p>
 					</div>
 				</div>
-
 				<div class="goal-chip goal-chip--step">
 					<img th:src="@{/image/footstep.png}" alt="" class="goal-chip__icon" />
 					<div>
 						<p class="goal-chip__label">歩数目標</p>
-						<p class="goal-chip__value" th:text="${goals != null and goals.stepGoal != null ? goals.stepGoal + ' 歩/日' : '-'}">
-							8000 歩/日
+						<p class="goal-chip__value" th:text="${goals != null and goals.stepGoal != null ? goals.stepGoal + ' 歩/日' : '-'}"> 8000 歩/日
 						</p>
 					</div>
 				</div>
 			</div>
 		</section>
-
 		<!-- ============ 4 Stat Cards ============ -->
 		<section class="stat-grid">
-
 			<!-- Weight -->
-			<article class="stat-card stat-card--weight">
+			<article class="stat-card stat-card--weight stat-card--clickable"
+				th:data-href="@{/profile/{profileId}/weight(profileId=${currentProfile.id})}" role="link" tabindex="0">
 				<div class="stat-card__head">
-					<img th:src="@{/image/scales.png}" alt="" class="stat-card__icon" />
-					<h3>体重</h3>
+					<div class="stat-card__title">
+						<img th:src="@{/image/scales.png}" alt="" class="stat-card__icon" />
+						<h3>体重</h3>
+					</div>
+					<span class="stat-card__detail">詳細を見る ›</span>
 				</div>
-
 				<p class="stat-card__value">
-				    <span th:text="${today.weightKg != null ? #numbers.formatDecimal(today.weightKg,1,1) : '-'}">59.0</span>kg
-				    <span class="stat-card__pill" th:if="${today.bmi != null}"
-				        th:text="${'BMI ' + #numbers.formatDecimal(today.bmi,1,1)}">BMI 21.7
-				    </span>
+					<span th:text="${today.weightKg != null ? #numbers.formatDecimal(today.weightKg,1,1) : '-'}">59.0</span>
+					<span th:if="${today.weightKg != null}"> kg</span>
+					<span class="stat-card__pill" th:if="${today.bmi != null}" th:text="${'BMI ' + #numbers.formatDecimal(today.bmi,1,1)}">BMI
+						21.7</span>
 				</p>
-				<p class="stat-card__sub" th:if="${today.targetWeight != null}">目標：
-				    <span th:text="${#numbers.formatDecimal(today.targetWeight,1,1)}">55.0</span>kg
-				</p>
-				<p class="stat-card__goal-status"
-				   th:if="${today.weightGoalText != null}"
-				   th:text="${today.weightGoalText}">
-				    目標まであと4.0 kg
-				</p>
-
-				<a th:href="@{/profile/{profileId}/weight(profileId=${currentProfile.id})}" class="stat-card__link">詳細を見る ›</a>
+				<p class="stat-card__goal-status" th:classappend="${today.weightGoalStatus == 'ACHIEVED'} ? ' is-achieved' :
+						(${today.weightGoalStatus == 'NO_RECORD'} ? ' is-empty' :
+						(${today.weightGoalStatus == 'NO_GOAL'} ? ' is-empty' : ' is-progress'))" th:text="${today.weightGoalText}"> 目標体重を達成しました </p>
 			</article>
-
-
 			<!-- Sleep -->
-			<article class="stat-card stat-card--sleep">
+			<article class="stat-card stat-card--sleep stat-card--clickable"
+				th:data-href="@{/profile/{profileId}/sleep(profileId=${currentProfile.id})}" role="link" tabindex="0">
 				<div class="stat-card__head">
-					<img th:src="@{/image/sleep.png}" alt="" class="stat-card__icon" />
-					<h3>睡眠</h3>
+					<div class="stat-card__title">
+						<img th:src="@{/image/sleep.png}" alt="" class="stat-card__icon" />
+						<h3>睡眠</h3>
+					</div>
+					<span class="stat-card__detail">詳細を見る ›</span>
 				</div>
-
-				<p class="stat-card__value">
-				    <span th:text="${today.sleepHour != null ? today.sleepHour : '-'}">6</span>時間
-				    <span th:text="${today.sleepMinute != null ? today.sleepMinute : 0}">50</span>分
+				<p class="stat-card__value" th:if="${today.sleepHour != null}">
+					<span th:text="${today.sleepHour}">6</span>時間 <span th:text="${today.sleepMinute != null ? today.sleepMinute : 0}">50</span>分
 				</p>
-				<p class="stat-card__sub" th:if="${today.sleepGoalMinutes != null}">目標：
-				    <span th:text="${today.sleepGoalMinutes / 60}">8</span>時間
-				</p>
-				<p class="stat-card__goal-status"
-				   th:if="${today.sleepGoalText != null}"
-				   th:text="${today.sleepGoalText}">
-				    目標まであと1時間10分
-				</p>
-				<a th:href="@{/profile/{profileId}/sleep(profileId=${currentProfile.id})}" class="stat-card__link">詳細を見る ›</a>
+				<p class="stat-card__value" th:if="${today.sleepHour == null}">-</p>
+				<p class="stat-card__goal-status" th:classappend="${today.sleepGoalStatus == 'ACHIEVED'} ? ' is-achieved' :
+						(${today.sleepGoalStatus == 'NO_RECORD'} ? ' is-empty' :
+						(${today.sleepGoalStatus == 'NO_GOAL'} ? ' is-empty' : ' is-progress'))" th:text="${today.sleepGoalText}"> 睡眠目標を達成しました </p>
 			</article>
-
-
 			<!-- Water -->
-			<article class="stat-card stat-card--water">
+			<article class="stat-card stat-card--water stat-card--clickable"
+				th:data-href="@{/profile/{profileId}/water(profileId=${currentProfile.id})}" role="link" tabindex="0">
 				<div class="stat-card__head">
-					<img th:src="@{/image/water.png}" alt="" class="stat-card__icon" />
-					<h3>水分</h3>
+					<div class="stat-card__title">
+						<img th:src="@{/image/water.png}" alt="" class="stat-card__icon" />
+						<h3>水分</h3>
+					</div>
+					<span class="stat-card__detail">詳細を見る ›</span>
 				</div>
-				<p class="stat-card__value"><span th:text="${today['waterMl'] ?: 0}">1200</span>ml</p>
-				<div class="progress-bar">
-					<div class="progress-bar__fill" th:style="${'width:' + (today['waterPercent'] ?: 0) + '%'}"></div>
-				</div>
-				<p class="stat-card__sub">目標の<span th:text="${today['waterPercent'] ?: 0}">60</span>%</p>
-				<a th:href="@{/profile/{profileId}/water(profileId=${currentProfile.id})}" class="stat-card__link">詳細を見る ›</a>
-			</article>
-
-
-			<!-- Step -->
-			<article class="stat-card stat-card--step">
-				<div class="stat-card__head">
-					<img th:src="@{/image/footstep.png}" alt="" class="stat-card__icon" />
-					<h3>歩数</h3>
-				</div>
-				<p class="stat-card__value"><span th:text="${today['stepCount'] ?: 0}">6820</span>歩</p>
-				<div class="progress-bar">
-					<div class="progress-bar__fill progress-bar__fill--green"
-						th:style="${'width:' + (today['stepPercent'] ?: 0) + '%'}">
+				<p class="stat-card__value">
+					<span th:text="${today.waterMl != null ? today.waterMl : '-'}">1200</span>
+					<span th:if="${today.waterMl != null}"> ml</span>
+				</p>
+				<div class="progress-bar" th:if="${today.waterGoalStatus != 'NO_RECORD' and today.waterGoalStatus != 'NO_GOAL'}">
+					<div class="progress-bar__fill" th:style="${'width:' + (today.waterPercent > 100 ? 100 : today.waterPercent) + '%'}">
 					</div>
 				</div>
-				<p class="stat-card__sub">目標の<span th:text="${today['stepPercent'] ?: 0}">85</span>%</p>
-				<a th:href="@{/profile/{profileId}/step(profileId=${currentProfile.id})}" class="stat-card__link">詳細を見る ›</a>
+				<p class="stat-card__goal-status" th:classappend="${today.waterGoalStatus == 'ACHIEVED'} ? ' is-achieved' :
+						(${today.waterGoalStatus == 'NO_RECORD'} ? ' is-empty' :
+						(${today.waterGoalStatus == 'NO_GOAL'} ? ' is-empty' : ' is-progress'))" th:text="${today.waterGoalText}"> 水分目標を達成しました </p>
+			</article>
+			<!-- Step -->
+			<article class="stat-card stat-card--step stat-card--clickable"
+				th:data-href="@{/profile/{profileId}/step(profileId=${currentProfile.id})}" role="link" tabindex="0">
+				<div class="stat-card__head">
+					<div class="stat-card__title">
+						<img th:src="@{/image/footstep.png}" alt="" class="stat-card__icon" />
+						<h3>歩数</h3>
+					</div>
+					<span class="stat-card__detail">詳細を見る ›</span>
+				</div>
+				<p class="stat-card__value">
+					<span th:text="${today.stepCount != null ? today.stepCount : '-'}">6820</span>
+					<span th:if="${today.stepCount != null}"> 歩</span>
+				</p>
+				<div class="progress-bar" th:if="${today.stepGoalStatus != 'NO_RECORD' and today.stepGoalStatus != 'NO_GOAL'}">
+					<div class="progress-bar__fill progress-bar__fill--green"
+						th:style="${'width:' + (today.stepPercent > 100 ? 100 : today.stepPercent) + '%'}">
+					</div>
+				</div>
+				<p class="stat-card__goal-status" th:classappend="${today.stepGoalStatus == 'ACHIEVED'} ? ' is-achieved' :
+						(${today.stepGoalStatus == 'NO_RECORD'} ? ' is-empty' :
+						(${today.stepGoalStatus == 'NO_GOAL'} ? ' is-empty' : ' is-progress'))" th:text="${today.stepGoalText}"> 歩数目標を達成しました </p>
 			</article>
 		</section>
-
-		<!-- ============ Memo row ============ -->
-		<section class="row-2col">
-			<section class="memo-card">
-				<div class="memo-card__header">
-					<h2>
-						<img th:src="@{/image/notes.png}" alt="" class="icon-sm" />最近の健康メモ
-					</h2>
-					<a th:href="@{/profile/{profileId}/memo(profileId=${currentProfile.id})}" class="link-btn">すべて見る ›</a>
-				</div>
-
-				<ul class="memo-card__list" th:if="${recentMemos != null and !#lists.isEmpty(recentMemos)}">
-					<li th:each="memo : ${recentMemos}">
-						<p class="memo-card__date" th:text="${#temporals.format(memo.recordedDate,'yyyy/MM/dd')}">2026/08/09</p>
-						<p class="memo-card__title" th:text="${memo.title}">今日の体調</p>
-						<p class="memo-card__text" th:text="${memo.content}">今日はよく眠れた気がします。</p>
-					</li>
-				</ul>
-				<p class="empty-text" th:if="${recentMemos == null or #lists.isEmpty(recentMemos)}">直近3日間のメモはありません。</p>
-				<p class="empty-text" th:if="${#lists.isEmpty(recentMemos)}">メモはまだありません。</p>
-			</section>
+		<!-- ============ Recent Memo ============ -->
+		<section class="memo-card">
+			<div class="memo-card__header">
+				<h2>
+					<img th:src="@{/image/notes.png}" alt="" class="icon-sm" />最近の健康メモ
+				</h2>
+				<a th:href="@{/profile/{profileId}/memo(profileId=${currentProfile.id})}" class="link-btn">すべて見る ›</a>
+			</div>
+			<ul class="memo-card__list" th:if="${recentMemos != null and !#lists.isEmpty(recentMemos)}">
+				<li th:each="memo : ${recentMemos}">
+					<p class="memo-card__date" th:text="${#temporals.format(memo.recordedDate,'yyyy/MM/dd')}">2026/08/09</p>
+					<p class="memo-card__title" th:text="${memo.title}">今日の体調</p>
+					<p class="memo-card__text" th:text="${memo.content}">今日はよく眠れた気がします。</p>
+				</li>
+			</ul>
+			<p class="empty-text" th:if="${recentMemos == null or #lists.isEmpty(recentMemos)}">直近3日間のメモはありません。</p>
 		</section>
-
-
-		<!-- ============ Family + Feedback row ============ -->
-		<section class="row-2col">
-			<section class="family-card">
-				<div class="family-card__header">
-					<h2>
-						<img th:src="@{/image/family.png}" alt="" class="icon-sm" />
-						家族健康サマリー
-					</h2>
-
-					<span class="family-card__note">
-						今日のファミリーヘルス：
-						<span th:text="${familySummary.doneCount}">0</span>人中
-						<span th:text="${familySummary.totalCount}">0</span>人が記録完了
-					</span>
-				</div>
-
-				<div class="family-card__grid" th:if="${!#lists.isEmpty(familyMembers)}">
-					<article class="family-member" th:each="member : ${familyMembers}" th:classappend="${member.status == 'OK'} ? ' is-ok' :
-							(member.status == 'WARN' ? ' is-warn' : ' is-danger')">
-
-						<div class="family-member__avatar"
-							th:style="${'background:' + (member.profileColor != null ? member.profileColor : '#6ec1e4')}">
-							<span th:text="${#strings.substring(member.name,0,1)}">A</span>
+		<!-- ============ Family Summary ============ -->
+		<section class="family-card">
+			<div class="family-card__header">
+				<h2>
+					<img th:src="@{/image/family.png}" alt="" class="icon-sm" /> 家族健康サマリー
+				</h2>
+				<span class="family-card__note" th:if="${familySummary.totalCount > 0}"> 今日のファミリーヘルス： <span th:if="${familySummary.attentionCount == 0}">
+						現在、確認が必要な項目はありません </span>
+					<span th:if="${familySummary.attentionCount > 0}">
+						<strong th:text="${familySummary.attentionCount}">1</strong>人に確認が必要です </span>
+				</span>
+			</div>
+			<div class="family-card__grid" th:if="${!#lists.isEmpty(familyMembers)}">
+				<article class="family-member" th:each="member : ${familyMembers}" th:classappend="${member.status == 'OK'} ? ' is-ok' :
+						(member.status == 'WARN' ? ' is-warn' : ' is-danger')">
+					<div class="family-member__identity">
+						<p class="family-member__name" th:text="${member.name}">父</p>
+						<span class="family-member__age" th:text="${member.age != null ? member.age + '歳' : ''}">58歳</span>
+					</div>
+					<div class="family-member__details">
+						<div class="family-member__row">
+							<span class="family-member__label">健康状態</span>
+							<span class="family-member__colon">：</span>
+							<span class="family-member__status">
+								<img th:src="@{/image/check.png}" class="icon-sm" th:if="${member.status == 'OK'}" alt="" />
+								<img th:src="@{/image/warning.png}" class="icon-sm" th:if="${member.status != 'OK'}" alt="" />
+								<span th:text="${member.statusLabel}">要確認</span>
+							</span>
 						</div>
-
-						<p class="family-member__name" th:text="${member.name + '（' + member.age + '歳）'}">父（37歳）</p>
-
-						<p class="family-member__status">
-							<img th:src="@{/image/check.png}" class="icon-sm" th:if="${member.status == 'OK'}" />
-							<img th:src="@{/image/warning.png}" class="icon-sm" th:if="${member.status != 'OK'}" />
-							<span th:text="${member.statusLabel}">水分未入力</span>
-						</p>
-
-						<p class="family-member__ratio"
-							th:text="${member.doneItems + ' / ' + member.totalItems + ' 項目'}">
-							3 / 4 項目
-						</p>
-						<p class="family-member__time" th:text="${member.updatedTime + ' 更新'}">18:40 更新</p>
-					</article>
-				</div>
-				<p class="empty-text" th:if="${#lists.isEmpty(familyMembers)}">登録されているプロファイルはありません。</p>
-				<a th:href="@{/profile/profile-manage}" class="family-card__select-btn">
-					<img th:src="@{/image/profile.png}" alt="" class="icon-sm" />プロファイル選択へ移動
-				</a>
-			</section>
-
-
-			<section class="feedback-panel">
-				<div class="feedback-panel__header">
-					<h2><img th:src="@{/image/shield.png}" alt="" class="icon-sm" />健康フィードバック（重要度の高い順に表示）</h2>
-					<a th:href="@{/profile/{profileId}/feedback(profileId=${currentProfile.id})}" class="link-btn">すべて見る
-						›</a>
-				</div>
-				<div th:replace="~{layout/data-controls :: feedbackList(feedbackList=${feedbackList})}"></div>
-				<p class="empty-text" th:if="${#lists.isEmpty(feedbackList)}">現在フィードバックはありません。</p>
-			</section>
+						<div class="family-member__row family-member__row--attention"
+							th:if="${member.attentionItems != null and !#lists.isEmpty(member.attentionItems)}">
+							<span class="family-member__label">注意事項</span>
+							<span class="family-member__colon">：</span>
+							<div class="family-member__attention">
+								<span th:each="item : ${member.attentionItems}" th:text="${item}">水分摂取量が少なめです</span>
+							</div>
+						</div>
+						<div class="family-member__row">
+							<span class="family-member__label">今日の記録</span>
+							<span class="family-member__colon">：</span>
+							<span class="family-member__value" th:text="${member.doneItems + ' / ' + member.totalItems + ' 項目'}">4 / 4 項目</span>
+						</div>
+						<div class="family-member__row">
+							<span class="family-member__label">最終更新</span>
+							<span class="family-member__colon">：</span>
+							<span class="family-member__value family-member__value--muted" th:text="${member.updatedTime}">14:20</span>
+						</div>
+					</div>
+				</article>
+			</div>
+			<p class="empty-text" th:if="${#lists.isEmpty(familyMembers)}">登録されているプロファイルはありません。</p>
+			<a th:href="@{/profile/profile-manage}" class="family-card__select-btn">
+				<img th:src="@{/image/profile.png}" alt="" class="icon-sm" /> プロファイル選択へ移動 </a>
 		</section>
-
-		<script th:inline="javascript">
-			/*<![CDATA[*/
-			const trendChartData = /*[[${trendChart}]]*/ {};
-			/*]]>*/
-		</script>
+		<!-- ============ Health Feedback ============ -->
+		<section class="feedback-panel">
+			<div class="feedback-panel__header">
+				<h2>
+					<img th:src="@{/image/shield.png}" alt="" class="icon-sm" /> 健康フィードバック（重要度の高い順に表示）
+				</h2>
+			</div>
+			<div th:replace="~{layout/data-controls :: feedbackList(feedbackList=${feedbackList})}"></div>
+			<p class="empty-text" th:if="${#lists.isEmpty(feedbackList)}">現在フィードバックはありません。</p>
+		</section>
 		<script th:src="@{/js/home.js}"></script>
-	<script th:src="@{/js/common.js}"></script>
+		<script th:src="@{/js/common.js}"></script>
 </body>
 
 </html>
