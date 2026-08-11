@@ -46,4 +46,4 @@ bin/
 *.class
 
 .metadata/
-Servers/
+Servers/.DS_Store
