@@ -27,7 +27,7 @@ public class StepFeedbackRule {
 	private final StepRepository stepRepository;
 	private final ProfileRepository profileRepository;
 
-	//目標達成率
+	// 目標達成率
 	private static final int ALMOST_MIN_PERCENT = 80;
 	private static final int LOW_THRESHOLD_PERCENT = 50;
 
@@ -50,13 +50,9 @@ public class StepFeedbackRule {
 
 		long daysSinceLast = ChronoUnit.DAYS.between(lastEverOpt.get().getRecordedDate(), today);
 		if (daysSinceLast >= NO_RECORD_DAYS_THRESHOLD) {
-			items.add(new FeedbackItem(
-					FeedbackType.STEP_NO_RECORD,
-					FeedbackLevel.LV2,
-					"最近、歩数記録がありません",
+			items.add(new FeedbackItem(FeedbackType.STEP_NO_RECORD, FeedbackLevel.LV2, "最近、歩数記録がありません",
 					"最後の記録から" + daysSinceLast + "日経っています。今日の歩数を記録してみましょう。",
-					lastEverOpt.get().getRecordedDate().atStartOfDay(),
-					"lightbulb"));
+					lastEverOpt.get().getRecordedDate().atStartOfDay(), "lightbulb"));
 			return items;
 		}
 
@@ -75,12 +71,8 @@ public class StepFeedbackRule {
 		if (previousBeforeToday.isPresent()) {
 			long gapDays = ChronoUnit.DAYS.between(previousBeforeToday.get().getRecordedDate(), today);
 			if (gapDays > 1) {
-				items.add(new FeedbackItem(
-						FeedbackType.STEP_RESUMED,
-						FeedbackLevel.LV0,
-						"記録を再開しました",
-						"前回の記録から" + gapDays + "日空きましたが、今日また記録できました。この調子で続けましょう。",
-						today.atStartOfDay(),
+				items.add(new FeedbackItem(FeedbackType.STEP_RESUMED, FeedbackLevel.LV0, "記録を再開しました",
+						"前回の記録から" + gapDays + "日空きましたが、今日また記録できました。この調子で続けましょう。", today.atStartOfDay(),
 						"calendar-check"));
 			} else if (!dailyTotals.containsKey(yesterday)) {
 				items.add(buildNoRecordReminder(today, "昨日の歩数記録がありません", "昨日分の歩数データが記録されていません。忘れずに記録しましょう。"));
@@ -93,13 +85,8 @@ public class StepFeedbackRule {
 		boolean hasGoal = goal != null && goal > 0;
 
 		if (!hasGoal) {
-			mainFeedback.add(new FeedbackItem(
-					FeedbackType.STEP_NO_GOAL,
-					FeedbackLevel.LV0,
-					"歩数の目標が設定されていません",
-					"目標を設定すると、あなたに合ったフィードバックが受け取れます。",
-					today.atStartOfDay(),
-					"target"));
+			mainFeedback.add(new FeedbackItem(FeedbackType.STEP_NO_GOAL, FeedbackLevel.LV1, "今日の歩数記録を完了しました",
+					"歩数の記録、お疲れさまでした！目標を設定すると、より詳しいフィードバックが受け取れます。", today.atStartOfDay(), "check-circle"));
 		} else {
 			checkLowSteps(dailyTotals, today, goal, mainFeedback); // LV3
 			if (mainFeedback.isEmpty()) {
@@ -113,7 +100,7 @@ public class StepFeedbackRule {
 		return items;
 	}
 
-	//目標の50%未満
+	// 目標の50%未満
 	private void checkLowSteps(Map<LocalDate, Integer> dailyTotals, LocalDate today, Integer goal,
 			List<FeedbackItem> items) {
 		Integer total = dailyTotals.get(today);
@@ -124,11 +111,11 @@ public class StepFeedbackRule {
 		if (rate >= LOW_THRESHOLD_PERCENT) {
 			return;
 		}
-		items.add(new FeedbackItem(FeedbackType.STEP_LOW, FeedbackLevel.LV3,
-				"歩数が少ないです", "現在の歩数は目標の" + rate + "%です。少し体を動かしてみましょう。", today.atStartOfDay(), "alert-triangle"));
+		items.add(new FeedbackItem(FeedbackType.STEP_LOW, FeedbackLevel.LV3, "歩数が少ないです",
+				"現在の歩数は目標の" + rate + "%です。少し体を動かしてみましょう。", today.atStartOfDay(), "alert-triangle"));
 	}
 
-	//目標80%以上達成
+	// 目標50%以上100%未満
 	private void checkAlmostGoal(Map<LocalDate, Integer> dailyTotals, LocalDate today, Integer goal,
 			List<FeedbackItem> items) {
 		Integer total = dailyTotals.get(today);
@@ -136,11 +123,23 @@ public class StepFeedbackRule {
 			return;
 		}
 		int rate = (int) Math.round(total * 100.0 / goal);
-		if (rate < ALMOST_MIN_PERCENT || rate >= 100) {
+		if (rate < LOW_THRESHOLD_PERCENT || rate >= 100) {
 			return;
 		}
-		items.add(new FeedbackItem(FeedbackType.STEP_ALMOST, FeedbackLevel.LV2,
-				"もう少しで目標達成です", "現在 " + rate + "% 達成しています。あと少し歩いてみましょう。", today.atStartOfDay(), "lightbulb"));
+		String title;
+		String message;
+
+		if (rate < ALMOST_MIN_PERCENT) {
+			// 50～79%
+			title = "目標達成に向けて順調です";
+			message = "現在 " + rate + "% 達成しています。目標達成に向けて、もう少し歩いてみましょう。";
+		} else {
+			// 80～99%
+			title = "もう少しで目標達成です";
+			message = "現在 " + rate + "% 達成しています。あと少しで目標達成です。";
+		}
+		items.add(new FeedbackItem(FeedbackType.STEP_ALMOST, FeedbackLevel.LV2, title, message, today.atStartOfDay(),
+				"lightbulb"));
 	}
 
 	private void checkComplete(Map<LocalDate, Integer> dailyTotals, LocalDate today, Integer goal,
@@ -154,13 +153,12 @@ public class StepFeedbackRule {
 			return;
 		}
 		items.add(new FeedbackItem(FeedbackType.STEP_COMPLETE, FeedbackLevel.LV1, "歩数目標を達成しました",
-				"本日の歩数は" + total + "歩です。設定した歩数目標を達成しました！",
-				today.atStartOfDay(), "check-circle"));
+				"本日の歩数は" + total + "歩です。設定した歩数目標を達成しました！", today.atStartOfDay(), "check-circle"));
 	}
 
 	private FeedbackItem buildNoRecordReminder(LocalDate today, String title, String message) {
-		return new FeedbackItem(FeedbackType.STEP_NO_RECORD, FeedbackLevel.LV0, title, message,
-				today.atStartOfDay(), "calendar-x");
+		return new FeedbackItem(FeedbackType.STEP_NO_RECORD, FeedbackLevel.LV0, title, message, today.atStartOfDay(),
+				"calendar-x");
 	}
 
 	// 日ごとの合計歩数
