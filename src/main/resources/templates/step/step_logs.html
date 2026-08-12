@@ -132,16 +132,19 @@
 								</td>
 								<td class="step-table__memo memo-cell" th:text="${record.memo != null ? record.memo : ''}"
 									th:attr="data-full-memo=${record.memo != null ? record.memo : ''}"></td>
-								<td class="step-table__actions">
-									<button type="button" class="icon-btn edit-btn" th:data-id="${record.id}" th:data-date="${record.recordedDate}"
-										th:data-steps="${record.steps}" th:data-memo="${record.memo}" aria-label="編集">
-										<img th:src="@{/image/edit.png}" class="icon-btn-img" alt="編集">
-									</button>
-									<form th:action="@{/profile/{profileId}/step/{logId}/delete(profileId=${profileId},logId=${record.id})}" method="post" class="delete-form"
-										th:attr="data-confirm-message='「' + ${record.recordedDate} + '」の歩数記録を削除しますか？&#10;この操作は取り消せません。'">
-										<button type="submit" class="icon-btn icon-btn--danger" aria-label="削除">
+									<td class="step-table__actions">
+										<button type="button" class="icon-btn edit-btn" th:data-id="${record.id}" th:data-date="${record.recordedDate}"
+											th:data-steps="${record.steps}" th:data-memo="${record.memo}" aria-label="編集">
+											<img th:src="@{/image/edit.png}" class="icon-btn-img" alt="編集">
+										</button>
+										<button type="submit" th:form="'deleteForm-' + ${record.id}" class="icon-btn icon-btn--danger" aria-label="削除">
 											<img th:src="@{/image/delete.png}" class="icon-btn-img" alt="削除">
 										</button>
+									</td>
+									<form th:id="'deleteForm-' + ${record.id}"
+										th:action="@{/profile/{profileId}/step/{logId}/delete(profileId=${profileId},logId=${record.id})}"
+										method="post" class="delete-form"
+										th:attr="data-confirm-message='「' + ${record.recordedDate} + '」の歩数記録を削除しますか？&#10;この操作は取り消せません。'">
 									</form>
 								</td>
 							</tr>

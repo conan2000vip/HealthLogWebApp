@@ -62,8 +62,7 @@ public class WeightFeedbackRule {
 		boolean hasToday = latestLogs.stream().anyMatch(w -> w.getRecordedDate().isEqual(today));
 
 		if (!hasToday) {
-			items.add(
-					buildNoRecordReminder(today, "今日の体重記録がありません", "今日の体重データがまだ記録されていません。記録すると、あなたに合ったフィードバックが受け取れます。"));
+			items.add(buildNoRecordReminder(today, "体重記録がありません", "今日の体重データがまだ記録されていません。記録すると、あなたに合ったフィードバックが受け取れます。"));
 		} else if (latestLogs.size() >= 2) {
 			LocalDate previousDate = latestLogs.get(1).getRecordedDate();
 			long gapDays = ChronoUnit.DAYS.between(previousDate, today);
@@ -113,8 +112,7 @@ public class WeightFeedbackRule {
 		// 目標体重達成（±0.5kg以内）
 		if (absDiff.compareTo(TARGET_ACHIEVED_TOLERANCE_KG) <= 0) {
 			items.add(new FeedbackItem(FeedbackType.WEIGHT_GOAL_ACHIEVED, FeedbackLevel.LV1, "目標体重を達成しました",
-					"現在の体重は" + current + "kgです。設定した目標体重に達しています！",
-					latest.getMeasuredAt(), "check-circle"));
+					"現在の体重は" + current + "kgです。設定した目標体重に達しています！", latest.getMeasuredAt(), "check-circle"));
 			return;
 		}
 

@@ -32,14 +32,13 @@
 		th:if="${feedbackList != null and not #lists.isEmpty(feedbackList)}">
 		<div class="feedback-card" th:each="fb, iterStat : ${feedbackList}"
 			th:classappend="${' feedback-card--' + fb.level.cssClass + (iterStat.index >= 3 ? ' is-hidden' : '')}">
-			<div class="feedback-card__icon"><i th:data-lucide="${fb.icon}"></i></div>
 			<div class="feedback-card__content">
 				<div class="feedback-card__title" th:text="${fb.title}">急激な体重変化があります</div>
 				<div class="feedback-card__message" th:text="${fb.message}">前回比で-2.1kgの変化がありました。</div>
 			</div>
 			<div class="feedback-card__meta">
 				<span class="feedback-card__time" th:text="${#temporals.format(fb.occurredAt, 'M/d HH:mm')}">7/10 16:20</span>
-				<span class="feedback-card__badge"  th:text="${fb.level.label}">重要</span>
+				<span class="feedback-card__badge" th:text="${fb.level.label}">重要</span>
 			</div>
 		</div>
 		<button type="button" class="feedback-list__toggle" id="feedbackToggleBtn" th:if="${feedbackList != null and #lists.size(feedbackList) > 3}"

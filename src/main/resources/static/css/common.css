@@ -2,30 +2,30 @@
    共通デザイントークン
    色・余白・角丸・影・フォント・ヘッダー高さを一元管理
    ========================================================= */
-:root {
-	--app-header-height: 81px;
-	--wp-primary: #4caf50;
-	--wp-primary-dark: rgb(11, 151, 95);
-	--wp-primary-light: #ccfbf1;
-	--wp-bg-gradient: linear-gradient(180deg,
-			#e6f7f3 0%,
-			#f4fbfa 40%,
-			#ffffff 100%);
-	--wp-text: #1f2937;
-	--wp-text-muted: #6b7280;
-	--wp-border: #e5e7eb;
-	--wp-danger: #ef4444;
-	--wp-danger-bg: #fef2f2;
-	--wp-success: #4caf50;
-	--wp-warning: #f59e0b;
-	--wp-radius-lg: 16px;
-	--wp-radius-md: 12px;
-	--wp-radius-sm: 8px;
-	--wp-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);
-	--wp-shadow-lg: 0 20px 50px rgba(15, 23, 42, 0.18);
-	--wp-font:
-		"Noto Sans JP", "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
-}
+   :root {
+   	--app-header-height: 81px;
+   	--wp-primary: #4caf50;
+   	--wp-primary-dark: rgb(11, 151, 95);
+   	--wp-primary-light: #ccfbf1;
+   	--wp-bg-gradient: linear-gradient(180deg,
+   			#e6f7f3 0%,
+   			#f4fbfa 40%,
+   			#ffffff 100%);
+   	--wp-text: #1f2937;
+   	--wp-text-muted: #6b7280;
+   	--wp-border: #e5e7eb;
+   	--wp-danger: #ef4444;
+   	--wp-danger-bg: #fef2f2;
+   	--wp-success: #4caf50;
+   	--wp-warning: #f59e0b;
+   	--wp-radius-lg: 16px;
+   	--wp-radius-md: 12px;
+   	--wp-radius-sm: 8px;
+   	--wp-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);
+   	--wp-shadow-lg: 0 20px 50px rgba(15, 23, 42, 0.18);
+   	--wp-font:
+   		"Noto Sans JP", "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+   }
 
 /* ===== ページ全体 ===== */
 body {
@@ -573,13 +573,9 @@ body {
 	padding: 14px 16px;
 	border-radius: 12px;
 	border-left: 4px solid transparent;
-	background: #ffffff;
+	background: #e6e9f2;
 	box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
 	box-sizing: border-box;
-}
-
-.feedback-card__icon {
-	display: none;
 }
 
 .feedback-card__content {
@@ -628,14 +624,18 @@ body {
 	font-weight: 800;
 	padding: 3px 10px;
 	border-radius: 6px;
-	color: #fff;
+	color: #ffffff;
+	background: #64748b;
 	white-space: nowrap;
 }
 
 /* Level 4 */
 .feedback-card--lv4 {
-	border-left-color: #ef4444;
-	background: linear-gradient(90deg, #fef2f2 0%, #ffffff 60%);
+	background: #fee2e2;
+}
+
+.feedback-card--lv4 .feedback-card__title {
+	color: #ef4444;
 }
 
 .feedback-card--lv4 .feedback-card__badge {
@@ -644,8 +644,11 @@ body {
 
 /* Level 3 */
 .feedback-card--lv3 {
-	border-left-color: #f59e0b;
-	background: linear-gradient(90deg, #fffbeb 0%, #ffffff 60%);
+	background: #fef3c7;
+}
+
+.feedback-card--lv3 .feedback-card__title {
+	color: #f59e0b;
 }
 
 .feedback-card--lv3 .feedback-card__badge {
@@ -654,8 +657,11 @@ body {
 
 /* Level 2 */
 .feedback-card--lv2 {
-	border-left-color: #3b82f6;
-	background: linear-gradient(90deg, #eff6ff 0%, #ffffff 60%);
+	background: #dbeafe;
+}
+
+.feedback-card--lv2 .feedback-card__title {
+	color: #3b82f6;
 }
 
 .feedback-card--lv2 .feedback-card__badge {
@@ -664,8 +670,11 @@ body {
 
 /* Level 1 */
 .feedback-card--lv1 {
-	border-left-color: #10b981;
-	background: linear-gradient(90deg, #ecfdf5 0%, #ffffff 60%);
+	background: #d1fae5;
+}
+
+.feedback-card--lv1 .feedback-card__title {
+	color: #10b981;
 }
 
 .feedback-card--lv1 .feedback-card__badge {
@@ -1157,7 +1166,7 @@ body {
 }
 
 .delete-form {
-	display: inline;
+	display: none;
 }
 
 /* =========================================================
@@ -1618,10 +1627,6 @@ body {
 		padding: 11px 12px;
 	}
 
-	.feedback-card__icon {
-		display: none;
-	}
-
 	.feedback-card__content {
 		grid-column: 1;
 		grid-row: 1;
@@ -1630,8 +1635,9 @@ body {
 	}
 
 	.feedback-card__title {
-		font-size: 13px;
-		line-height: 1.45;
+		font-size: 14.5px;
+		font-weight: 700;
+		color: #1f2937;
 	}
 
 	.feedback-card__message {

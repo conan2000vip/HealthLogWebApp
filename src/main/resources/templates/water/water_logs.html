@@ -148,13 +148,15 @@
 												th:data-memo="${record.memo}" aria-label="編集">
 											<img th:src="@{/image/edit.png}" alt="編集" class="icon-btn-img" />
 										</button>
-										<form th:action="@{/profile/{profileId}/water/{id}/delete(profileId=${profileId},id=${record.id})}"
-											  method="post" class="delete-form"
-											  th:attr="data-confirm-message='「' + ${record.recordedDate} + '」の水分記録を削除しますか？&#10;この操作は取り消せません。'">
-											<button type="submit" class="icon-btn icon-btn--danger" aria-label="削除">
-												<img th:src="@{/image/delete.png}" alt="削除" class="icon-btn-img" />
-											</button>
-										</form>
+										<button type="submit" th:form="'deleteForm-' + ${record.id}" class="icon-btn icon-btn--danger" aria-label="削除">
+											<img th:src="@{/image/delete.png}" alt="削除" class="icon-btn-img" />
+										</button>
+									</td>
+									<form th:id="'deleteForm-' + ${record.id}"
+										th:action="@{/profile/{profileId}/water/{id}/delete(profileId=${profileId},id=${record.id})}"
+										method="post" class="delete-form"
+										th:attr="data-confirm-message='「' + ${record.recordedDate} + '」の水分記録を削除しますか？&#10;この操作は取り消せません。'">
+									</form>
 									</td>
 								</tr>
 							</tbody>

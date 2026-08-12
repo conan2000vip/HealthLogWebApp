@@ -109,10 +109,11 @@
 }
 
 .step-table__actions {
-	display: flex;
-	align-items: center;
-	justify-content: flex-end;
-	gap: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 6px;
+    white-space: nowrap;
 }
 
 .step-table__actions-col {
