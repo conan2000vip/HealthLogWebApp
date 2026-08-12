@@ -32,7 +32,17 @@ import lombok.Setter;
 public class Water {
 
 	public enum DrinkType {
-		WATER, TEA, MILK, COFFEE, JUICE, SPORTS_DRINK, OTHER
+		WATER("水"), TEA("お茶"), MILK("牛乳"), COFFEE("コーヒー"), JUICE("ジュース"), SPORTS_DRINK("スポーツドリンク"), OTHER("その他");
+
+		private final String label;
+
+		DrinkType(String label) {
+			this.label = label;
+		}
+
+		public String getLabel() {
+			return label;
+		}
 	}
 
 	@Id
@@ -65,6 +75,9 @@ public class Water {
 
 	@Column(name = "updated_at", nullable = false)
 	private LocalDateTime updatedAt = LocalDateTime.now();
+
+	@jakarta.persistence.Transient
+	private java.math.BigDecimal goalRate;
 
 	@PrePersist
 	protected void onCreate() {

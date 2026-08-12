@@ -65,7 +65,7 @@ public interface SleepRepository extends JpaRepository<Sleep, Long> {
 			LocalDate to,
 			Pageable pageable);
 
-	// Latest
+	Optional<Sleep> findTopByProfile_IdAndRecordedDateLessThanOrderByRecordedDateDesc(Long profileId, LocalDate date);
 
 	Optional<Sleep> findTopByProfile_IdOrderByRecordedDateDesc(Long profileId);
 

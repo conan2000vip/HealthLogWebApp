@@ -40,11 +40,11 @@ public class Memo {
 	@Column(name = "recorded_date", nullable = false)
 	private LocalDate recordedDate;
 
-	@Column(name = "title", length = 100, nullable = false)
+	@Column(name = "title", length = 100)
 	private String title;
 
 	@Column(name = "content", nullable = false)
-	private String content; // 最大2000文字（アプリ側でバリデーション）
+	private String content;
 
 	@Column(name = "created_at", nullable = false, updatable = false)
 	private LocalDateTime createdAt = LocalDateTime.now();

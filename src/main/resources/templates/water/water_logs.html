@@ -6,20 +6,19 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<title>水分管理 | HealthLog</title>
 		<link rel="preconnect" href="https://fonts.googleapis.com" />
-		<link rel="stylesheet"
-			href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700;800&display=swap" />
+		<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700;800&display=swap" />
 		<link rel="stylesheet" th:href="@{/css/common.css}" />
 		<link rel="stylesheet" th:href="@{/css/water.css}" />
 	</head>
 
 	<body>
 
-		<!-- ===== Header ===== -->
+		<!-- ===== Header / ヘッダー ===== -->
 		<div th:replace="~{layout/header :: header(activePage='water')}"></div>
 		<main class="water-page">
 			<div class="water-page__inner">
 
-				<!-- Page Header -->
+				<!-- Page Header / ページヘッダー -->
 				<div class="water-page__header">
 					<div class="water-page__heading">
 						<span class="water-page__icon">
@@ -35,52 +34,61 @@
 					</button>
 				</div>
 
-				<!-- Business Error / Success -->
-				<div class="alert alert--error" th:if="${error}" id="errorAlert">
+				<!-- Business Error / Success / エラー・成功メッセージ -->
+				<div class="alert alert--error" th:if="${error}" id="errorAlert" data-auto-hide="true">
 					<i data-lucide="alert-circle"></i><span th:text="${error}"></span>
 					<button type="button" class="alert__close" onclick="this.closest('.alert').remove()">
 						<i data-lucide="x"></i>
 					</button>
 				</div>
-				<div class="alert alert--success" th:if="${message}" id="successAlert">
+				<div class="alert alert--success" th:if="${message}" id="successAlert" data-auto-hide="true">
 					<i data-lucide="check-circle"></i><span th:text="${message}"></span>
 					<button type="button" class="alert__close" onclick="this.closest('.alert').remove()">
 						<i data-lucide="x"></i>
 					</button>
 				</div>
 
-				<div class="summary-grid">
+				<!-- Feedback / フィードバック -->
+				<div th:replace="~{layout/data-controls :: feedbackList(feedbackList=${feedbackList})}"></div>
 
+				<!-- Summary Cards / サマリーカード -->
+				<div class="summary-grid">
 					<div class="summary-card">
 						<span class="summary-card__label">最新</span>
 						<span class="summary-card__value">
-							<span th:text="${stats.latest ?: '--'}"></span> ml
+							<span th:text="${stats?.latest ?: '--'}"></span> ml
 						</span>
+						<span class="summary-card__sub" th:if="${stats?.latestDate != null}"
+							th:text="'最終記録：' + ${#temporals.format(stats.latestDate,'yyyy/MM/dd')}"></span>
 					</div>
 
 					<div class="summary-card">
-						<span class="summary-card__label">今日合計</span>
+						<span class="summary-card__label">今日の水分合計</span>
 						<span class="summary-card__value">
-							<span th:text="${stats.todayTotal ?: '--'}"></span> ml
+							<span th:text="${stats?.todayTotal ?: '--'}"></span> ml
 						</span>
+						<span class="summary-card__sub" th:if="${stats?.todayDate != null}"
+							th:text="${#temporals.format(stats.todayDate,'yyyy/MM/dd')} + ' 時点'"></span>
 					</div>
 
 					<div class="summary-card">
 						<span class="summary-card__label">今月平均</span>
 						<span class="summary-card__value">
-							<span th:text="${stats.monthAverage ?: '--'}"></span> ml
+							<span th:text="${stats?.monthAverage ?: '--'}"></span> ml
 						</span>
+						<span class="summary-card__sub" th:if="${stats?.monthAverage != null}">今月の1日平均</span>
 					</div>
 
 					<div class="summary-card">
 						<span class="summary-card__label">目標達成率</span>
 						<span class="summary-card__value">
-							<span th:text="${stats.goalRate ?: '--'}"></span>%
+							<span th:text="${stats?.goalRate ?: '--'}"></span>%
 						</span>
+						<span class="summary-card__sub" th:if="${stats?.goalRate != null}">本日の目標に対する割合</span>
 					</div>
 				</div>
 
-				<!-- Filter Bar (dùng chung) -->
+				<!-- Shared Filter Bar / 共通フィルターバー -->
 				<div th:replace="~{layout/data-controls :: filterBar(
 				actionUrl=@{/profile/{profileId}/water(profileId=${profileId})},
 				clearUrl=@{/profile/{profileId}/water(profileId=${profileId})},
@@ -88,20 +96,22 @@
 				filterEndDate=${filterEndDate})}">
 				</div>
 
-				<!-- Chart Card (dùng chung) -->
+				<!-- Shared Chart Card / 共通グラフカード -->
 				<div th:replace="~{layout/data-controls :: chartCard(
 				title='水分摂取量推移',
 				canvasId='waterChart',
-				hasData=${not #lists.isEmpty(logs)})}">
+				hasData=${not #lists.isEmpty(logs)},
+				chartUrl=@{/profile/{profileId}/water/chart-data(profileId=${profileId})})}">
 				</div>
 
-				<!-- Table / Empty state -->
+				<!-- Table / Empty State / テーブル・空状態 -->
 				<section class="table-card">
 					<div class="data-table-scroll">
 						<table class="water-table" data-history-table th:if="${not #lists.isEmpty(logs)}">
 							<thead>
 								<tr>
 									<th>日付</th>
+									<th>時間</th>
 									<th>飲み物</th>
 									<th>量 (ml)</th>
 									<th>目標比</th>
@@ -110,10 +120,12 @@
 								</tr>
 							</thead>
 							<tbody>
-								<tr th:each="record : ${logs}" th:data-date="${record.recordedDate}"
-									th:data-value="${record.amountMl}">
+								<tr th:each="record : ${logs}" th:data-date="${record.recordedDate}" th:data-value="${record.amountMl}">
 									<td th:text="${record.recordedDate}">2026-08-03</td>
-									<td><span class="water-drink" th:text="${record.drinkType}">水</span></td>
+									<td class="water-table__time"
+										th:text="${record.recordedTime != null ? #temporals.format(record.recordedTime,'HH:mm') : '--'}">
+									</td>
+									<td><span class="water-drink" th:text="${record.drinkType != null ? record.drinkType.label : '--'}">水</span></td>
 									<td class="water-table__amount">
 										<strong>
 											<span th:text="${record.amountMl}">250</span> ml
@@ -121,28 +133,30 @@
 									</td>
 									<td>
 										<span th:if="${record.goalRate != null}" class="badge"
-											th:classappend="${record.goalRate < 20 ? ' badge--danger' :record.goalRate < 50 ? ' badge--warning' :record.goalRate < 100 ? ' badge--info' :' badge--success'}"
-											th:text="${record.goalRate + '%'}">
+											  th:classappend="${record.goalRate < 20 ? ' badge--danger' :record.goalRate < 50 ? ' badge--warning' :record.goalRate < 100 ? ' badge--info' :' badge--success'}"
+											  th:text="${record.goalRate + '%'}">
 										</span>
 										<span th:unless="${record.goalRate != null}" class="text-muted">--</span>
 									</td>
-									<td class="water-table__memo" th:text="${record.memo != null ? record.memo : ''}">
+									<td class="water-table__memo memo-cell" th:text="${record.memo != null ? record.memo : ''}"
+										th:attr="data-full-memo=${record.memo != null ? record.memo : ''}">
 									</td>
 									<td class="water-table__actions">
 										<button type="button" class="icon-btn edit-btn" th:data-id="${record.id}"
-											th:data-date="${record.recordedDate}"
-											th:data-drink-type="${record.drinkType}" th:data-amount="${record.amountMl}"
-											th:data-memo="${record.memo}" aria-label="編集">
+												th:data-date="${record.recordedDate}" th:data-drink-type="${record.drinkType}"
+												th:data-amount="${record.amountMl}" th:data-time="${record.recordedTime}"
+												th:data-memo="${record.memo}" aria-label="編集">
 											<img th:src="@{/image/edit.png}" alt="編集" class="icon-btn-img" />
 										</button>
-										<form
-											th:action="@{/profile/{profileId}/water/{id}/delete(profileId=${profileId},id=${record.id})}"
-											method="post" class="delete-form"
-											th:attr="data-confirm-message='「' + ${record.recordedDate} + '」の水分記録を削除しますか？&#10;この操作は取り消せません。'">
-											<button type="submit" class="icon-btn icon-btn--danger" aria-label="削除">
-												<img th:src="@{/image/delete.png}" alt="削除" class="icon-btn-img" />
-											</button>
-										</form>
+										<button type="submit" th:form="'deleteForm-' + ${record.id}" class="icon-btn icon-btn--danger" aria-label="削除">
+											<img th:src="@{/image/delete.png}" alt="削除" class="icon-btn-img" />
+										</button>
+									</td>
+									<form th:id="'deleteForm-' + ${record.id}"
+										th:action="@{/profile/{profileId}/water/{id}/delete(profileId=${profileId},id=${record.id})}"
+										method="post" class="delete-form"
+										th:attr="data-confirm-message='「' + ${record.recordedDate} + '」の水分記録を削除しますか？&#10;この操作は取り消せません。'">
+									</form>
 									</td>
 								</tr>
 							</tbody>
@@ -151,8 +165,8 @@
 
 					<div class="pagination" th:if="${totalPages > 1}">
 						<a th:if="${hasPrevious}"
-							th:href="@{/profile/{profileId}/water(profileId=${profileId}, startDate=${filterStartDate}, endDate=${filterEndDate}, page=${currentPage - 1})}"
-							class="pagination__nav">← 前へ</a>
+						   th:href="@{/profile/{profileId}/water(profileId=${profileId}, startDate=${filterStartDate}, endDate=${filterEndDate}, page=${currentPage - 1})}"
+						   class="pagination__nav">← 前へ</a>
 
 						<a th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
 							th:href="@{/profile/{profileId}/water(profileId=${profileId}, startDate=${filterStartDate}, endDate=${filterEndDate}, page=${i})}"
@@ -164,8 +178,8 @@
 							class="pagination__nav">次へ →</a>
 					</div>
 
-					<!-- Trường hợp 1: chưa từng có bản ghi nào (không liên quan đến việc có đang lọc hay không) -->
-					<div class="empty-state" th:if="${#lists.isEmpty(logs)} and ${!hasAnyLog}">
+					<!-- Empty State: No Records / 空状態：記録なし -->
+					<div class="empty-state" th:if="${#lists.isEmpty(logs) and !hasAnyLog}">
 					    <i data-lucide="droplets"></i>
 					    <p>まだ水分が記録されていません</p>
 					    <button type="button" class="btn btn--primary" id="openAddModalBtnEmpty">
@@ -173,8 +187,8 @@
 					    </button>
 					</div>
 
-					<!-- Trường hợp 2: đã từng có bản ghi, nhưng bộ lọc hiện tại không khớp gì -->
-					<div class="empty-state" th:if="${#lists.isEmpty(logs)} and ${hasAnyLog}">
+					<!-- Empty State for Filtered Results / 絞り込み結果なし -->
+					<div class="empty-state" th:if="${#lists.isEmpty(logs) and hasAnyLog}">
 					    <i data-lucide="calendar-days"></i>
 					    <p>選択した期間に記録がありません</p>
 					    <button type="button" class="btn btn--primary" id="openAddModalBtnFiltered"
@@ -186,7 +200,7 @@
 			</div>
 		</main>
 
-		<!-- ===== Modal: 水分を記録する / 編集する ===== -->
+		<!-- ===== Modal: Add / Edit Water Record / 水分記録の追加・編集 ===== -->
 		<div class="modal-overlay" id="waterModalOverlay">
 			<div class="modal" role="dialog" aria-modal="true" aria-labelledby="waterModalTitle">
 				<div class="modal__header">
@@ -205,12 +219,8 @@
 					    <input id="recordedDate" name="recordedDate" type="date" th:max="${T(java.time.LocalDate).now()}" required>
 					    <div id="recordedDateError" class="field-error"><span></span></div>
 					</div>
-					
-					<div class="input-group">
-					    <label for="recordedTime">時間</label>
-					    <input id="recordedTime" name="recordedTime" type="time">
-					    <div id="recordedTimeError" class="field-error"><span></span></div>
-					</div>
+
+					<input type="hidden" id="recordedTime" name="recordedTime">
 
 					<div class="input-group">
 						<label for="drinkType">飲み物<span class="required">*</span></label>
@@ -224,13 +234,15 @@
 							<option value="SPORTS_DRINK">スポーツドリンク</option>
 							<option value="OTHER">その他</option>
 						</select>
-						<div id="waterError" class="field-error"><span></span></div>
+						<div id="drinkTypeError" class="field-error"><span></span></div>
 					</div>
 
 					<div class="input-group">
-						<label for="amount">水分量 (ml)<span class="required">*</span></label>
-						<input type="number" id="amount" name="amount" min="1" max="5000" placeholder="250" required>
-						<div id="amountError" class="field-error"><span></span></div>
+						<label for="amountMl">水分量 (ml)<span class="required">*</span></label>
+						<input type="number" id="amountMl" name="amountMl" min="1" max="5000" placeholder="250" required>
+						<div id="amountMlError" class="field-error">
+						    <span></span>
+						</div>
 					</div>
 
 					<div class="input-group">
@@ -248,19 +260,20 @@
 			</div>
 		</div>
 
-		<!-- ===== Confirm Modal (削除確認) ===== -->
+		<!-- ===== Confirmation Modal / 削除確認モーダル ===== -->
 		<div th:replace="~{layout/confirm-modal :: deleteModal}"></div>
 
 		<script src="https://unpkg.com/lucide@latest"></script>
 		<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 		<script th:src="@{/js/common.js}"></script>
 		<script th:inline="javascript">
-			/*<![CDATA[*/
 			window.waterChartData = {
 				labels: /*[[${labels}]]*/[],
-				values: /*[[${values}]]*/[]
+				values: /*[[${values}]]*/[],
+				chartMode: /*[[${chartMode}]]*/ "DAY",
+				from: /*[[${chartFrom}]]*/ null,
+				to: /*[[${chartTo}]]*/ null
 			};
-			/*]]>*/
 		</script>
 		<script th:src="@{/js/water.js}"></script>
 

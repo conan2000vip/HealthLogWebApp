@@ -1,61 +1,59 @@
 <html xmlns:th="http://www.thymeleaf.org">
 
-	<body>
-		<!-- ============ Filter Bar ============-->
-		<form th:fragment="filterBar(actionUrl, clearUrl, filterStartDate, filterEndDate)" class="filter-bar"
-		    th:action="${actionUrl}" method="get" id="filterForm">
-		    <span class="filter-bar__title">
-		        <span class="filter-bar__label">期間:</span>
-		    </span>
-		    <input type="date" name="startDate" th:value="${filterStartDate}" id="startDateInput"
-		        th:max="${T(java.time.LocalDate).now()}" />
-		    <span class="filter-bar__sep">〜</span>
-		    <input type="date" name="endDate" th:value="${filterEndDate}" id="endDateInput"
-		        th:max="${T(java.time.LocalDate).now()}" />
-
-		    <button type="submit" class="filter-bar__search-btn" id="searchBtn">
-		        <i data-lucide="search"></i>
-		        <span>検索</span>
-		    </button>
-
-		    <a th:href="${clearUrl}" class="filter-bar__reset"
-		        th:if="${filterStartDate != null or filterEndDate != null}">クリア</a>
-		</form>
-		
-		<!-- ============ Feedback List ============-->
-		<section th:fragment="feedbackList(feedbackList)" class="feedback-list" id="feedbackSection"
-			th:if="${feedbackList != null and not #lists.isEmpty(feedbackList)}">
-			<div class="feedback-card"
-				th:each="fb, iterStat : ${feedbackList}"
-				th:classappend="${' feedback-card--' + fb.level.cssClass + (iterStat.index >= 3 ? ' is-hidden' : '')}">
-				<div class="feedback-card__icon"><i th:data-lucide="${fb.icon}"></i></div>
-				<div class="feedback-card__content">
-					<div class="feedback-card__title" th:text="${fb.title}">急激な体重変化があります</div>
-					<div class="feedback-card__message" th:text="${fb.message}">前回比で-2.1kgの変化がありました。</div>
-				</div>
-				<div class="feedback-card__meta">
-					<span class="feedback-card__time"
-						th:text="${#temporals.format(fb.occurredAt, 'M/d HH:mm')}">7/10 16:20</span>
-					<span class="feedback-card__badge" th:text="${'Lv' + fb.level.priority}">Lv4</span>
-				</div>
+<body>
+	<!-- ============ Filter Bar ============-->
+	<form th:fragment="filterBar(actionUrl, clearUrl, filterStartDate, filterEndDate)" class="filter-bar" th:action="${actionUrl}" method="get"
+		id="filterForm">
+		<div class="filter-bar__quick-area">
+			<span class="filter-bar__label">期間：</span>
+			<div class="filter-bar__quick" id="quickRangeBar">
+				<button type="button" class="quick-btn" data-range="1D">1日</button>
+				<button type="button" class="quick-btn" data-range="1W">1週</button>
+				<button type="button" class="quick-btn" data-range="1M">1ヶ月</button>
+				<button type="button" class="quick-btn" data-range="6M">6ヶ月</button>
+				<button type="button" class="quick-btn" data-range="1Y">1年</button>
 			</div>
-
-			<button type="button" class="feedback-list__toggle" id="feedbackToggleBtn"
-				th:if="${#lists.size(feedbackList) > 3}">
-				すべて見る (<span th:text="${#lists.size(feedbackList)}">5</span>件)
+		</div>
+		<div class="filter-bar__divider"></div>
+		<div class="filter-bar__date-area">
+			<span class="filter-bar__date-label">期間指定</span>
+			<input type="date" name="startDate" th:value="${filterStartDate}" id="startDateInput" th:max="${T(java.time.LocalDate).now()}" />
+			<span class="filter-bar__sep">〜</span>
+			<input type="date" name="endDate" th:value="${filterEndDate}" id="endDateInput" th:max="${T(java.time.LocalDate).now()}" />
+			<button type="submit" class="filter-bar__search-btn" id="searchBtn">
+				<i data-lucide="search"></i>
+				<span>検索</span>
 			</button>
-		</section>
-
-		<!-- ============ Chart Card ============-->
-		<section th:fragment="chartCard(title, canvasId, hasData)" class="chart-card" th:if="${hasData}">
-			<div class="chart-card__header">
-				<h2 th:text="${title}">推移グラフ</h2>
-				<button type="button" class="link-btn" id="toggleChartBtn">非表示</button>
+			<a th:href="${clearUrl}" class="filter-bar__reset" th:if="${filterStartDate != null or filterEndDate != null}"> クリア </a>
+		</div>
+	</form>
+	<!-- ============ Feedback List ============-->
+	<section th:fragment="feedbackList(feedbackList)" class="feedback-list" id="feedbackSection"
+		th:if="${feedbackList != null and not #lists.isEmpty(feedbackList)}">
+		<div class="feedback-card" th:each="fb, iterStat : ${feedbackList}"
+			th:classappend="${' feedback-card--' + fb.level.cssClass + (iterStat.index >= 3 ? ' is-hidden' : '')}">
+			<div class="feedback-card__content">
+				<div class="feedback-card__title" th:text="${fb.title}">急激な体重変化があります</div>
+				<div class="feedback-card__message" th:text="${fb.message}">前回比で-2.1kgの変化がありました。</div>
 			</div>
-			<div class="chart-card__body" id="chartWrapper">
-				<canvas th:id="${canvasId}" height="260"></canvas>
+			<div class="feedback-card__meta">
+				<span class="feedback-card__time" th:text="${#temporals.format(fb.occurredAt, 'M/d HH:mm')}">7/10 16:20</span>
+				<span class="feedback-card__badge" th:text="${fb.level.label}">重要</span>
 			</div>
-		</section>
-	</body>
+		</div>
+		<button type="button" class="feedback-list__toggle" id="feedbackToggleBtn" th:if="${feedbackList != null and #lists.size(feedbackList) > 3}"
+			th:text="${'今日のフィードバックをすべて見る（' + #lists.size(feedbackList) + '件）'}"> 今日のフィードバックをすべて見る </button>
+	</section>
+	<!-- ============ Chart Card ============-->
+	<section th:fragment="chartCard(title, canvasId, hasData, chartUrl)" class="chart-card" th:if="${hasData}" th:attr="data-chart-url=${chartUrl}">
+		<div class="chart-card__header">
+			<h2 th:text="${title}">推移グラフ</h2>
+			<button type="button" class="link-btn" id="toggleChartBtn">非表示</button>
+		</div>
+		<div class="chart-card__body" id="chartWrapper">
+			<canvas th:id="${canvasId}" height="260"></canvas>
+		</div>
+	</section>
+</body>
 
 </html>

@@ -91,14 +91,10 @@ public class SleepService {
 		LocalDate longestDate = null;
 
 		if (!dailyTotals.isEmpty()) {
-			shortestDate = dailyTotals.entrySet().stream()
-					.min(Map.Entry.comparingByValue())
-					.map(Map.Entry::getKey)
+			shortestDate = dailyTotals.entrySet().stream().min(Map.Entry.comparingByValue()).map(Map.Entry::getKey)
 					.orElse(null);
 
-			longestDate = dailyTotals.entrySet().stream()
-					.max(Map.Entry.comparingByValue())
-					.map(Map.Entry::getKey)
+			longestDate = dailyTotals.entrySet().stream().max(Map.Entry.comparingByValue()).map(Map.Entry::getKey)
 					.orElse(null);
 		}
 		List<Integer> dailyValues = new ArrayList<>(dailyTotals.values());
@@ -130,20 +126,7 @@ public class SleepService {
 
 		// グラフ用データ（日付ごとの合計睡眠時間）
 		List<Sleep> allLogs = fetchLogs(profileId, from, to);
-		String chartMode = "DAY";
-		if (from != null && to != null) {
-			long days = ChronoUnit.DAYS.between(from, to) + 1;
-			if (days <= 31) {
-				// 1か月以内 → 日別
-				chartMode = "DAY";
-			} else if (days <= 1095) {
-				// 3年以内 → 月別
-				chartMode = "MONTH";
-			} else {
-				// 3年以上 → 年別
-				chartMode = "YEAR";
-			}
-		}
+		String chartMode = determineChartMode(from, to);
 		Map<String, Object> chartData = buildChartData(allLogs, chartMode, from, to);
 
 		// Result
@@ -164,85 +147,149 @@ public class SleepService {
 		return result;
 	}
 
+	private String determineChartMode(LocalDate from, LocalDate to) {
+		if (from == null || to == null)
+			return "DAY";
+		if (from.equals(to))
+			return "HOUR";
+		long days = ChronoUnit.DAYS.between(from, to) + 1;
+		if (days <= 7)
+			return "DAY";
+		if (days <= 31)
+			return "WEEK";
+		if (days <= 1095)
+			return "MONTH";
+		return "YEAR";
+	}
+
+	public Map<String, Object> chartData(Long profileId, Long currentUserId, LocalDate from, LocalDate to) {
+		findProfile(profileId, currentUserId);
+		if (from != null && to != null && from.isAfter(to)) {
+			throw new BusinessException(HttpStatus.BAD_REQUEST, "開始日が終了日より後になっているため、期間指定が正しくありません。");
+		}
+		String chartMode = determineChartMode(from, to);
+		List<Sleep> logs = fetchLogs(profileId, from, to);
+		Map<String, Object> result = buildChartData(logs, chartMode, from, to);
+		result.put("chartMode", chartMode);
+		return result;
+	}
+
 	// ---------------------------------------------------------
 	// computeDailyTotals()共通: 日付ごとに睡眠時間(分)を合算する
 	// （同じ日の昼寝(NAP)＋夜間睡眠(NIGHT)は合算して1日分として扱う）
 	// buildChartData() と stats（平均/最短/最長）の両方で使用
 	// ---------------------------------------------------------
 	private Map<LocalDate, Integer> computeDailyTotals(List<Sleep> logs) {
-		return logs.stream()
-				.collect(Collectors.groupingBy(Sleep::getRecordedDate, TreeMap::new,
-						Collectors.summingInt(s -> s.getSleepMinutes() == null ? 0 : s.getSleepMinutes())));
+		return logs.stream().collect(Collectors.groupingBy(Sleep::getRecordedDate, TreeMap::new,
+				Collectors.summingInt(s -> s.getSleepMinutes() == null ? 0 : s.getSleepMinutes())));
+	}
+
+	// グラフ表示用: 分 → 時間（0.5時間単位）
+	private Double toChartHours(Integer minutes) {
+		if (minutes == null) {
+			return null;
+		}
+		double hours = minutes / 60.0;
+		return Math.round(hours * 2.0) / 2.0;
 	}
 
 	// ---------------------------------------------------------
 	// buildChartData()共通: 日付ごとに睡眠時間(分)を合計してグラフ用データを作る
 	// （list/chart 共通化）
 	// ---------------------------------------------------------
-	private Map<String, Object> buildChartData(
-			List<Sleep> logs,
-			String chartMode,
-			LocalDate from,
-			LocalDate to) {
-
+	private Map<String, Object> buildChartData(List<Sleep> logs, String chartMode, LocalDate from, LocalDate to) {
 		List<String> labels = new ArrayList<>();
-		List<Integer> values = new ArrayList<>();
+		List<Double> values = new ArrayList<>();
 
-		if ("DAY".equals(chartMode)) {
+		if ("HOUR".equals(chartMode)) {
+			Map<Integer, Integer> hourly = logs.stream().filter(s -> s.getStartTime() != null)
+					.collect(Collectors.groupingBy(s -> s.getStartTime().getHour(), TreeMap::new,
+							Collectors.summingInt(s -> s.getSleepMinutes() == null ? 0 : s.getSleepMinutes())));
+			for (int h = 0; h < 24; h++) {
+				labels.add(String.format("%02d:00", h));
+				values.add(toChartHours(hourly.get(h)));
+			}
+		} else if ("DAY".equals(chartMode)) {
 			Map<LocalDate, Integer> daily = computeDailyTotals(logs);
+
 			if (from == null || to == null) {
 				daily.forEach((date, minutes) -> {
 					labels.add(date.toString());
-					values.add(minutes);
+					values.add(toChartHours(minutes));
 				});
 			} else {
 				LocalDate current = from;
+
 				while (!current.isAfter(to)) {
 					labels.add(current.toString());
 					Integer value = daily.get(current);
-					values.add(value);
+					values.add(toChartHours(value));
 					current = current.plusDays(1);
 				}
 			}
-
+		} else if ("WEEK".equals(chartMode)) {
+			Map<LocalDate, Integer> daily = computeDailyTotals(logs);
+			LocalDate current = from;
+			while (!current.isAfter(to)) {
+				LocalDate weekEnd = current.plusDays(6).isAfter(to) ? to : current.plusDays(6);
+				labels.add(current.toString());
+				List<Integer> weekValues = new ArrayList<>();
+				LocalDate d = current;
+				while (!d.isAfter(weekEnd)) {
+					Integer v = daily.get(d);
+					if (v != null)
+						weekValues.add(v);
+					d = d.plusDays(1);
+				}
+				if (weekValues.isEmpty()) {
+					values.add(null);
+				} else {
+					int avg = (int) Math.round(weekValues.stream().mapToInt(Integer::intValue).average().orElse(0));
+					values.add(toChartHours(avg));
+				}
+				current = current.plusDays(7);
+			}
 		} else if ("MONTH".equals(chartMode)) {
-			Map<String, List<Sleep>> monthly = logs.stream()
-					.collect(Collectors.groupingBy(s -> s.getRecordedDate().getYear()
-							+ "-" + String.format("%02d", s.getRecordedDate().getMonthValue()), TreeMap::new,
-							Collectors.toList()));
+			Map<LocalDate, Integer> dailyTotals = computeDailyTotals(logs);
+			Map<String, List<Integer>> monthly = dailyTotals.entrySet().stream()
+					.collect(Collectors.groupingBy(
+							e -> e.getKey().getYear() + "-" + String.format("%02d", e.getKey().getMonthValue()),
+							TreeMap::new, Collectors.mapping(Map.Entry::getValue, Collectors.toList())));
+
 			LocalDate current = from.withDayOfMonth(1);
 			while (!current.isAfter(to)) {
 				String key = current.getYear() + "-" + String.format("%02d", current.getMonthValue());
 				labels.add(key);
-				List<Sleep> list = monthly.get(key);
+				List<Integer> list = monthly.get(key);
 				if (list == null || list.isEmpty()) {
 					values.add(null);
 				} else {
-					int avg = (int) Math.round(list.stream()
-							.mapToInt(s -> s.getSleepMinutes() == null ? 0 : s.getSleepMinutes()).average().orElse(0));
-					values.add(avg);
+					int avg = (int) Math.round(list.stream().mapToInt(Integer::intValue).average().orElse(0));
+					values.add(toChartHours(avg));
 				}
 				current = current.plusMonths(1);
 			}
-
 		} else if ("YEAR".equals(chartMode)) {
-			Map<Integer, List<Sleep>> yearly = logs.stream().collect(Collectors.groupingBy(
-					s -> s.getRecordedDate().getYear(), TreeMap::new, Collectors.toList()));
+			Map<LocalDate, Integer> dailyTotals = computeDailyTotals(logs);
+			Map<Integer, List<Integer>> yearly = dailyTotals.entrySet().stream()
+					.collect(Collectors.groupingBy(e -> e.getKey().getYear(), TreeMap::new,
+							Collectors.mapping(Map.Entry::getValue, Collectors.toList())));
+
 			LocalDate current = from.withDayOfYear(1);
 			while (!current.isAfter(to)) {
 				int year = current.getYear();
 				labels.add(String.valueOf(year));
-				List<Sleep> list = yearly.get(year);
+				List<Integer> list = yearly.get(year);
 				if (list == null || list.isEmpty()) {
 					values.add(null);
 				} else {
-					int avg = (int) Math.round(list.stream()
-							.mapToInt(s -> s.getSleepMinutes() == null ? 0 : s.getSleepMinutes()).average().orElse(0));
-					values.add(avg);
+					int avg = (int) Math.round(list.stream().mapToInt(Integer::intValue).average().orElse(0));
+					values.add(toChartHours(avg));
 				}
 				current = current.plusYears(1);
 			}
 		}
+
 		Map<String, Object> result = new HashMap<>();
 		result.put("labels", labels);
 		result.put("values", values);
@@ -255,18 +302,13 @@ public class SleepService {
 	public Sleep create(Long profileId, Long currentUserId, Sleep sleep) {
 		Profile profile = findProfile(profileId, currentUserId);
 		validateSleepInput(sleep);
-		Optional<Sleep> existing = sleepRepository.findFirstByProfile_IdAndRecordedDateAndSleepType(
-				profileId,
-				sleep.getRecordedDate(),
-				sleep.getSleepType());
+
+		Optional<Sleep> existing = sleepRepository.findFirstByProfile_IdAndRecordedDateAndSleepType(profileId,
+				sleep.getRecordedDate(), sleep.getSleepType());
+
 		if (existing.isPresent()) {
-			throw new BusinessException(HttpStatus.BAD_REQUEST, sleep.getSleepType().equals(SleepType.NIGHT)
-					? "この日の夜間睡眠は既に登録されています"
-					: "この日の昼寝は既に登録されています");
-		}
-		// 未選択の場合は夜間睡眠
-		if (sleep.getSleepType() == null) {
-			sleep.setSleepType(SleepType.NIGHT);
+			throw new BusinessException(HttpStatus.BAD_REQUEST,
+					sleep.getSleepType().equals(SleepType.NIGHT) ? "この日の夜間睡眠は既に登録されています" : "この日の昼寝は既に登録されています");
 		}
 		sleep.setProfile(profile);
 		sleep.setSleepMinutes(calculateSleepMinutes(sleep.getStartTime(), sleep.getEndTime()));
@@ -310,16 +352,14 @@ public class SleepService {
 	// ---------------------------------------------------------
 	private List<Sleep> fetchLogs(Long profileId, LocalDate from, LocalDate to) {
 		if (from != null && to != null) {
-			return sleepRepository
-					.findByProfile_IdAndRecordedDateBetweenOrderByRecordedDateDesc(profileId, from, to);
+			return sleepRepository.findByProfile_IdAndRecordedDateBetweenOrderByRecordedDateDesc(profileId, from, to);
 		}
 		if (from != null) {
-			return sleepRepository
-					.findByProfile_IdAndRecordedDateGreaterThanEqualOrderByRecordedDateDesc(profileId, from);
+			return sleepRepository.findByProfile_IdAndRecordedDateGreaterThanEqualOrderByRecordedDateDesc(profileId,
+					from);
 		}
 		if (to != null) {
-			return sleepRepository
-					.findByProfile_IdAndRecordedDateLessThanEqualOrderByRecordedDateDesc(profileId, to);
+			return sleepRepository.findByProfile_IdAndRecordedDateLessThanEqualOrderByRecordedDateDesc(profileId, to);
 		}
 		return sleepRepository.findByProfile_IdOrderByRecordedDateDesc(profileId);
 	}
@@ -329,19 +369,18 @@ public class SleepService {
 	// ---------------------------------------------------------
 	private Page<Sleep> fetchLogsPage(Long profileId, LocalDate from, LocalDate to, Pageable pageable) {
 		if (from != null && to != null) {
-			return sleepRepository
-					.findByProfile_IdAndRecordedDateBetweenOrderByRecordedDateDesc(profileId, from, to, pageable);
+			return sleepRepository.findByProfile_IdAndRecordedDateBetweenOrderByRecordedDateDesc(profileId, from, to,
+					pageable);
 		}
 		if (from != null) {
-			return sleepRepository
-					.findByProfile_IdAndRecordedDateGreaterThanEqualOrderByRecordedDateDesc(profileId, from, pageable);
+			return sleepRepository.findByProfile_IdAndRecordedDateGreaterThanEqualOrderByRecordedDateDesc(profileId,
+					from, pageable);
 		}
 		if (to != null) {
-			return sleepRepository
-					.findByProfile_IdAndRecordedDateLessThanEqualOrderByRecordedDateDesc(profileId, to, pageable);
+			return sleepRepository.findByProfile_IdAndRecordedDateLessThanEqualOrderByRecordedDateDesc(profileId, to,
+					pageable);
 		}
-		return sleepRepository
-				.findByProfile_IdOrderByRecordedDateDesc(profileId, pageable);
+		return sleepRepository.findByProfile_IdOrderByRecordedDateDesc(profileId, pageable);
 	}
 
 	// ---------------------------------------------------------
@@ -394,7 +433,6 @@ public class SleepService {
 		}
 		int startMinute = start.getHour() * 60 + start.getMinute();
 		int endMinute = end.getHour() * 60 + end.getMinute();
-		// ngủ qua ngày hôm sau
 		if (endMinute < startMinute) {
 			endMinute += 24 * 60;
 		}

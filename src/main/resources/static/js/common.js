@@ -1,16 +1,16 @@
 //IIFE (Immediately Invoked Function Expression) dropdown menu
-(function () {
+(function() {
     const toggle = document.getElementById("userMenuToggle");
     const dropdown = document.getElementById("userMenuDropdown");
     if (!toggle || !dropdown) return;
 
-    toggle.addEventListener("click", function (e) {
+    toggle.addEventListener("click", function(e) {
         e.stopPropagation();
         const isOpen = dropdown.classList.toggle("is-open");
         toggle.setAttribute("aria-expanded", isOpen ? "true" : "false");
     });
 
-    document.addEventListener("click", function (e) {
+    document.addEventListener("click", function(e) {
         if (!dropdown.contains(e.target) && !toggle.contains(e.target)) {
             dropdown.classList.remove("is-open");
             toggle.setAttribute("aria-expanded", "false");
@@ -18,31 +18,30 @@
     });
 })();
 
-(function () {
-
+(function() {
     const menuToggle = document.getElementById("menuToggle");
     const nav = document.querySelector(".app-header__nav");
 
     if (!menuToggle || !nav) return;
 
-    menuToggle.addEventListener("click", function (e) {
+    menuToggle.addEventListener("click", function(e) {
         e.stopPropagation();
         nav.classList.toggle("open");
     });
 
-    document.addEventListener("click", function (e) {
+    document.addEventListener("click", function(e) {
         if (!nav.contains(e.target) && !menuToggle.contains(e.target)) {
             nav.classList.remove("open");
         }
     });
 
-    document.querySelectorAll(".app-header__nav-item").forEach(item => {
-        item.addEventListener("click", function () {
+    document.querySelectorAll(".app-header__nav-item").forEach((item) => {
+        item.addEventListener("click", function() {
             nav.classList.remove("open");
         });
     });
 
-    window.addEventListener("resize", function () {
+    window.addEventListener("resize", function() {
         if (window.innerWidth > 1100) {
             nav.classList.remove("open");
         }
@@ -53,20 +52,24 @@
    汎用: フィードバック「すべて見る」トグル（全画面共通）
    ========================================================= */
 function initFeedbackToggle() {
-	const toggleBtn = document.getElementById("feedbackToggleBtn");
-	const section = document.getElementById("feedbackSection");
-	if (!toggleBtn || !section) return;
+    const toggleBtn = document.getElementById("feedbackToggleBtn");
+    const section = document.getElementById("feedbackSection");
+    if (!toggleBtn || !section) return;
 
-	let expanded = false;
-	toggleBtn.addEventListener("click", () => {
-		expanded = !expanded;
-		section.querySelectorAll(".feedback-card.is-hidden, .feedback-card").forEach((card, index) => {
-			if (index >= 3) {
-				card.classList.toggle("is-hidden", !expanded);
-			}
-		});
-		toggleBtn.textContent = expanded ? "閉じる" : `すべて見る (${section.querySelectorAll(".feedback-card").length}件)`;
-	});
+    let expanded = false;
+    toggleBtn.addEventListener("click", () => {
+        expanded = !expanded;
+        section
+            .querySelectorAll(".feedback-card.is-hidden, .feedback-card")
+            .forEach((card, index) => {
+                if (index >= 3) {
+                    card.classList.toggle("is-hidden", !expanded);
+                }
+            });
+        toggleBtn.textContent = expanded
+            ? "閉じる"
+            : `すべて見る (${section.querySelectorAll(".feedback-card").length}件)`;
+    });
 }
 
 /* =========================================================
@@ -129,14 +132,16 @@ function initDeleteConfirm() {
    HTML側で data-auto-hide="true" があれば10秒後にフェードアウト
    ========================================================= */
 function initAutoHideAlerts() {
-    document.querySelectorAll('.alert[data-auto-hide="true"]').forEach((alert) => {
-        setTimeout(() => {
-            alert.style.transition = "opacity 0.3s ease, transform 0.3s ease";
-            alert.style.opacity = "0";
-            alert.style.transform = "translateY(-6px)";
-            setTimeout(() => alert.remove(), 300);
-        }, 10000);
-    });
+    document
+        .querySelectorAll('.alert[data-auto-hide="true"]')
+        .forEach((alert) => {
+            setTimeout(() => {
+                alert.style.transition = "opacity 0.3s ease, transform 0.3s ease";
+                alert.style.opacity = "0";
+                alert.style.transform = "translateY(-6px)";
+                setTimeout(() => alert.remove(), 300);
+            }, 10000);
+        });
 }
 
 /* =========================================================
@@ -144,8 +149,144 @@ function initAutoHideAlerts() {
    使い方: <form id="filterForm"> 内の <input type="date"> を
    選択/Enterで自動submit。weight/sleep/water/step 共通で使う。
    ========================================================= */
-function initFilterForm() {
-}
+function initFilterForm() {}
+window.HealthChart = (() => {
+    const DEFAULT_DAYS = 7;
+    function create({
+        canvasId,
+        data,
+        unit = "",
+        type = "bar",
+        days = DEFAULT_DAYS,
+        isSearching = false,
+    }) {
+        const canvas = document.getElementById(canvasId);
+        if (!canvas || typeof Chart === "undefined") {
+            return;
+        }
+        if (!data || !data.labels || data.labels.length === 0) {
+            return;
+        }
+        let labels = [];
+        let values = [];
+        if (!isSearching) {
+            const dateRange = buildLastNDaysRange(days);
+            const valueMap = {};
+            data.labels.forEach((date, index) => {
+                valueMap[date] = data.values[index];
+            });
+            labels = dateRange.map((date) => formatLabel(date, "DAY"));
+            values = dateRange.map((date) => {
+                const value = valueMap[date];
+                return value == null ? null : parseFloat(value);
+            });
+        } else {
+            labels = data.labels.map((date) => formatLabel(date, data.chartMode));
+            values = data.values.map((value) =>
+                value == null ? null : parseFloat(value)
+            );
+        }
+        const styles = getComputedStyle(document.documentElement);
+        const primary = styles.getPropertyValue("--chart-primary").trim() || "#4caf50";
+        return new Chart(canvas, {
+            type: type,
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        data: values,
+                        backgroundColor: hexToRgba(primary, 0.75),
+                        borderColor: primary,
+                        borderWidth: 1,
+                        borderRadius: 8,
+                        maxBarThickness: 40,
+                    },
+                ],
+            },
+
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+
+                plugins: {
+                    legend: {
+                        display: false,
+                    },
+
+                    tooltip: {
+                        callbacks: {
+                            label: (ctx) => `${ctx.parsed.y} ${unit}`,
+                        },
+                    },
+                },
+
+                scales: {
+                    x: {
+                        grid: {
+                            display: false,
+                        },
+                    },
+
+                    y: {
+                        grid: {
+                            color: "#f1f5f9",
+                        },
+                    },
+                },
+            },
+        });
+    }
+
+    function buildLastNDaysRange(n) {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const result = [];
+
+        for (let i = n - 1;i >= 0;i--) {
+            const date = new Date(today);
+            date.setDate(date.getDate() - i);
+            result.push(toIsoDate(date));
+        }
+        return result;
+    }
+
+    function toIsoDate(date) {
+        const yyyy = date.getFullYear();
+        const mm = String(date.getMonth() + 1).padStart(2, "0");
+        const dd = String(date.getDate()).padStart(2, "0");
+        return `${yyyy}-${mm}-${dd}`;
+    }
+
+    function formatLabel(value, mode) {
+        if (!value) return "";
+        if (mode === "DAY") {
+            const date = new Date(value + "T00:00:00");
+            const weekdays = ["日", "月", "火", "水", "木", "金", "土"];
+            return `${date.getDate()}(${weekdays[date.getDay()]})`;
+        }
+        if (mode === "WEEK") {
+            const date = new Date(value + "T00:00:00");
+            return `${date.getMonth() + 1}/${date.getDate()}`;
+        }
+        if (mode === "MONTH") {
+            const month = value.substring(5, 7);
+            return `${Number(month)}月`;
+        }
+        return value;
+    }
+
+    function hexToRgba(hex, alpha) {
+        const clean = hex.replace("#", "");
+        const bigint = parseInt(clean, 16);
+        const r = (bigint >> 16) & 255;
+        const g = (bigint >> 8) & 255;
+        const b = bigint & 255;
+        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    }
+    return {
+        create,
+    };
+})();
 
 /* =========================================================
    汎用: グラフの表示/非表示切り替え（全画面共通）
@@ -159,6 +300,68 @@ function initChartToggle() {
         wrapper.style.display = isHidden ? "" : "none";
         toggleBtn.textContent = isHidden ? "非表示" : "表示";
     });
+}
+
+/* =========================================================
+   汎用: グラフを左右スワイプで前後の期間に切り替える（全画面共通）
+   使い方: 各ページの initChart() で、フィルター中のときだけ呼び出す
+   ========================================================= */
+function initChartSwipe({ chart, wrapperEl, chartUrl, initialFrom, initialTo }) {
+    if (!chart || !wrapperEl || !chartUrl || !initialFrom || !initialTo) return;
+
+    let currentFrom = new Date(initialFrom + "T00:00:00");
+    let currentTo = new Date(initialTo + "T00:00:00");
+
+    function toIso(d) {
+        const yyyy = d.getFullYear();
+        const mm = String(d.getMonth() + 1).padStart(2, "0");
+        const dd = String(d.getDate()).padStart(2, "0");
+        return `${yyyy}-${mm}-${dd}`;
+    }
+
+    async function loadRange(from, to) {
+        const sep = chartUrl.includes("?") ? "&" : "?";
+        const url = `${chartUrl}${sep}startDate=${toIso(from)}&endDate=${toIso(to)}`;
+        let res;
+        try {
+            res = await fetch(url, { headers: { Accept: "application/json" } });
+        } catch (e) {
+            return;
+        }
+        if (!res.ok) return;
+        const data = await res.json();
+        currentFrom = from;
+        currentTo = to;
+        chart.data.labels = data.labels.map((l) => HealthChart.formatLabel(l, data.chartMode));
+        chart.data.datasets[0].data = data.values.map((v) => (v == null ? null : parseFloat(v)));
+        chart.update();
+    }
+
+    let touchStartX = null;
+    wrapperEl.addEventListener("touchstart", (e) => {
+        touchStartX = e.touches[0].clientX;
+    }, { passive: true });
+
+    wrapperEl.addEventListener("touchend", (e) => {
+        if (touchStartX === null) return;
+        const dx = e.changedTouches[0].clientX - touchStartX;
+        touchStartX = null;
+        if (Math.abs(dx) < 40) return; // ngưỡng vuốt tối thiểu
+
+        const spanDays = Math.round((currentTo - currentFrom) / 86400000) + 1;
+        const from = new Date(currentFrom);
+        const to = new Date(currentTo);
+
+        if (dx < 0) {
+            from.setDate(from.getDate() + spanDays);
+            to.setDate(to.getDate() + spanDays);
+            if (from > new Date()) return; // không cho vuốt sang tương lai
+        } else {
+            from.setDate(from.getDate() - spanDays);
+            to.setDate(to.getDate() - spanDays);
+        }
+        loadRange(from, to);
+    }, { passive: true });
 }
 
 /* =========================================================
@@ -193,17 +396,17 @@ function initDiffBadges() {
 }
 
 function initMemoExpand() {
-    document.querySelectorAll('.memo-cell').forEach(cell => {
+    document.querySelectorAll(".memo-cell").forEach((cell) => {
         if (!cell.textContent.trim()) return; // memo rỗng thì không cho click
-        cell.addEventListener('click', () => {
-            cell.classList.toggle('is-expanded');
+        cell.addEventListener("click", () => {
+            cell.classList.toggle("is-expanded");
         });
     });
 
-    document.addEventListener('click', (e) => {
-        if (!e.target.closest('.memo-cell')) {
-            document.querySelectorAll('.memo-cell.is-expanded').forEach(cell => {
-                cell.classList.remove('is-expanded');
+    document.addEventListener("click", (e) => {
+        if (!e.target.closest(".memo-cell")) {
+            document.querySelectorAll(".memo-cell.is-expanded").forEach((cell) => {
+                cell.classList.remove("is-expanded");
             });
         }
     });
@@ -215,9 +418,10 @@ document.addEventListener("DOMContentLoaded", () => {
     initAutoHideAlerts();
     initChartToggle();
     initDiffBadges();
-	initPositiveNumberInputs();
-	initFeedbackToggle();
-	initMemoExpand();
+    initPositiveNumberInputs();
+    initFeedbackToggle();
+    initMemoExpand();
+    initFilterForm();
 });
 
 /* =========================================================
@@ -233,11 +437,17 @@ function initPositiveNumberInputs() {
             const key = e.key;
             // Backspace, Delete, Tab, 矢印キーなどはそのまま許可
             if (
-                key === "Backspace" || key === "Delete" || key === "Tab" ||
-                key === "ArrowLeft" || key === "ArrowRight" ||
-                key === "ArrowUp" || key === "ArrowDown" ||
-                key === "Home" || key === "End" ||
-                (e.ctrlKey || e.metaKey) // Ctrl+C, Ctrl+V, Ctrl+A などは許可
+                key === "Backspace" ||
+                key === "Delete" ||
+                key === "Tab" ||
+                key === "ArrowLeft" ||
+                key === "ArrowRight" ||
+                key === "ArrowUp" ||
+                key === "ArrowDown" ||
+                key === "Home" ||
+                key === "End" ||
+                e.ctrlKey ||
+                e.metaKey // Ctrl+C, Ctrl+V, Ctrl+A などは許可
             ) {
                 return;
             }
@@ -278,15 +488,15 @@ function initPositiveNumberInputs() {
 
 //Business Error + FieldError
 function clearBusinessError() {
-    document.querySelectorAll(".error-message").forEach(error => {
+    document.querySelectorAll(".error-message").forEach((error) => {
         error.remove();
     });
 }
 document.addEventListener("DOMContentLoaded", () => {
-    document.querySelectorAll("input, textarea").forEach(el => {
+    document.querySelectorAll("input, textarea").forEach((el) => {
         el.addEventListener("input", clearBusinessError);
     });
-    document.querySelectorAll("select").forEach(el => {
+    document.querySelectorAll("select").forEach((el) => {
         el.addEventListener("change", clearBusinessError);
     });
 });
@@ -298,14 +508,68 @@ function clearFieldError(event) {
 
     const error = group.querySelector(".field-error");
     if (error) {
-        error.classList.remove("show");   // エラー表示を非表示にする
+        error.classList.remove("show"); // エラー表示を非表示にする
         const span = error.querySelector("span");
         if (span) span.textContent = "";
     }
 }
 document.addEventListener("DOMContentLoaded", () => {
-    document.querySelectorAll("input, textarea, select").forEach(el => {
+    document.querySelectorAll("input, textarea, select").forEach((el) => {
         el.addEventListener("input", clearFieldError);
         el.addEventListener("change", clearFieldError);
     });
 });
+
+/* =========================================================
+   汎用: クイック期間フィルター（1日/1週/1ヶ月/6ヶ月/1年）
+   全画面共通で filterBar フラグメントに使用
+   ========================================================= */
+function initFilterForm() {
+    const bar = document.getElementById("quickRangeBar");
+    const form = document.getElementById("filterForm");
+    const startInput = document.getElementById("startDateInput");
+    const endInput = document.getElementById("endDateInput");
+    if (!bar || !form || !startInput || !endInput) return;
+
+    function toIso(date) {
+        const yyyy = date.getFullYear();
+        const mm = String(date.getMonth() + 1).padStart(2, "0");
+        const dd = String(date.getDate()).padStart(2, "0");
+        return `${yyyy}-${mm}-${dd}`;
+    }
+
+    function computeRange(code) {
+        const to = new Date();
+        to.setHours(0, 0, 0, 0);
+        const from = new Date(to);
+        switch (code) {
+            case "1D": break;
+            case "1W": from.setDate(from.getDate() - 6); break;
+            case "1M": from.setMonth(from.getMonth() - 1); from.setDate(from.getDate() + 1); break;
+            case "6M": from.setMonth(from.getMonth() - 6); from.setDate(from.getDate() + 1); break;
+            case "1Y": from.setFullYear(from.getFullYear() - 1); from.setDate(from.getDate() + 1); break;
+        }
+        return [from, to];
+    }
+
+    // Highlight
+    function syncActiveButton() {
+        bar.querySelectorAll(".quick-btn").forEach((b) => b.classList.remove("is-active"));
+        if (!startInput.value || !endInput.value) return;
+        bar.querySelectorAll(".quick-btn").forEach((btn) => {
+            const [from, to] = computeRange(btn.dataset.range);
+            if (toIso(from) === startInput.value && toIso(to) === endInput.value) {
+                btn.classList.add("is-active");
+            }
+        });
+    }
+    bar.querySelectorAll(".quick-btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+            const [from, to] = computeRange(btn.dataset.range);
+            startInput.value = toIso(from);
+            endInput.value = toIso(to);
+            form.submit();
+        });
+    });
+    syncActiveButton();
+}

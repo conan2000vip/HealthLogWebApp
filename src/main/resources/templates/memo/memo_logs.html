@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>メモ管理 | HealthLog</title>
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700;800&display=swap">
+	<link rel="stylesheet" th:href="@{/css/common.css}">
+	<link rel="stylesheet" th:href="@{/css/memo.css}">
+</head>
+
+<body>
+
+	<!-- ===== Header ===== -->
+	<div th:replace="~{layout/header :: header(activePage='memo')}"></div>
+
+	<main class="memo-page">
+		<div class="memo-page__inner">
+
+			<!-- Page Header -->
+			<div class="memo-page__header">
+				<div class="memo-page__heading">
+					<span class="memo-page__icon">
+						<img th:src="@{/image/notes.png}" alt="" class="memo-page__icon-img">
+					</span>
+					<div>
+						<h1>メモ管理</h1>
+						<p th:text="${currentProfile != null ? currentProfile.name + ' のメモ記録' : 'ゲスト のメモ記録'}"></p>
+					</div>
+				</div>
+				<button type="button" class="btn btn--primary" id="openAddModalBtn">
+					<i data-lucide="plus"></i>記録する
+				</button>
+			</div>
+
+			<!-- Business Error / Success -->
+			<div class="alert alert--error" th:if="${error}" id="errorAlert" data-auto-hide="true">
+				<i data-lucide="alert-circle"></i>
+				<span th:text="${error}"></span>
+				<button type="button" class="alert__close" onclick="this.closest('.alert').remove()">
+					<i data-lucide="x"></i>
+				</button>
+			</div>
+
+			<div class="alert alert--success" th:if="${message}" id="successAlert" data-auto-hide="true">
+				<i data-lucide="check-circle"></i>
+				<span th:text="${message}"></span>
+				<button type="button" class="alert__close" onclick="this.closest('.alert').remove()">
+					<i data-lucide="x"></i>
+				</button>
+			</div>
+
+			<!-- Filter Bar -->
+			<div th:replace="~{layout/data-controls :: filterBar(
+				actionUrl=@{/profile/{profileId}/memo(profileId=${profileId})},
+				clearUrl=@{/profile/{profileId}/memo(profileId=${profileId})},
+				filterStartDate=${filterStartDate},
+				filterEndDate=${filterEndDate})}">
+			</div>
+
+			<!-- Table / Empty State -->
+			<section class="table-card">
+				<div class="data-table-scroll">
+					<table class="memo-table" th:if="${not #lists.isEmpty(logs)}">
+						<thead>
+							<tr>
+								<th>日付</th>
+								<th>タイトル</th>
+								<th>メモ</th>
+								<th class="memo-table__actions-col"></th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr th:each="record : ${logs}">
+								<td th:text="${#temporals.format(record.recordedDate, 'yyyy-MM-dd')}">2026-08-09</td>
+								<td class="memo-table__title" th:text="${record.title}">今日の体調</td>
+								<td class="memo-table__memo memo-cell" th:text="${record.content}" th:attr="data-full-memo=${record.content}"></td>
+								<td class="memo-table__actions">
+									<button type="button" class="icon-btn edit-btn" th:data-id="${record.id}" th:data-date="${record.recordedDate}" th:data-title="${record.title}" th:data-content="${record.content}" aria-label="編集">
+										<img th:src="@{/image/edit.png}" alt="編集" class="icon-btn-img">
+									</button>
+									<button type="submit" th:form="'deleteForm-' + ${record.id}" class="icon-btn icon-btn--danger" aria-label="削除">
+										<img th:src="@{/image/delete.png}" alt="削除" class="icon-btn-img">
+									</button>
+								</td>
+								<form th:id="'deleteForm-' + ${record.id}"
+									th:action="@{/profile/{profileId}/memo/{logId}/delete(profileId=${profileId},logId=${record.id})}" method="post" class="delete-form"
+									th:attr="data-confirm-message='「' + ${#temporals.format(record.recordedDate, 'yyyy/MM/dd')} + '」のメモを削除しますか？&#10;この操作は取り消せません。'">
+								</form>								</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+
+				<!-- Pagination -->
+				<div class="pagination" th:if="${totalPages > 1}">
+					<a th:if="${hasPrevious}" th:href="@{/profile/{profileId}/memo(profileId=${profileId},startDate=${filterStartDate},endDate=${filterEndDate},page=${currentPage - 1})}" class="pagination__nav">← 前へ</a>
+
+					<a th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+						th:href="@{/profile/{profileId}/memo(profileId=${profileId},startDate=${filterStartDate},endDate=${filterEndDate},page=${i})}"
+						th:text="${i + 1}" th:classappend="${i == currentPage} ? 'is-active'" class="pagination__page"></a>
+
+					<a th:if="${hasNext}" th:href="@{/profile/{profileId}/memo(profileId=${profileId},startDate=${filterStartDate},endDate=${filterEndDate},page=${currentPage + 1})}" class="pagination__nav">次へ →</a>
+				</div>
+
+				<!-- No Records -->
+				<div class="empty-state" th:if="${#lists.isEmpty(logs) and !hasAnyLog}">
+					<img th:src="@{/image/notes.png}" alt="" class="memo-page__icon-img">
+					<p>まだメモが記録されていません</p>
+					<button type="button" class="btn btn--primary" id="openAddModalBtnEmpty">
+						<i data-lucide="plus"></i>最初のメモを記録する
+					</button>
+				</div>
+
+				<!-- No Filtered Results -->
+				<div class="empty-state" th:if="${#lists.isEmpty(logs) and hasAnyLog}">
+					<i data-lucide="calendar-days"></i>
+					<p>選択した期間にメモがありません</p>
+					<button type="button" class="btn btn--primary" id="openAddModalBtnFiltered" th:data-date="${filterStartDate}">
+						<i data-lucide="plus"></i>この期間のメモを追加する
+					</button>
+				</div>
+			</section>
+		</div>
+	</main>
+
+	<!-- ===== Modal: Add / Edit Memo ===== -->
+	<div class="modal-overlay" id="memoModalOverlay">
+		<div class="modal" role="dialog" aria-modal="true" aria-labelledby="memoModalTitle">
+			<div class="modal__header">
+				<h2 id="memoModalTitle">メモを記録する</h2>
+				<button type="button" class="modal__close" id="closeModalBtn" aria-label="閉じる">
+					<i data-lucide="x"></i>
+				</button>
+			</div>
+
+			<form id="memoForm" th:action="@{/profile/{profileId}/memo/save(profileId=${profileId})}" method="post" class="form" novalidate>
+				<input type="hidden" name="recordId" id="recordId" value="">
+
+				<div class="input-group">
+					<label for="recordedDate">日付 <span class="required">*</span></label>
+					<input type="date" id="recordedDate" name="recordedDate" required>
+					<div id="recordedDateError" class="field-error"><span></span></div>
+				</div>
+
+				<div class="input-group">
+					<label for="title">タイトル</label>
+					<input type="text" id="title" name="title" maxlength="100" placeholder="例：今日の体調">
+					<div id="titleError" class="field-error"><span></span></div>
+				</div>
+
+				<div class="input-group">
+					<label for="content">メモ内容 <span class="required">*</span></label>
+					<textarea id="content" name="content" rows="6" maxlength="2000" placeholder="体調や気づいたことなど..." required></textarea>
+					<div id="contentError" class="field-error"><span></span></div>
+				</div>
+
+				<div class="modal__footer">
+					<button type="button" class="btn btn--ghost" id="cancelModalBtn">キャンセル</button>
+					<button type="submit" class="btn btn--primary btn--block">
+						<i data-lucide="check"></i>保存する
+					</button>
+				</div>
+			</form>
+		</div>
+	</div>
+
+	<!-- ===== Confirm Modal ===== -->
+	<div th:replace="~{layout/confirm-modal :: deleteModal}"></div>
+
+	<script src="https://unpkg.com/lucide@latest"></script>
+	<script th:src="@{/js/common.js}"></script>
+	<script th:src="@{/js/memo.js}"></script>
+
+</body>
+</html>

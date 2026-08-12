@@ -114,20 +114,24 @@
 						</div>
 					</fieldset>
 
-					<!-- ===== 健康目標 ===== -->
+					<!-- ===== Health Goals / 健康目標 ===== -->
 					<fieldset class="profile-form__section">
 						<legend>健康目標</legend>
 
 						<div class="input-row">
 							<div class="input-group">
 								<label for="targetWeight">目標体重 (kg)</label>
-								<input type="number" step="0.1" min="0" id="targetWeight" th:field="*{targetWeight}" placeholder="65.0" />
+								<input type="number" step="0.1" min="0.1" id="targetWeight" th:field="*{targetWeight}" placeholder="例：65.0" />
+								<span class="field-hint" th:if="${profile.targetWeight == null}">おすすめ目標：現在の体重や身長に合わせて設定してください</span>
+								<span class="field-hint" th:if="${profile.targetWeight != null}">現在の目標：<span th:text="${profile.targetWeight}"></span> kg</span>
 								<span class="field-error show" th:if="${#fields.hasErrors('targetWeight')}" th:errors="*{targetWeight}"></span>
 							</div>
 
 							<div class="input-group">
 								<label for="waterGoalMl">水分目標 (ml/日)</label>
-								<input type="number" min="0" id="waterGoalMl" th:field="*{waterGoalMl}" placeholder="2000" />
+								<input type="number" min="1" id="waterGoalMl" th:field="*{waterGoalMl}" placeholder="1500" />
+								<span class="field-hint" th:if="${profile.waterGoalMl == null}">おすすめ目標：1500 ml</span>
+								<span class="field-hint" th:if="${profile.waterGoalMl != null}">現在の目標：<span th:text="${profile.waterGoalMl}"></span> ml</span>
 								<span class="field-error show" th:if="${#fields.hasErrors('waterGoalMl')}" th:errors="*{waterGoalMl}"></span>
 							</div>
 						</div>
@@ -135,13 +139,17 @@
 						<div class="input-row">
 							<div class="input-group">
 								<label for="stepGoal">歩数目標 (歩/日)</label>
-								<input type="number" min="0" id="stepGoal" th:field="*{stepGoal}" placeholder="8000"/>
+								<input type="number" min="1" id="stepGoal" th:field="*{stepGoal}" placeholder="8000" />
+								<span class="field-hint" th:if="${profile.stepGoal == null}">おすすめ目標：8000 歩</span>
+								<span class="field-hint" th:if="${profile.stepGoal != null}">現在の目標：<span th:text="${profile.stepGoal}"></span> 歩</span>
 								<span class="field-error show" th:if="${#fields.hasErrors('stepGoal')}" th:errors="*{stepGoal}"></span>
 							</div>
 
 							<div class="input-group">
 								<label for="sleepGoalHours">睡眠目標 (時間/日)</label>
-								<input type="number" step="0.5" min="0" max="24" id="sleepGoalHours" th:field="*{sleepGoalHours}" placeholder="8.0" />
+								<input type="number" step="0.5" min="0.5" max="24" id="sleepGoalHours" th:field="*{sleepGoalHours}" placeholder="8.0" />
+								<span class="field-hint" th:if="${profile.sleepGoalHours == null}">おすすめ目標：8.0 時間</span>
+								<span class="field-hint" th:if="${profile.sleepGoalHours != null}">現在の目標：<span th:text="${profile.sleepGoalHours}"></span> 時間</span>
 								<span class="field-error show" th:if="${#fields.hasErrors('sleepGoalHours')}" th:errors="*{sleepGoalHours}"></span>
 							</div>
 						</div>

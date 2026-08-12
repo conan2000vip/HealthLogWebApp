@@ -1,4 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
+    initChart();
     initModal();
 });
 
@@ -240,160 +241,32 @@ function initModal() {
         return `${y}/${m}/${d}`;
     }
 }
+
 /* =========================================================
-   Chart.js — sleep ページ専用（睡眠時間推移データを描画）
-   values は分単位（sleepMinutes）で渡ってくる想定
-   固定表示: 直近7日間 / Y軸は30分刻み
+   睡眠時間推移グラフ
+   共通の HealthChart を使用する
    ========================================================= */
-let sleepChartInstance = null;
-document.addEventListener("DOMContentLoaded", initChart);
+   function initChart() {
+       const isSearching = Boolean(
+           document.getElementById("startDateInput")?.value ||
+           document.getElementById("endDateInput")?.value
+       );
 
-const CHART_DAYS = 7;          // 固定表示する日数
-const Y_STEP_HOURS = 0.5;      // Y軸の刻み幅（30分 = 0.5h）
+       const chart = HealthChart.create({
+           canvasId: "sleepChart",
+           data: window.sleepChartData,
+           unit: "時間",
+           type: "bar",
+           days: 7,
+           isSearching: isSearching,
+       });
 
-function initChart() {
-    const canvas = document.getElementById("sleepChart");
-    if (!canvas || typeof Chart === "undefined") return;
-    const chartData = window.sleepChartData || { labels: [], values: [], chartMode: "DAY" };
-    const isSearching = document.getElementById("startDateInput")?.value || document.getElementById("endDateInput")?.value;
+       const wrapper = document.getElementById("chartWrapper");
+       const chartUrl = wrapper?.closest(".chart-card")?.dataset.chartUrl;
+       const from = window.sleepChartData?.from;
+       const to = window.sleepChartData?.to;
 
-    // --- 実データを { 日付: 分 } のマップに変換 ---
-    let labels = [];
-    let data = [];
-    if (!isSearching) {
-        const dateRange = buildLastNDaysRange(CHART_DAYS, chartData.labels);
-        const valueMap = {};
-        chartData.labels.forEach((d, i) => { valueMap[d] = chartData.values[i]; });
-        labels = dateRange.map(d => formatLabel(d, "DAY"));
-        data = dateRange.map(d => {
-            const minutes = valueMap[d];
-            if (minutes == null) {
-                return null;
-            }
-            return roundToStep(minutes / 60, Y_STEP_HOURS);
-        });
-    }
-    else {
-        labels = chartData.labels.map(d => formatLabel(d, chartData.chartMode));
-        data = chartData.values.map(v => roundToStep(v / 60, Y_STEP_HOURS));
-    }
-
-    // --- 直近N日間の日付配列（yyyy-MM-dd）を生成する ---
-    function buildLastNDaysRange(n, existingLabels) {
-        let endDate = new Date();
-        endDate.setHours(0, 0, 0, 0);
-        if (existingLabels.length) {
-            const latest = existingLabels.reduce((a, b) => a > b ? a : b);
-            endDate = new Date(latest + "T00:00:00");
-        }
-        const result = [];
-        for (let i = n - 1;i >= 0;i--) {
-            const d = new Date(endDate);
-            d.setDate(d.getDate() - i);
-            result.push(toIsoDate(d));
-        }
-        return result;
-    }
-
-    // --- データが全て null の場合は描画しない ---
-    const hasAnyData = data.some((v) => v !== null);
-    if (!hasAnyData) return;
-    const styles = getComputedStyle(document.documentElement);
-    const primary = styles.getPropertyValue("--wp-primary").trim() || "#4caf50";
-    sleepChartInstance = new Chart(canvas, {
-        type: "bar",
-        data: {
-            labels,
-            datasets: [
-                {
-                    data,
-                    backgroundColor: hexToRgba(primary, 0.75),
-                    borderColor: primary,
-                    borderWidth: 1,
-                    borderRadius: 8,
-                    maxBarThickness: 40,
-                },
-            ],
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false },
-                tooltip: {
-                    callbacks: {
-                        label: (ctx) =>
-                            ctx.parsed.y === null ? "記録なし" : formatHoursMinutes(ctx.parsed.y),
-                    },
-                },
-            },
-            scales: {
-                x: {
-                    grid: { display: false },
-                    ticks: { color: "#6b7280", font: { size: 11 } },
-                },
-                y: {
-                    min: 0,
-                    suggestedMax: 10,
-                    grid: { color: "#f1f5f9" },
-                    ticks: {
-                        stepSize: Y_STEP_HOURS,
-                        color: "#6b7280",
-                        font: { size: 11 },
-                        // 浮動小数点誤差(8.700000000000001など)を防ぐため toFixed で丸めてから表示
-                        callback: (value) => `${Number(value).toFixed(1)}h`,
-                    },
-                },
-            },
-        },
-    });
-}
-
-// 直近N日間の日付配列（yyyy-MM-dd）を生成する。
-function toIsoDate(d) {
-    const yyyy = d.getFullYear();
-    const mm = String(d.getMonth() + 1).padStart(2, "0");
-    const dd = String(d.getDate()).padStart(2, "0");
-    return `${yyyy}-${mm}-${dd}`;
-}
-
-// value を step 単位で四捨五入する（例: roundToStep(8.7333, 0.5) → 8.5）
-function roundToStep(value, step) {
-    return Math.round(value / step) * step;
-}
-
-// input: 1.5 → output: "1時間30分"
-function formatHoursMinutes(hoursDecimal) {
-    const totalMinutes = Math.round(hoursDecimal * 60);
-    const h = Math.floor(totalMinutes / 60);
-    const m = totalMinutes % 60;
-    return `${h}時間${m}分`;
-}
-
-function formatLabel(value, mode) {
-    if (!value) return "";
-    if (mode === "DAY") {
-        const d = new Date(value + "T00:00:00");
-        const weekdays = ["日", "月", "火", "水", "木", "金", "土"];
-        return `${d.getDate()}(${weekdays[d.getDay()]})`;
-    }
-    if (mode === "WEEK") {
-        const d = new Date(value + "T00:00:00");
-        return `${d.getMonth() + 1}/${d.getDate()}`;
-    }
-    if (mode === "MONTH") {
-        const month = value.substring(5, 7);
-        return `${Number(month)}月`;
-    }
-    return value;
-}
-
-// HEXカラーコードをRGBAに変換する関数
-function hexToRgba(hex, alpha) {
-    const clean = hex.replace("#", "");
-    const bigint = parseInt(clean, 16);
-    const r = (bigint >> 16) & 255;
-    const g = (bigint >> 8) & 255;
-    const b = bigint & 255;
-    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-}
+       if (chart && wrapper && chartUrl && from && to) {
+           initChartSwipe({ chart, wrapperEl: wrapper, chartUrl, initialFrom: from, initialTo: to });
+       }
+   }

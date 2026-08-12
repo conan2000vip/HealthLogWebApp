@@ -113,30 +113,9 @@
 	width: 90px;
 }
 
-.stats-period-note {
-	display: flex;
-	align-items: center;
-	gap: 6px;
-	margin-top: -8px;
-	margin-bottom: 16px;
-	font-size: 0.8rem;
-	color: #888;
-}
-
-.stats-period-note i {
-	width: 14px;
-	height: 14px;
-	flex-shrink: 0;
-}
-
-.modal .form {
-	padding: 20px 24px 24px;
-}
-
 /* =========================================================
    Responsive
    ========================================================= */
-
 @media (max-width: 768px) {
 
 	.weight-table {

@@ -1,28 +1,33 @@
 /* =========================================================
-   Design Tokens (Shared)
+   共通デザイントークン
+   色・余白・角丸・影・フォント・ヘッダー高さを一元管理
    ========================================================= */
+   :root {
+   	--app-header-height: 81px;
+   	--wp-primary: #4caf50;
+   	--wp-primary-dark: rgb(11, 151, 95);
+   	--wp-primary-light: #ccfbf1;
+   	--wp-bg-gradient: linear-gradient(180deg,
+   			#e6f7f3 0%,
+   			#f4fbfa 40%,
+   			#ffffff 100%);
+   	--wp-text: #1f2937;
+   	--wp-text-muted: #6b7280;
+   	--wp-border: #e5e7eb;
+   	--wp-danger: #ef4444;
+   	--wp-danger-bg: #fef2f2;
+   	--wp-success: #4caf50;
+   	--wp-warning: #f59e0b;
+   	--wp-radius-lg: 16px;
+   	--wp-radius-md: 12px;
+   	--wp-radius-sm: 8px;
+   	--wp-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);
+   	--wp-shadow-lg: 0 20px 50px rgba(15, 23, 42, 0.18);
+   	--wp-font:
+   		"Noto Sans JP", "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+   }
 
-:root {
-	--wp-primary: #4caf50;
-	--wp-primary-dark: rgb(11, 151, 95);
-	--wp-primary-light: #ccfbf1;
-	--wp-bg-gradient: linear-gradient(180deg, #e6f7f3 0%, #f4fbfa 40%, #ffffff 100%);
-	--wp-text: #1f2937;
-	--wp-text-muted: #6b7280;
-	--wp-border: #e5e7eb;
-	--wp-danger: #ef4444;
-	--wp-danger-bg: #fef2f2;
-	--wp-success: #4caf50;
-	--wp-warning: #f59e0b;
-	--wp-radius-lg: 16px;
-	--wp-radius-md: 12px;
-	--wp-radius-sm: 8px;
-	--wp-shadow: 0 2px 8px rgba(15, 23, 42, .05);
-	--wp-shadow-lg: 0 20px 50px rgba(15, 23, 42, 0.18);
-	--wp-font: "Noto Sans JP", "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
-}
-
-/* Body */
+/* ===== ページ全体 ===== */
 body {
 	margin: 0;
 	min-height: 100vh;
@@ -31,13 +36,13 @@ body {
 	background: var(--wp-bg-gradient);
 }
 
-/* ===== Header ===== */
+/* ===== 共通ヘッダー ===== */
 
 .app-header {
-	background: rgba(255, 255, 255, .82);
+	background: rgba(255, 255, 255, 0.82);
 	backdrop-filter: blur(12px);
-	border-bottom: 1px solid #E5E7EB;
-	box-shadow: 0 2px 10px rgba(0, 0, 0, .03);
+	border-bottom: 1px solid #e5e7eb;
+	box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
 	position: relative;
 	z-index: 300;
 }
@@ -51,7 +56,7 @@ body {
 	gap: 16px;
 }
 
-/* ===== Brand / Logo ===== */
+/* ===== ブランド・ロゴ ===== */
 
 .app-header__brand {
 	display: flex;
@@ -93,12 +98,12 @@ body {
 	white-space: nowrap;
 }
 
-/* ===== Nav ===== */
+/* ===== メインナビゲーション ===== */
 
 .app-header__nav-wrapper {
 	flex: 1;
-	background: #FFFFFF;
-	border: 1px solid #E5E7EB;
+	background: #ffffff;
+	border: 1px solid #e5e7eb;
 	border-radius: 18px;
 	padding: 6px;
 	box-shadow: none;
@@ -109,7 +114,7 @@ body {
 	align-items: center;
 	gap: 4px;
 	flex: 1;
-	background: #FFFFFF;
+	background: #ffffff;
 	border: none;
 	border-radius: 18px;
 	padding: 4px;
@@ -126,21 +131,21 @@ body {
 	border-radius: 12px;
 	color: #667085;
 	text-decoration: none;
-	transition: .2s ease;
+	transition: 0.2s ease;
 }
 
 .app-header__nav-item:hover {
-	background: #F3F4F6;
+	background: #f3f4f6;
 	color: #111827;
 }
 
 .app-header__nav-item.is-active {
-	background: #ECFDF5;
+	background: #ecfdf5;
 	color: var(--wp-primary);
 	font-weight: 600;
 }
 
-/* ===== Right side (user + logout) ===== */
+/* ===== ヘッダー右側（ユーザー情報・ログアウト） ===== */
 
 .app-header__right {
 	display: flex;
@@ -157,12 +162,12 @@ body {
 	display: flex;
 	align-items: center;
 	gap: 10px;
-	background: #FFFFFF;
-	border: 1px solid #E5E7EB;
+	background: #ffffff;
+	border: 1px solid #e5e7eb;
 	height: 56px;
 	padding: 8px 14px;
 	border-radius: 18px;
-	box-shadow: 0 2px 8px rgba(0, 0, 0, .05);
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 	transition: 0.2s;
 }
 
@@ -177,7 +182,7 @@ body {
 	box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.12);
 }
 
-/* ===== Dropdown: Profile switcher ===== */
+/* ===== プロフィール切り替えドロップダウン ===== */
 
 .app-header__dropdown.is-open {
 	opacity: 1;
@@ -200,11 +205,6 @@ body {
 	display: flex;
 	flex-direction: column;
 	gap: 1px;
-}
-
-.app-header__profile-relation {
-	font-size: 12px;
-	color: #8d96a0;
 }
 
 .app-header__profile-list form {
@@ -256,15 +256,14 @@ body {
 	border: 1px solid #ececec;
 	border-radius: 18px;
 	padding: 10px;
-	box-shadow: 0 8px 24px rgba(15, 23, 42, .08);
+	box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
 	opacity: 0;
 	visibility: hidden;
 	transform: translateY(-6px);
-	transition: .2s;
+	transition: 0.2s;
 	z-index: 200;
 	box-sizing: border-box;
 }
-
 
 .app-header__profile-list {
 	list-style: none;
@@ -329,7 +328,7 @@ body {
 	width: 40px;
 	height: 40px;
 	border-radius: 50%;
-	box-shadow: 0 4px 12px rgba(0, 0, 0, .12);
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
 	color: #ffffff;
 	font-size: 15px;
 	font-weight: 700;
@@ -395,11 +394,11 @@ body {
 }
 
 .app-header__logout:hover {
-	background: #F9FAFB;
+	background: #f9fafb;
 	color: #dc2626;
 }
 
-/* ===== Mobile nav toggle (hamburger) ===== */
+/* ===== モバイル用ナビゲーション切り替えボタン ===== */
 
 .app-header__nav-toggle {
 	display: none;
@@ -407,7 +406,7 @@ body {
 	justify-content: center;
 	width: 40px;
 	height: 40px;
-	border: 1px solid #E5E7EB;
+	border: 1px solid #e5e7eb;
 	border-radius: 12px;
 	background: #fff;
 	color: #667085;
@@ -416,11 +415,11 @@ body {
 }
 
 .app-header__nav-toggle:hover {
-	background: #F3F4F6;
+	background: #f3f4f6;
 	color: #111827;
 }
 
-/* ===== Responsive (Header) ===== */
+/* ===== ヘッダーのレスポンシブ設定 ===== */
 
 @media (max-width: 1024px) {
 	.app-header__nav-item span {
@@ -454,9 +453,9 @@ body {
 		flex-direction: column;
 		align-items: stretch;
 		background: #fff;
-		border: 1px solid #E5E7EB;
+		border: 1px solid #e5e7eb;
 		border-radius: 0 0 16px 16px;
-		box-shadow: 0 12px 24px rgba(15, 23, 42, .1);
+		box-shadow: 0 12px 24px rgba(15, 23, 42, 0.1);
 		padding: 8px;
 		gap: 2px;
 		overflow: visible;
@@ -487,55 +486,9 @@ body {
 	}
 }
 
-@media (max-width: 600px) {
-	.app-header__inner {
-		padding: 10px 12px;
-		gap: 10px;
-	}
-
-	.app-header__brand-name {
-		display: none;
-	}
-
-	.app-header__user {
-		height: 40px;
-		padding: 6px 8px;
-		gap: 6px;
-	}
-
-	.app-header__user .app-header__avatar {
-		width: 26px;
-		height: 26px;
-		font-size: 12px;
-	}
-
-	.app-header__chevron {
-		width: 12px;
-		height: 12px;
-	}
-
-	.app-header__profile-item .app-header__avatar {
-		width: 26px;
-		height: 26px;
-		font-size: 11px;
-	}
-
-	.app-header__profile-item {
-		min-height: 40px;
-		padding: 8px 10px;
-		gap: 8px;
-	}
-
-	.app-header__profile-check img {
-		width: 20px;
-		height: 20px;
-		max-width: 20px;
-		max-height: 20px;
-	}
-}
-
 /* =========================================================
-   Alert (Shared) — dùng cho weight, feedback, và các trang khác
+   共通アラート
+   エラー・成功メッセージを各画面で共通表示
    ========================================================= */
 
 .alert {
@@ -602,69 +555,62 @@ body {
 }
 
 /* =========================================================
-   Feedback Card (Shared)
+   共通フィードバックカード
    ========================================================= */
 
 .feedback-list {
 	display: flex;
 	flex-direction: column;
-	gap: 10px;
+	gap: 12px;
 	margin-bottom: 20px;
 }
 
 .feedback-card {
-	display: flex;
-	align-items: flex-start;
-	gap: 12px;
-	padding: 14px 18px;
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto;
+	align-items: start;
+	column-gap: 16px;
+	padding: 14px 16px;
 	border-radius: 12px;
 	border-left: 4px solid transparent;
-	background: #ffffff;
+	background: #e6e9f2;
 	box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
-}
-
-.feedback-card__icon {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	width: 22px;
-	height: 22px;
-	flex-shrink: 0;
-	margin-top: 1px;
-}
-
-.feedback-card__icon i {
-	width: 20px;
-	height: 20px;
+	box-sizing: border-box;
 }
 
 .feedback-card__content {
-	flex: 1;
+	grid-column: 1;
 	min-width: 0;
+	width: 100%;
 	display: flex;
 	flex-direction: column;
-	gap: 3px;
+	gap: 4px;
 }
 
 .feedback-card__title {
-	font-size: 14.5px;
+	font-size: 14px;
 	font-weight: 700;
+	line-height: 1.45;
 	color: #1f2937;
 }
 
 .feedback-card__message {
+	width: 100%;
 	font-size: 13px;
+	line-height: 1.6;
 	color: #6b7280;
+	word-break: normal;
+	overflow-wrap: break-word;
 }
 
 .feedback-card__meta {
+	grid-column: 2;
 	display: flex;
 	flex-direction: column;
 	align-items: flex-end;
 	gap: 6px;
-	flex-shrink: 0;
-	margin-left: auto;
-	padding-left: 10px;
+	margin: 0;
+	padding: 0;
 }
 
 .feedback-card__time {
@@ -678,17 +624,17 @@ body {
 	font-weight: 800;
 	padding: 3px 10px;
 	border-radius: 6px;
-	color: #fff;
+	color: #ffffff;
+	background: #64748b;
 	white-space: nowrap;
 }
 
-/* Lv4: 重要 - 赤 */
+/* Level 4 */
 .feedback-card--lv4 {
-	border-left-color: #ef4444;
-	background: linear-gradient(90deg, #fef2f2 0%, #ffffff 60%);
+	background: #fee2e2;
 }
 
-.feedback-card--lv4 .feedback-card__icon i {
+.feedback-card--lv4 .feedback-card__title {
 	color: #ef4444;
 }
 
@@ -696,13 +642,12 @@ body {
 	background: #ef4444;
 }
 
-/* Lv3: 注意 - 橙 */
+/* Level 3 */
 .feedback-card--lv3 {
-	border-left-color: #f59e0b;
-	background: linear-gradient(90deg, #fffbeb 0%, #ffffff 60%);
+	background: #fef3c7;
 }
 
-.feedback-card--lv3 .feedback-card__icon i {
+.feedback-card--lv3 .feedback-card__title {
 	color: #f59e0b;
 }
 
@@ -710,13 +655,12 @@ body {
 	background: #f59e0b;
 }
 
-/* Lv2: アドバイス - 青 */
+/* Level 2 */
 .feedback-card--lv2 {
-	border-left-color: #3b82f6;
-	background: linear-gradient(90deg, #eff6ff 0%, #ffffff 60%);
+	background: #dbeafe;
 }
 
-.feedback-card--lv2 .feedback-card__icon i {
+.feedback-card--lv2 .feedback-card__title {
 	color: #3b82f6;
 }
 
@@ -724,13 +668,12 @@ body {
 	background: #3b82f6;
 }
 
-/* Lv1: 達成 - 緑 */
+/* Level 1 */
 .feedback-card--lv1 {
-	border-left-color: #10b981;
-	background: linear-gradient(90deg, #ecfdf5 0%, #ffffff 60%);
+	background: #d1fae5;
 }
 
-.feedback-card--lv1 .feedback-card__icon i {
+.feedback-card--lv1 .feedback-card__title {
 	color: #10b981;
 }
 
@@ -758,23 +701,10 @@ body {
 	text-decoration: underline;
 }
 
-@media (max-width: 600px) {
-	.feedback-card {
-		flex-wrap: wrap;
-	}
-
-	.feedback-card__meta {
-		flex-direction: row;
-		align-items: center;
-		margin-left: 34px;
-		padding-left: 0;
-	}
-}
-
 /* =========================================================
-   Summary Cards (Shared)
+   共通サマリーカード
+   最新値・平均値・最大値などの統計情報を表示
    ========================================================= */
-
 .summary-grid {
 	display: grid;
 	grid-template-columns: repeat(4, 1fr);
@@ -783,13 +713,19 @@ body {
 }
 
 .summary-card {
-    background: #fff;
-    border-radius: var(--wp-radius-lg);
-    box-shadow: var(--wp-shadow);
-    padding: 18px 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
+	background: #fff;
+	border-radius: var(--wp-radius-lg);
+	box-shadow: var(--wp-shadow);
+	padding: 18px 20px;
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.summary-card:hover {
+	transform: translateY(-3px);
+	box-shadow: 0 10px 24px rgba(15, 23, 42, 0.10);
 }
 
 .summary-card__label {
@@ -799,98 +735,217 @@ body {
 }
 
 .summary-card__value {
-    font-size: 24px;
-    font-weight: 800;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-top: 4px;
-}
-
-.summary-card__value .badge {
-    font-size: 14px;
-    padding: 4px 8px;
-    font-weight: 600;
-    line-height: 1.2;
-    align-self: center;
+	font-size: 24px;
+	font-weight: 800;
+	display: flex;
+	align-items: center;
 	gap: 8px;
 	margin-top: 4px;
 }
 
+.summary-card__value .badge {
+	min-width: 58px;
+	height: 28px;
+	padding: 0 10px;
+	font-size: 13px;
+	font-weight: 700;
+	line-height: 1;
+	align-self: center;
+	margin-top: 0;
+}
+
 .summary-card__sub {
-    margin-top: 2px;
-    font-size: 12px;
-    color: #6b7280;
-    line-height: 1.3;
+	margin-top: 2px;
+	font-size: 12px;
+	color: #6b7280;
+	line-height: 1.3;
 }
 
 /* =========================================================
-   Badge (Shared) — trạng thái theo mức độ (thấp/chuẩn/cao...)
+   Common Health Status Badge
+   目標達成率に応じた4段階の状態表示
    ========================================================= */
-
 .badge {
 	display: inline-flex;
 	align-items: center;
-	font-size: 12px;
-	font-weight: 700;
-	padding: 4px 12px;
+	justify-content: center;
+	min-width: 58px;
+	height: 28px;
+	padding: 0 12px;
 	border-radius: 999px;
-	line-height: 1.4;
+	font-size: 13px;
+	font-weight: 700;
+	line-height: 1;
+	white-space: nowrap;
+	box-sizing: border-box;
 }
 
+/* BMI: bình thường */
+.badge--normal {
+	background: #e8f5e9;
+	color: #2e7d32;
+}
+
+/* BMI: thiếu cân */
+.badge--underweight {
+	background: #e3f2fd;
+	color: #1976d2;
+}
+
+/* BMI: thừa cân */
+.badge--overweight {
+	background: #fff3cd;
+	color: #d97706;
+}
+
+/* BMI: béo phì */
+.badge--obese {
+	background: #fde8e8;
+	color: #dc2626;
+}
+
+/* < 50% */
+.badge--danger {
+	background: #fee2e2;
+	color: #b91c1c;
+}
+
+/* 50% - 79% */
 .badge--warning {
 	background: #fef3c7;
 	color: #b45309;
 }
 
-.badge--normal,
-.badge.normal {
-	background: var(--wp-primary-light);
-	color: var(--wp-primary-dark);
+/* 80% - 99% */
+.badge--info {
+	background: #dbeafe;
+	color: #1d4ed8;
 }
 
-.badge--low {
-	background: #fef9c3;
-	color: #a16207;
-}
-
-.badge--high {
-	background: #fee2e2;
-	color: #b91c1c;
+/* >= 100% */
+.badge--success {
+	background: #d1fae5;
+	color: #047857;
 }
 
 /* =========================================================
-   Filter Bar (Shared)
+   Common Filter Bar
    ========================================================= */
-
 .filter-bar {
 	display: flex;
 	align-items: center;
-	gap: 10px;
+	gap: 18px;
 	background: #ffffff;
 	border-radius: var(--wp-radius-lg);
 	box-shadow: var(--wp-shadow);
-	padding: 14px 20px;
+	padding: 12px 18px;
 	margin-bottom: 20px;
-	flex-wrap: wrap;
+}
+
+.filter-bar__quick-area {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	flex-shrink: 0;
+}
+
+.filter-bar__label {
+	font-size: 13px;
+	font-weight: 600;
+	color: var(--wp-text-muted);
+	white-space: nowrap;
+}
+
+.filter-bar__quick {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	flex-shrink: 0;
+}
+
+.quick-btn {
+	height: 34px;
+	padding: 0 14px;
+	border: 1px solid var(--wp-border);
+	border-radius: 999px;
+	background: #fff;
+	color: var(--wp-text-muted);
+	font-size: 13px;
+	font-weight: 600;
+	cursor: pointer;
+	transition: 0.15s ease;
+}
+
+.quick-btn:hover {
+	background: #f3f4f6;
+	border-color: #d1d5db;
+}
+
+.quick-btn.is-active {
+	background: #ecfdf5;
+	border-color: var(--wp-primary);
+	color: var(--wp-primary-dark);
+}
+
+.filter-bar__divider {
+	width: 1px;
+	height: 30px;
+	background: var(--wp-border);
+	flex-shrink: 0;
+}
+
+.filter-bar__date-area {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	min-width: 0;
+}
+
+.filter-bar__date-label {
+	font-size: 13px;
+	font-weight: 600;
+	color: var(--wp-text-muted);
+	white-space: nowrap;
+}
+
+.filter-bar input[type="date"] {
+	height: 36px;
+	box-sizing: border-box;
+	border: 1px solid var(--wp-border);
+	border-radius: 8px;
+	padding: 0 10px;
+	font-family: var(--wp-font);
+	font-size: 13px;
+	color: var(--wp-text);
+	background: #fff;
+}
+
+.filter-bar__sep {
+	color: var(--wp-text-muted);
+	font-weight: 600;
+	flex-shrink: 0;
 }
 
 .filter-bar__search-btn {
+	height: 36px;
 	display: inline-flex;
 	align-items: center;
+	justify-content: center;
 	gap: 6px;
-	padding: 6px 12px;
+	padding: 0 14px;
 	border: 1px solid #d1d5db;
 	border-radius: 8px;
-	background-color: #f9fafb;
+	background: #f9fafb;
 	color: #374151;
-	font-size: 14px;
+	font-size: 13px;
+	font-weight: 600;
 	cursor: pointer;
-	transition: background-color 0.15s ease, border-color 0.15s ease;
+	white-space: nowrap;
+	transition: 0.15s ease;
 }
 
 .filter-bar__search-btn:hover {
-	background-color: #f3f4f6;
+	background: #f3f4f6;
 	border-color: #9ca3af;
 }
 
@@ -899,93 +954,21 @@ body {
 	height: 16px;
 }
 
-.filter-bar__title {
-	display: inline-flex;
-	align-items: center;
-	gap: 6px;
-	flex-shrink: 0;
-}
-
-.filter-bar i {
-	width: 16px;
-	height: 16px;
-	color: var(--wp-text-muted);
-}
-
-.filter-bar__label {
-	flex-shrink: 0;
-	white-space: nowrap;
-	font-size: 13px;
-	color: var(--wp-text-muted);
-	font-weight: 500;
-}
-
-.filter-bar input[type="date"] {
-	border: 1px solid var(--wp-border);
-	border-radius: var(--wp-radius-sm);
-	padding: 8px 10px;
-	font-family: var(--wp-font);
-	font-size: 13px;
-	color: var(--wp-text);
-}
-
-.filter-bar__sep {
-	color: var(--wp-text-muted);
-	flex-shrink: 0;
-}
-
 .filter-bar__reset {
 	font-size: 13px;
 	color: var(--wp-primary-dark);
 	text-decoration: none;
-	margin-left: auto;
-	flex-shrink: 0;
+	white-space: nowrap;
 }
 
 .filter-bar__reset:hover {
 	text-decoration: underline;
 }
 
-
-@media (max-width: 600px) {
-	.filter-bar {
-		row-gap: 10px;
-		padding: 14px 16px;
-	}
-
-	.filter-bar>i {
-		display: none;
-	}
-
-	.filter-bar__label {
-		flex: 1 1 100%;
-		order: 1;
-	}
-
-	.filter-bar input[type="date"] {
-		flex: 1 1 0;
-		min-width: 0;
-		width: auto;
-		order: 2;
-	}
-
-	.filter-bar__sep {
-		flex: 0 0 auto;
-		order: 2;
-	}
-
-	.filter-bar__reset {
-		flex: 1 1 100%;
-		order: 3;
-		margin-left: 0;
-		text-align: right;
-	}
-}
-
 /* =========================================================
-   Chart Card (Shared)
+   共通グラフカード
+   体重・睡眠・水分・歩数などの推移グラフを表示
    ========================================================= */
-
 .chart-card {
 	background: #ffffff;
 	border-radius: var(--wp-radius-lg);
@@ -1031,6 +1014,7 @@ body {
 	position: relative;
 	height: 300px;
 	width: 100%;
+	touch-action: pan-y;
 }
 
 .chart-card__empty {
@@ -1041,7 +1025,8 @@ body {
 }
 
 /* =========================================================
-   Table Card / Data Table Scroll (Shared)
+   共通履歴テーブル
+   スクロール・メモ展開・差分バッジ・操作ボタンを管理
    ========================================================= */
 
 .memo-cell {
@@ -1075,6 +1060,8 @@ body {
 .data-table-scroll {
 	max-height: 320px;
 	overflow-y: auto;
+	overflow-x: auto;
+	-webkit-overflow-scrolling: touch;
 }
 
 .data-table-scroll table {
@@ -1179,12 +1166,28 @@ body {
 }
 
 .delete-form {
-	display: inline;
+	display: none;
 }
 
 /* =========================================================
-   Pagination (Shared)
+   共通ページネーション
+   履歴一覧のページ切り替えに使用
    ========================================================= */
+.stats-period-note {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	margin-top: -8px;
+	margin-bottom: 16px;
+	font-size: 0.8rem;
+	color: #888;
+}
+
+.stats-period-note i {
+	width: 14px;
+	height: 14px;
+	flex-shrink: 0;
+}
 
 .pagination {
 	display: flex;
@@ -1221,7 +1224,8 @@ body {
 }
 
 /* =========================================================
-   Empty State (Shared)
+   共通空データ表示
+   記録がない場合や検索結果がない場合に使用
    ========================================================= */
 
 .empty-state {
@@ -1249,7 +1253,8 @@ body {
 }
 
 /* =========================================================
-   Buttons (Shared)
+   共通ボタン
+   通常・主要・キャンセル・削除ボタンを統一
    ========================================================= */
 
 .btn {
@@ -1265,7 +1270,10 @@ body {
 	font-size: 14px;
 	font-weight: 600;
 	cursor: pointer;
-	transition: background 0.15s ease, box-shadow 0.15s ease, transform 0.05s ease;
+	transition:
+		background 0.15s ease,
+		box-shadow 0.15s ease,
+		transform 0.05s ease;
 }
 
 .btn i {
@@ -1280,7 +1288,7 @@ body {
 }
 
 .btn--primary:hover {
-	filter: brightness(.95);
+	filter: brightness(0.95);
 }
 
 .btn--ghost {
@@ -1302,7 +1310,7 @@ body {
 
 .btn--danger:hover {
 	background: #dc2626;
-	box-shadow: 0 6px 16px rgba(239, 68, 68, .22);
+	box-shadow: 0 6px 16px rgba(239, 68, 68, 0.22);
 }
 
 .btn--danger:active {
@@ -1316,22 +1324,28 @@ body {
 	border-radius: 10px;
 	font-size: 15px;
 	font-weight: 600;
-	transition: .2s;
+	transition: 0.2s;
 }
 
 /* =========================================================
-   Modal (Shared Base)
+   共通モーダル
+   ヘッダー下に固定し、長いフォームはモーダル内でスクロール
    ========================================================= */
 
 .modal-overlay {
 	position: fixed;
-	inset: 0;
+	top: var(--app-header-height);
+	right: 0;
+	bottom: 0;
+	left: 0;
 	background: rgba(15, 23, 42, 0.45);
 	display: none;
 	align-items: center;
 	justify-content: center;
 	padding: 20px;
-	z-index: 100;
+	box-sizing: border-box;
+	overflow-y: auto;
+	z-index: 200;
 }
 
 .modal-overlay.is-open {
@@ -1344,7 +1358,7 @@ body {
 	box-shadow: 0 20px 50px rgba(15, 23, 42, 0.18);
 	width: 100%;
 	max-width: 440px;
-	max-height: 90vh;
+	max-height: calc(100dvh - var(--app-header-height) - 40px);
 	overflow-y: auto;
 	animation: wp-modal-in 0.15s ease-out;
 }
@@ -1367,6 +1381,10 @@ body {
 	justify-content: space-between;
 	padding: 20px 24px 16px;
 	border-bottom: 1px solid rgb(192, 192, 192);
+	position: sticky;
+	top: 0;
+	z-index: 2;
+	background: #ffffff;
 }
 
 .modal__header h2 {
@@ -1403,13 +1421,19 @@ body {
 }
 
 /* =========================================================
-   Form (Shared)
+   共通フォーム
+   入力欄・セレクト・テキストエリア・入力エラーを統一
    ========================================================= */
 
 .form {
 	display: flex;
 	flex-direction: column;
 	gap: 16px;
+}
+
+/* モーダル内フォームの共通余白 */
+.modal .form {
+	padding: 20px 24px 24px;
 }
 
 .input-group {
@@ -1468,7 +1492,7 @@ body {
 .form textarea:focus {
 	outline: none;
 	border-color: var(--wp-primary);
-	box-shadow: 0 0 0 3px rgba(76, 175, 80, .2);
+	box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2);
 }
 
 .form input::placeholder,
@@ -1493,7 +1517,8 @@ body {
 }
 
 /* =========================================================
-   Responsive (Shared) / Modal Footer
+   共通モーダルフッター
+   保存・キャンセル・削除ボタンの配置を統一
    ========================================================= */
 
 .modal__footer {
@@ -1512,12 +1537,208 @@ body {
 	flex: 65;
 }
 
+/* =========================================================
+   共通レスポンシブ設定
+   画面幅に応じてサマリー・ヘッダー・フィルター・モーダルを調整
+   ========================================================= */
+/* 860px以下 */
 @media (max-width: 860px) {
 	.summary-grid {
 		grid-template-columns: repeat(2, 1fr);
 	}
+
+	.filter-bar {
+		flex-direction: column;
+		align-items: stretch;
+		gap: 12px;
+	}
+
+	.filter-bar__quick-area {
+		width: 100%;
+	}
+
+	.filter-bar__divider {
+		width: 100%;
+		height: 1px;
+	}
+
+	.filter-bar__date-area {
+		width: 100%;
+		flex-wrap: wrap;
+	}
 }
 
+/* 600px以下 */
+@media (max-width: 600px) {
+	:root {
+		--app-header-height: 61px;
+	}
+
+	/* Header */
+	.app-header__inner {
+		padding: 10px 12px;
+		gap: 10px;
+	}
+
+	.app-header__brand-name {
+		display: none;
+	}
+
+	.app-header__user {
+		height: 40px;
+		padding: 6px 8px;
+		gap: 6px;
+	}
+
+	.app-header__user .app-header__avatar {
+		width: 26px;
+		height: 26px;
+		font-size: 12px;
+	}
+
+	.app-header__chevron {
+		width: 12px;
+		height: 12px;
+	}
+
+	.app-header__profile-item .app-header__avatar {
+		width: 26px;
+		height: 26px;
+		font-size: 11px;
+	}
+
+	.app-header__profile-item {
+		min-height: 40px;
+		padding: 8px 10px;
+		gap: 8px;
+	}
+
+	.app-header__profile-check img {
+		width: 20px;
+		height: 20px;
+		max-width: 20px;
+		max-height: 20px;
+	}
+
+	/* Feedback */
+	.feedback-card {
+		grid-template-columns: minmax(0, 1fr);
+		row-gap: 8px;
+		padding: 11px 12px;
+	}
+
+	.feedback-card__content {
+		grid-column: 1;
+		grid-row: 1;
+		width: 100%;
+		min-width: 0;
+	}
+
+	.feedback-card__title {
+		font-size: 14.5px;
+		font-weight: 700;
+		color: #1f2937;
+	}
+
+	.feedback-card__message {
+		font-size: 12px;
+		line-height: 1.6;
+		width: 100%;
+	}
+
+	.feedback-card__meta {
+		grid-column: 1;
+		grid-row: 2;
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		justify-content: flex-start;
+		gap: 8px;
+		margin: 0;
+		padding: 0;
+	}
+
+	.feedback-card__time {
+		font-size: 11px;
+	}
+
+	.feedback-card__badge {
+		font-size: 10px;
+		padding: 3px 8px;
+	}
+
+	/* Filter */
+	.filter-bar {
+		padding: 14px;
+		gap: 12px;
+	}
+
+	.filter-bar__quick-area {
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 8px;
+	}
+
+	.filter-bar__quick {
+		width: 100%;
+		display: grid;
+		grid-template-columns: repeat(5, 1fr);
+		gap: 6px;
+	}
+
+	.quick-btn {
+		width: 100%;
+		height: 34px;
+		padding: 0 6px;
+		font-size: 12px;
+	}
+
+	.filter-bar__date-area {
+		display: grid;
+		grid-template-columns: 1fr 18px 1fr;
+		gap: 8px;
+		align-items: center;
+	}
+
+	.filter-bar__date-label {
+		grid-column: 1 / -1;
+	}
+
+	.filter-bar input[type="date"] {
+		width: 100%;
+		min-width: 0;
+		height: 38px;
+		padding: 0 8px;
+		font-size: 12px;
+	}
+
+	.filter-bar__sep {
+		text-align: center;
+	}
+
+	.filter-bar__search-btn {
+		grid-column: 1 / -1;
+		width: 100%;
+		height: 38px;
+	}
+
+	.filter-bar__reset {
+		grid-column: 1 / -1;
+		text-align: right;
+		margin-top: -2px;
+	}
+
+	/* Modal */
+	.modal-overlay {
+		padding: 12px;
+	}
+
+	.modal {
+		max-height: calc(100dvh - var(--app-header-height) - 24px);
+	}
+}
+
+/* 560px以下 */
 @media (max-width: 560px) {
 	.summary-grid {
 		grid-template-columns: 1fr 1fr;
@@ -1532,4 +1753,33 @@ body {
 		width: 100%;
 		flex: none;
 	}
+}
+
+/* 420px以下 */
+@media (max-width: 420px) {
+	.filter-bar__quick {
+		grid-template-columns: repeat(3, 1fr);
+	}
+
+	.filter-bar__date-area {
+		grid-template-columns: 1fr;
+	}
+
+	.filter-bar__sep {
+		display: none;
+	}
+
+	.filter-bar input[type="date"],
+	.filter-bar__search-btn,
+	.filter-bar__reset,
+	.filter-bar__date-label {
+		grid-column: 1;
+	}
+}
+/* =========================================================
+   共通履歴テーブル
+   ========================================================= */
+.data-table-scroll th,
+.data-table-scroll td {
+	box-sizing: border-box;
 }

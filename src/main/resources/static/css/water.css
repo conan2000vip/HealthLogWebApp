@@ -1,0 +1,165 @@
+/* =========================================================
+   Water Page
+   ========================================================= */
+
+.water-page {
+	min-height: calc(100vh - 72px);
+}
+
+.water-page__inner {
+	max-width: 1080px;
+	margin: 0 auto;
+	padding: 32px 24px 64px;
+}
+
+/* ---------- Page Header ---------- */
+
+.water-page__header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 16px;
+	margin-bottom: 24px;
+}
+
+.water-page__heading {
+	display: flex;
+	align-items: center;
+	gap: 14px;
+}
+
+.water-page__icon-img {
+	width: 35px;
+	height: 35px;
+	max-width: 35px;
+	max-height: 35px;
+	object-fit: contain;
+	display: block;
+}
+
+.water-page__heading h1 {
+	margin: 0;
+	font-size: 22px;
+	font-weight: 800;
+}
+
+.water-page__heading p {
+	margin: 2px 0 0;
+	font-size: 13px;
+	color: var(--wp-text-muted);
+}
+
+/* =========================================================
+   Water Table Only
+   ========================================================= */
+
+.water-table {
+	width: 100%;
+	table-layout: fixed;
+}
+
+/* 日付 */
+.water-table th:nth-child(1),
+.water-table td:nth-child(1) {
+	width: 120px;
+	white-space: nowrap;
+}
+
+/* 時間 */
+.water-table th:nth-child(2),
+.water-table td:nth-child(2) {
+	width: 90px;
+	text-align: center;
+	white-space: nowrap;
+	color: var(--wp-text-muted);
+}
+
+/* 飲み物 */
+.water-table th:nth-child(3),
+.water-table td:nth-child(3) {
+	width: 150px;
+	text-align: center;
+	white-space: nowrap;
+}
+
+/* 量 */
+.water-table th:nth-child(4),
+.water-table td:nth-child(4) {
+	width: 120px;
+	text-align: center;
+	white-space: nowrap;
+}
+
+/* 目標比 */
+.water-table th:nth-child(5),
+.water-table td:nth-child(5) {
+	width: 100px;
+	text-align: center;
+	white-space: nowrap;
+}
+
+/* メモ */
+.water-table th:nth-child(6),
+.water-table td:nth-child(6) {
+	text-align: left;
+}
+
+.water-drink {
+	font-weight: 600;
+}
+
+.water-table__amount {
+	font-weight: 700;
+	text-align: center;
+}
+
+.water-table__time {
+	color: var(--wp-text-muted);
+}
+
+.water-table__memo {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	color: var(--wp-text-muted);
+}
+
+.water-table__actions {
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+	gap: 6px;
+}
+
+.water-table__actions-col {
+	width: 90px;
+}
+
+/* =========================================================
+   Responsive
+   ========================================================= */
+@media (max-width: 768px) {
+	.water-table {
+		table-layout: auto;
+		font-size: 13px;
+	}
+
+	.water-page__inner {
+		padding: 20px 14px 48px;
+	}
+
+	.water-page__header {
+		flex-direction: column;
+		align-items: flex-start;
+	}
+
+	.water-table th,
+	.water-table td {
+		width: auto !important;
+	}
+
+	.water-table th:nth-child(6),
+	.water-table td:nth-child(6) {
+		display: none;
+	}
+}

@@ -4,133 +4,33 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 /* =========================================================
-   1) 体重推移グラフ (Chart.js)
-   バックエンドで日付ごとに集約済みの window.weightChartData を描画する。
+   1) 体重推移グラフ
+   共通の health-chart.js を使用する
    ========================================================= */
-let weightChartInstance = null;
+   function initChart() {
+       const isSearching = Boolean(
+           document.getElementById("startDateInput")?.value ||
+           document.getElementById("endDateInput")?.value
+       );
 
-function initChart() {
-    const canvas = document.getElementById("weightChart");
-    if (!canvas || typeof Chart === "undefined") return;
+       const chart = HealthChart.create({
+           canvasId: "weightChart",
+           data: window.weightChartData,
+           unit: "kg",
+           type: "bar",
+           days: 7,
+           isSearching: isSearching
+       });
 
-    const chartData = window.weightChartData || { labels: [], values: [], chartMode: "DAY" };
-    if (!chartData.labels || chartData.labels.length === 0) return;
+       const wrapper = document.getElementById("chartWrapper");
+       const chartUrl = wrapper?.closest(".chart-card")?.dataset.chartUrl;
+       const from = window.weightChartData?.from;
+       const to = window.weightChartData?.to;
 
-    const CHART_DAYS = 7;
-    const isSearching =
-        document.getElementById("startDateInput")?.value ||
-        document.getElementById("endDateInput")?.value;
-    let labels = [];
-    let data = [];
-
-    if (!isSearching) {
-        const dateRange = buildLastNDaysRange(CHART_DAYS, chartData.labels);
-        const valueMap = {};
-        chartData.labels.forEach((d, i) => {
-            valueMap[d] = chartData.values[i];
-        });
-        labels = dateRange.map(d => formatLabel(d, "DAY"));
-        data = dateRange.map(d => {
-            const value = valueMap[d];
-            return value == null ? null : parseFloat(value);
-        });
-    } else {
-        labels = chartData.labels.map(d => formatLabel(d, chartData.chartMode));
-        data = chartData.values.map(v => v == null ? null : parseFloat(v));
-    }
-    // --- 直近N日間の日付配列（yyyy-MM-dd）を生成する ---
-    function buildLastNDaysRange(n, existingLabels) {
-        let endDate = new Date();
-        endDate.setHours(0, 0, 0, 0);
-        if (existingLabels.length) {
-            const latest = existingLabels.reduce((a, b) => a > b ? a : b);
-            endDate = new Date(latest + "T00:00:00");
-        }
-        const result = [];
-        for (let i = n - 1;i >= 0;i--) {
-            const d = new Date(endDate);
-            d.setDate(d.getDate() - i);
-            result.push(toIsoDate(d));
-        }
-        return result;
-    }
-
-    const styles = getComputedStyle(document.documentElement);
-    const primary = styles.getPropertyValue("--wp-primary").trim() || "#14b8a6";
-    weightChartInstance = new Chart(canvas, {
-        type: "bar",
-        data: {
-            labels,
-            datasets: [
-                {
-                    data,
-                    backgroundColor: hexToRgba(primary, 0.75),
-                    borderColor: primary,
-                    borderWidth: 1,
-                    borderRadius: 8,
-                    maxBarThickness: 40,
-                },
-            ],
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false },
-                tooltip: {
-                    callbacks: {
-                        label: (ctx) => `${ctx.parsed.y} kg`,
-                    },
-                },
-            },
-            scales: {
-                x: {
-                    grid: { display: false },
-                    ticks: { color: "#6b7280", font: { size: 11 } },
-                },
-                y: {
-                    grid: { color: "#f1f5f9" },
-                    ticks: { color: "#6b7280", font: { size: 11 } },
-                },
-            },
-        },
-    });
-}
-
-// 直近N日間の日付配列（yyyy-MM-dd）を生成する。
-function toIsoDate(d) {
-    const yyyy = d.getFullYear();
-    const mm = String(d.getMonth() + 1).padStart(2, "0");
-    const dd = String(d.getDate()).padStart(2, "0");
-    return `${yyyy}-${mm}-${dd}`;
-}
-
-function formatLabel(value, mode) {
-    if (!value) return "";
-    if (mode === "DAY") {
-        const d = new Date(value + "T00:00:00");
-        const weekdays = ["日", "月", "火", "水", "木", "金", "土"];
-        return `${d.getDate()}(${weekdays[d.getDay()]})`;
-    }
-    if (mode === "WEEK") {
-        const d = new Date(value + "T00:00:00");
-        return `${d.getMonth() + 1}/${d.getDate()}`;
-    }
-    if (mode === "MONTH") {
-        const month = value.substring(5, 7);
-        return `${Number(month)}月`;
-    }
-    return value;
-}
-
-function hexToRgba(hex, alpha) {
-    const clean = hex.replace("#", "");
-    const bigint = parseInt(clean, 16);
-    const r = (bigint >> 16) & 255;
-    const g = (bigint >> 8) & 255;
-    const b = bigint & 255;
-    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-}
+       if (chart && wrapper && chartUrl && from && to) {
+           initChartSwipe({ chart, wrapperEl: wrapper, chartUrl, initialFrom: from, initialTo: to });
+       }
+   }
 
 /* =========================================================
    2) モーダル（新規登録 / 編集）— weight ページ専用
