@@ -1,24 +1,24 @@
 <!DOCTYPE html>
 <html lang="ja" xmlns:th="http://www.thymeleaf.org">
 
-<head>
-	<meta charset="UTF-8" />
-	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-	<title>Home | HealthLog</title>
-	<link rel="stylesheet" th:href="@{/css/common.css}" />
-	<link rel="stylesheet" th:href="@{/css/home.css}" />
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.462.0/umd/lucide.min.js"></script>
-</head>
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Home | HealthLog</title>
+		<link rel="stylesheet" th:href="@{/css/common.css}" />
+		<link rel="stylesheet" th:href="@{/css/home.css}" />
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.462.0/umd/lucide.min.js"></script>
+	</head>
 
-<body>
-	<!-- ============ Header ============ -->
-	<div th:replace="~{layout/header :: header('home')}"></div>
-	<main class="home">
-		<!-- ============ Profile Card ============ -->
-		<section class="profile-card">
-			<div class="profile-card__avatar"
-				th:style="${'background:' + (currentProfile.profileColor != null ? currentProfile.profileColor : '#6ec1e4')}">
-				<span th:text="${#strings.substring(currentProfile.name,0,1)}">A</span>
+	<body>
+		<!-- ============ Header ============ -->
+		<div th:replace="~{layout/header :: header('home')}"></div>
+		<main class="home">
+			<!-- ============ Profile Card ============ -->
+			<section class="profile-card">
+				<div class="profile-card__avatar"
+					th:style="${'background:' + (currentProfile.profileColor != null ? currentProfile.profileColor : '#6ec1e4')}">
+					<span th:text="${#strings.substring(currentProfile.name,0,1)}">A</span>
 			</div>
 			<div class="profile-card__info">
 				<div class="profile-card__title-row">
@@ -164,22 +164,15 @@
 						(${today.stepGoalStatus == 'NO_GOAL'} ? ' is-empty' : ' is-progress'))" th:text="${today.stepGoalText}"> 歩数目標を達成しました </p>
 			</article>
 		</section>
-		<!-- ============ Recent Memo ============ -->
-		<section class="memo-card">
-			<div class="memo-card__header">
+		<!-- ============ Health Feedback ============ -->
+		<section class="feedback-panel">
+			<div class="feedback-panel__header">
 				<h2>
-					<img th:src="@{/image/notes.png}" alt="" class="icon-sm" />最近の健康メモ
+					<img th:src="@{/image/shield.png}" alt="" class="icon-sm" /> 健康フィードバック（重要度の高い順に表示）
 				</h2>
-				<a th:href="@{/profile/{profileId}/memo(profileId=${currentProfile.id})}" class="link-btn">すべて見る ›</a>
 			</div>
-			<ul class="memo-card__list" th:if="${recentMemos != null and !#lists.isEmpty(recentMemos)}">
-				<li th:each="memo : ${recentMemos}">
-					<p class="memo-card__date" th:text="${#temporals.format(memo.recordedDate,'yyyy/MM/dd')}">2026/08/09</p>
-					<p class="memo-card__title" th:text="${memo.title}">今日の体調</p>
-					<p class="memo-card__text" th:text="${memo.content}">今日はよく眠れた気がします。</p>
-				</li>
-			</ul>
-			<p class="empty-text" th:if="${recentMemos == null or #lists.isEmpty(recentMemos)}">直近3日間のメモはありません。</p>
+			<div th:replace="~{layout/data-controls :: feedbackList(feedbackList=${feedbackList})}"></div>
+			<p class="empty-text" th:if="${#lists.isEmpty(feedbackList)}">現在フィードバックはありません。</p>
 		</section>
 		<!-- ============ Family Summary ============ -->
 		<section class="family-card">
@@ -232,18 +225,23 @@
 				</article>
 			</div>
 			<p class="empty-text" th:if="${#lists.isEmpty(familyMembers)}">登録されているプロファイルはありません。</p>
-			<a th:href="@{/profile/profile-manage}" class="family-card__select-btn">
-				<img th:src="@{/image/profile.png}" alt="" class="icon-sm" /> プロファイル選択へ移動 </a>
 		</section>
-		<!-- ============ Health Feedback ============ -->
-		<section class="feedback-panel">
-			<div class="feedback-panel__header">
+		<!-- ============ Recent Memo ============ -->
+		<section class="memo-card">
+			<div class="memo-card__header">
 				<h2>
-					<img th:src="@{/image/shield.png}" alt="" class="icon-sm" /> 健康フィードバック（重要度の高い順に表示）
+					<img th:src="@{/image/notes.png}" alt="" class="icon-sm" />最近の健康メモ
 				</h2>
+				<a th:href="@{/profile/{profileId}/memo(profileId=${currentProfile.id})}" class="link-btn">すべて見る ›</a>
 			</div>
-			<div th:replace="~{layout/data-controls :: feedbackList(feedbackList=${feedbackList})}"></div>
-			<p class="empty-text" th:if="${#lists.isEmpty(feedbackList)}">現在フィードバックはありません。</p>
+			<ul class="memo-card__list" th:if="${recentMemos != null and !#lists.isEmpty(recentMemos)}">
+				<li th:each="memo : ${recentMemos}">
+					<p class="memo-card__date" th:text="${#temporals.format(memo.recordedDate,'yyyy/MM/dd')}">2026/08/09</p>
+					<p class="memo-card__title" th:text="${memo.title}">今日の体調</p>
+					<p class="memo-card__text" th:text="${memo.content}">今日はよく眠れた気がします。</p>
+				</li>
+			</ul>
+			<p class="empty-text" th:if="${recentMemos == null or #lists.isEmpty(recentMemos)}">直近3日間のメモはありません。</p>
 		</section>
 		<script th:src="@{/js/home.js}"></script>
 		<script th:src="@{/js/common.js}"></script>

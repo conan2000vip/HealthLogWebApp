@@ -42,7 +42,7 @@
     });
 
     window.addEventListener("resize", function() {
-        if (window.innerWidth > 1100) {
+        if (window.innerWidth > 1280) {
             nav.classList.remove("open");
         }
     });

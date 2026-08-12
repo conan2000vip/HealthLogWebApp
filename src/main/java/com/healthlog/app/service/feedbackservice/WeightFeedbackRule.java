@@ -65,13 +65,12 @@ public class WeightFeedbackRule {
 			items.add(buildNoRecordReminder(today, "体重記録がありません", "今日の体重データがまだ記録されていません。記録すると、あなたに合ったフィードバックが受け取れます。"));
 		} else if (latestLogs.size() >= 2) {
 			LocalDate previousDate = latestLogs.get(1).getRecordedDate();
-			long gapDays = ChronoUnit.DAYS.between(previousDate, today);
-			if (gapDays > 1) {
+			long totalGap = ChronoUnit.DAYS.between(previousDate, today);
+			if (totalGap > 1) {
+				long emptyDays = totalGap - 1; // 前回と今日の間に実際に記録が無かった日数
 				items.add(new FeedbackItem(FeedbackType.WEIGHT_RESUMED, FeedbackLevel.LV0, "記録を再開しました",
-						"前回の記録から" + gapDays + "日空きましたが、今日また記録できました。この調子で続けましょう。", today.atStartOfDay(),
+						"前回の記録から" + emptyDays + "日空きましたが、今日また記録できました。この調子で続けましょう。", today.atStartOfDay(),
 						"calendar-check"));
-			} else if (!latestLogs.stream().anyMatch(w -> w.getRecordedDate().isEqual(yesterday))) {
-				items.add(buildNoRecordReminder(today, "昨日の体重記録がありません", "昨日分の体重データが記録されていません。忘れずに記録しましょう。"));
 			}
 		}
 
@@ -85,7 +84,7 @@ public class WeightFeedbackRule {
 		return items;
 	}
 
-	// ---- Lv1: 目標体重達成、または（目標未設定 or 未達成時）今日の記録完了 ----
+	// ---- Lv1/Lv2: 目標達成、または目標に向けた進捗 ----
 	private void checkAchievement(List<Weight> logs, Profile profile, LocalDate today, List<FeedbackItem> items) {
 		Weight latest = logs.get(0);
 		BigDecimal current = latest.getWeight();
@@ -125,25 +124,16 @@ public class WeightFeedbackRule {
 
 		// 現在体重 > 目標体重 → 減量目標
 		if (diff.compareTo(BigDecimal.ZERO) > 0) {
-			items.add(new FeedbackItem(FeedbackType.DAILY_COMPLETE, FeedbackLevel.LV1, "目標体重まであと" + remaining + "kgです",
-					"現在の体重は" + current + "kgです。目標体重55kgに向けて、無理のないペースで取り組みましょう。", latest.getMeasuredAt(),
+			items.add(new FeedbackItem(FeedbackType.DAILY_COMPLETE, FeedbackLevel.LV2, "目標体重まであと" + remaining + "kgです",
+					"現在の体重は" + current + "kgです。目標体重" + target + "kgに向けて、無理のないペースで取り組みましょう。", latest.getMeasuredAt(),
 					"trending-down"));
 			return;
 		}
 
 		// 現在体重 < 目標体重 → 増量目標
-		items.add(new FeedbackItem(FeedbackType.DAILY_COMPLETE, FeedbackLevel.LV1, "目標体重まであと" + remaining + "kgです",
-				"現在の体重は" + current + "kgです。目標体重に向けて、バランスのよい食事と適度な運動を心がけましょう。", latest.getMeasuredAt(), "trending-up"));
-	}
-
-	// ---- Lv2: 体重記録なし（3日間） ----
-	private void checkNoRecord(List<Weight> logs, LocalDate today, List<FeedbackItem> items) {
-		Weight latest = logs.get(0);
-		long days = ChronoUnit.DAYS.between(latest.getRecordedDate(), today);
-		if (days >= NO_RECORD_DAYS_THRESHOLD) {
-			items.add(new FeedbackItem(FeedbackType.WEIGHT_NO_RECORD, FeedbackLevel.LV2, "最近、体重記録がありません",
-					"今日の状態を記録してみましょう。", latest.getMeasuredAt(), "lightbulb"));
-		}
+		items.add(new FeedbackItem(FeedbackType.DAILY_COMPLETE, FeedbackLevel.LV2, "目標体重まであと" + remaining + "kgです",
+				"現在の体重は" + current + "kgです。目標体重" + target + "kgに向けて、バランスのよい食事と適度な運動を心がけましょう。", latest.getMeasuredAt(),
+				"trending-up"));
 	}
 
 	// ---- Lv3 / Lv4: 前回比の変化 ----

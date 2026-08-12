@@ -44,8 +44,7 @@ public class HomeService {
 		List<Profile> profileList = profileService.getProfiles(currentUserId);
 
 		List<Profile> otherProfiles = profileList.stream()
-				.filter(profile -> !profile.getId().equals(currentProfile.getId()))
-				.toList();
+				.filter(profile -> !profile.getId().equals(currentProfile.getId())).toList();
 
 		List<Map<String, Object>> familyMembers = buildFamilyMembers(otherProfiles, currentUserId, today);
 
@@ -337,37 +336,31 @@ public class HomeService {
 			boolean hasStepToday = !"NO_RECORD".equals(familyToday.get("stepGoalStatus"));
 
 			int totalItems = 4;
-			int doneItems = (hasWeightToday ? 1 : 0)
-					+ (hasSleepToday ? 1 : 0)
-					+ (hasWaterToday ? 1 : 0)
+			int doneItems = (hasWeightToday ? 1 : 0) + (hasSleepToday ? 1 : 0) + (hasWaterToday ? 1 : 0)
 					+ (hasStepToday ? 1 : 0);
 
 			List<String> attentionItems = new ArrayList<>();
 			boolean danger = false;
-
-			LocalDate historyFrom = today.minusDays(7);
+			LocalDate historyFrom = LocalDate.of(2000, 1, 1);
 			LocalDate latestRecordedDate = getLatestRecordedDate(profile.getId(), currentUserId, historyFrom, today);
+			boolean hasAnyHistoricalData = latestRecordedDate != null;
 
-			if (latestRecordedDate == null) {
-				attentionItems.add("7日以上記録がありません");
-				danger = true;
+			if (!hasAnyHistoricalData) {
+				attentionItems.add("まだ健康データがありません");
 			} else {
 				long noRecordDays = ChronoUnit.DAYS.between(latestRecordedDate, today);
-
 				if (noRecordDays >= 3) {
 					attentionItems.add(noRecordDays + "日間記録がありません");
 					danger = true;
 				}
+				addSleepAttention(attentionItems, familyToday, hasSleepToday);
+				addWaterAttention(attentionItems, familyToday, hasWaterToday);
+				addStepAttention(attentionItems, familyToday, hasStepToday);
+				if (!danger && doneItems < totalItems) {
+					addMissingRecordAttention(attentionItems, hasWeightToday, hasSleepToday, hasWaterToday,
+							hasStepToday);
+				}
 			}
-
-			addSleepAttention(attentionItems, familyToday, hasSleepToday);
-			addWaterAttention(attentionItems, familyToday, hasWaterToday);
-			addStepAttention(attentionItems, familyToday, hasStepToday);
-
-			if (!danger && doneItems < totalItems) {
-				addMissingRecordAttention(attentionItems, hasWeightToday, hasSleepToday, hasWaterToday, hasStepToday);
-			}
-
 			if (attentionItems.size() > 2) {
 				attentionItems = new ArrayList<>(attentionItems.subList(0, 2));
 			}
@@ -375,7 +368,10 @@ public class HomeService {
 			String status;
 			String statusLabel;
 
-			if (danger) {
+			if (!hasAnyHistoricalData) {
+				status = "NO_RECORD";
+				statusLabel = "未記録";
+			} else if (danger) {
 				status = "DANGER";
 				statusLabel = "注意";
 			} else if (!attentionItems.isEmpty()) {
@@ -405,7 +401,8 @@ public class HomeService {
 		return members;
 	}
 
-	private void addSleepAttention(List<String> attentionItems, Map<String, Object> familyToday, boolean hasSleepToday) {
+	private void addSleepAttention(List<String> attentionItems, Map<String, Object> familyToday,
+			boolean hasSleepToday) {
 		if (!hasSleepToday) {
 			return;
 		}
@@ -477,9 +474,7 @@ public class HomeService {
 	}
 
 	private Map<String, Object> buildFamilySummary(List<Map<String, Object>> familyMembers) {
-		long attentionCount = familyMembers.stream()
-				.filter(member -> !"OK".equals(member.get("status")))
-				.count();
+		long attentionCount = familyMembers.stream().filter(member -> !"OK".equals(member.get("status"))).count();
 
 		Map<String, Object> summary = new HashMap<>();
 		summary.put("attentionCount", (int) attentionCount);
@@ -571,7 +566,6 @@ public class HomeService {
 
 	private LocalDate getLatestRecordedDate(Long profileId, Long currentUserId, LocalDate from, LocalDate to) {
 		List<LocalDate> recordedDates = new ArrayList<>();
-
 		try {
 			Map<String, Object> result = weightService.list(profileId, currentUserId, from, to, 0);
 			List<?> logs = (List<?>) result.get("logs");
@@ -585,7 +579,6 @@ public class HomeService {
 			}
 		} catch (BusinessException e) {
 		}
-
 		try {
 			Map<String, Object> result = sleepService.list(profileId, currentUserId, from, to, 0);
 			List<?> logs = (List<?>) result.get("logs");
@@ -599,11 +592,9 @@ public class HomeService {
 			}
 		} catch (BusinessException e) {
 		}
-
 		try {
 			Map<String, Object> result = waterService.list(profileId, currentUserId, from, to, 0);
 			List<?> logs = (List<?>) result.get("logs");
-
 			if (logs != null) {
 				for (Object log : logs) {
 					if (log instanceof Water w && w.getRecordedDate() != null) {
@@ -613,7 +604,6 @@ public class HomeService {
 			}
 		} catch (BusinessException e) {
 		}
-
 		try {
 			Map<String, Object> result = stepService.list(profileId, currentUserId, from, to, 0);
 			List<?> logs = (List<?>) result.get("logs");
@@ -627,7 +617,6 @@ public class HomeService {
 			}
 		} catch (BusinessException e) {
 		}
-
 		return recordedDates.stream().max(LocalDate::compareTo).orElse(null);
 	}
 }

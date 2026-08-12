@@ -3,15 +3,14 @@
 
 	<head>
 		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<title th:text="${profile.id != null} ? 'プロファイル編集' : 'プロファイル作成'">ププロファイル作成</title>
 		<link rel="stylesheet" th:href="@{/css/common.css}">
 		<link rel="stylesheet" th:href="@{/css/profile.css}">
 	</head>
 
 	<body>
-
-		<header th:if="${!isFirstProfile}" th:replace="~{layout/header :: header(activePage='profile')}"></header>
-
+		<div th:if="${!isFirstProfile}" th:replace="~{layout/header :: header(activePage='profile')}"></div>
 		<main class="profile-form-page">
 			<div class="profile-form-page__box">
 

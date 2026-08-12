@@ -251,7 +251,7 @@ public class WeightService {
 		List<BigDecimal> values = chartData.values();
 
 		// ---- 2) 現在ページのみ: テーブル表示用 ----
-		Pageable pageable = PageRequest.of(page, 20);
+		Pageable pageable = PageRequest.of(page, 10);
 		Page<Weight> logPage = fetchLogsPage(profileId, from, to, pageable);
 		List<Weight> pageLogs = logPage.getContent();
 		for (Weight w : pageLogs) {

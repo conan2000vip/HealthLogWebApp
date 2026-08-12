@@ -533,15 +533,152 @@
 	background: #f4f6f8;
 }
 
-@media (max-width: 480px) {
+/* ===================================================
+   RESPONSIVE
+=================================================== */
+
+@media (max-width: 768px) {
+	.profile-manage {
+		padding: 24px 16px 48px;
+	}
+
+	.select-content {
+		max-width: 100%;
+	}
+}
+
+@media (max-width: 600px) {
+	/* ---- Profile Manage: top bar ---- */
+	.profile-manage__top {
+		flex-direction: column;
+		align-items: stretch;
+		gap: 12px;
+	}
+
+	.profile-manage__top .btn--primary {
+		align-self: flex-start;
+	}
+
+	.profile-manage__title {
+		font-size: 1.3rem;
+	}
+
+	/* ---- Profile Manage: card ---- */
+	.profile-manage__card {
+		flex-wrap: wrap;
+		padding: 14px 16px;
+		gap: 10px;
+	}
+
+	.profile-manage__avatar {
+		width: 40px;
+		height: 40px;
+		font-size: 16px;
+	}
+
+	.profile-manage__info {
+		min-width: 0;
+		flex-basis: calc(100% - 50px);
+	}
+
+	.profile-manage__name-row {
+		flex-wrap: wrap;
+		row-gap: 4px;
+	}
+
+	.profile-manage__name {
+		font-size: 0.95rem;
+	}
+
+	.profile-manage__meta {
+		font-size: 0.8rem;
+	}
+
+	.profile-manage__actions {
+		flex-basis: 100%;
+		justify-content: flex-end;
+		margin-top: 4px;
+	}
+
+	/* ---- Select Profile Page ---- */
+	.select-container {
+		padding: 60px 16px 32px;
+	}
+
+	.select-title {
+		font-size: 1.35rem;
+	}
+
+	.select-subtitle {
+		font-size: 0.85rem;
+		margin-bottom: 20px;
+	}
+
+	.profile-card {
+		padding: 14px 16px;
+		gap: 10px;
+	}
+
+	.profile-avatar {
+		width: 40px;
+		height: 40px;
+		font-size: 16px;
+	}
+
+	.profile-name {
+		font-size: 15px;
+	}
+
+	.profile-meta {
+		font-size: 12px;
+	}
+
+	/* ---- Profile Form Page ---- */
+	.profile-form-page {
+		padding: 20px 12px 48px;
+	}
+
+	.profile-form-page__box {
+		padding: 20px 16px;
+		border-radius: 12px;
+	}
+
+	.profile-form-page__top h1 {
+		font-size: 1.15rem;
+	}
+
 	.input-row {
 		grid-template-columns: 1fr;
+		gap: 14px;
 	}
+
+	@media (max-width: 600px) {
+		.profile-form__actions {
+			flex-direction: column-reverse;
+			align-items: stretch;
+		}
+		.profile-form__actions .btn {
+			display: flex;
+			width: 100%;
+			box-sizing: border-box;
+		}
+	}
+
 	.color-picker {
-		gap: 8px;
+		flex-wrap: wrap;
+		justify-content: flex-start;
 	}
-	.color-swatch {
-		width: 28px;
-		height: 28px;
+}
+
+@media (max-width: 420px) {
+	.profile-manage__admin-icon {
+		display: none;
+	}
+
+	.badge--selected,
+	.badge--relation,
+	.badge--primary {
+		font-size: 11px;
+		padding: 2px 8px;
 	}
 }

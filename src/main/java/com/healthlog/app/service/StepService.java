@@ -100,7 +100,7 @@ public class StepService {
 						.mapToInt(Integer::intValue).average().orElse(0));
 
 		// ---- Current page / 現在ページ ----
-		Pageable pageable = PageRequest.of(page, 20);
+		Pageable pageable = PageRequest.of(page, 10);
 		Page<Step> logPage = fetchLogsPage(profileId, from, to, pageable);
 		List<Step> pageLogs = logPage.getContent();
 		for (Step step : pageLogs) {

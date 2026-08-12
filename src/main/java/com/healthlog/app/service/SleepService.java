@@ -108,7 +108,7 @@ public class SleepService {
 
 		// 最長（選択期間 or 今月、1日単位で算出）
 		Integer longest = dailyValues.stream().mapToInt(Integer::intValue).max().orElse(0);
-		Pageable pageable = PageRequest.of(page, 20);
+		Pageable pageable = PageRequest.of(page, 10);
 		Page<Sleep> logPage = fetchLogsPage(profileId, from, to, pageable);
 		List<Sleep> pageLogs = logPage.getContent();
 

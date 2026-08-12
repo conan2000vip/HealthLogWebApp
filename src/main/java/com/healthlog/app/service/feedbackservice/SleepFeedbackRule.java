@@ -83,13 +83,12 @@ public class SleepFeedbackRule {
 		Optional<Sleep> previousBeforeToday = sleepRepository
 				.findTopByProfile_IdAndRecordedDateLessThanOrderByRecordedDateDesc(profileId, today);
 		if (previousBeforeToday.isPresent()) {
-			long gapDays = ChronoUnit.DAYS.between(previousBeforeToday.get().getRecordedDate(), today);
-			if (gapDays > 1) {
+			long totalGap = ChronoUnit.DAYS.between(previousBeforeToday.get().getRecordedDate(), today);
+			if (totalGap > 1) {
+				long emptyDays = totalGap - 1; // 前回と今日の間に実際に記録が無かった日数
 				items.add(new FeedbackItem(FeedbackType.SLEEP_RESUMED, FeedbackLevel.LV0, "記録を再開しました",
-						"前回の記録から" + gapDays + "日空きましたが、今日また記録できました。この調子で続けましょう。", today.atStartOfDay(),
+						"前回の記録から" + emptyDays + "日空きましたが、今日また記録できました。この調子で続けましょう。", today.atStartOfDay(),
 						"calendar-check"));
-			} else if (!dailyTotals.containsKey(yesterday)) {
-				items.add(buildReminder(today, "昨日の睡眠記録がありません", "昨日分の睡眠データが記録されていません。忘れずに記録しましょう。"));
 			}
 		}
 
@@ -107,7 +106,8 @@ public class SleepFeedbackRule {
 						"目標を設定すると、あなたに合ったフィードバックが受け取れます。", today.atStartOfDay(), "target"));
 			} else {
 				int sleepGoalMinutes = sleepGoalHours.multiply(BigDecimal.valueOf(60)).intValue();
-				checkGoodSleep(dailyTotals, today, sleepGoalMinutes, mainFeedback); // LV1
+
+				checkSleepGoalRate(dailyTotals, today, sleepGoalMinutes, mainFeedback);
 			}
 		}
 		items.addAll(mainFeedback);
@@ -140,12 +140,10 @@ public class SleepFeedbackRule {
 				recent.add(minutes);
 			}
 		}
-
 		if (recent.size() < LV3_LOOKBACK_DAYS) {
 			checkTodayShortSleep(dailyTotals, today, items);
 			return;
 		}
-
 		double average = recent.stream().mapToInt(Integer::intValue).average().orElse(0);
 		if (average < SHORT_SLEEP_MINUTES_THRESHOLD) {
 			items.add(new FeedbackItem(FeedbackType.SLEEP_SHORT, FeedbackLevel.LV3, "睡眠時間が短い日が続いています",
@@ -166,32 +164,30 @@ public class SleepFeedbackRule {
 				"今日の睡眠は" + hours + "時間" + mins + "分でした。十分な休息を心がけましょう。", today.atStartOfDay(), "lightbulb"));
 	}
 
-	// ---- LV1: 睡眠目標達成 ----
-	private void checkGoodSleep(Map<LocalDate, Integer> dailyTotals, LocalDate today, int sleepGoalMinutes,
+	// ---- Goal達成率による評価 ----
+	private void checkSleepGoalRate(Map<LocalDate, Integer> dailyTotals, LocalDate today, int sleepGoalMinutes,
 			List<FeedbackItem> items) {
 		Integer minutes = dailyTotals.get(today);
-		if (minutes == null) {
+		if (minutes == null || sleepGoalMinutes <= 0) {
 			return;
 		}
-		int hours = minutes / 60;
-		int mins = minutes % 60;
-
-		if (minutes >= sleepGoalMinutes) {
+		double rate = minutes * 100.0 / sleepGoalMinutes;
+		int displayRate = (int) Math.round(rate);
+		if (rate < 50) {
+			items.add(new FeedbackItem(FeedbackType.SLEEP_SHORT, FeedbackLevel.LV3, "睡眠時間が目標よりかなり短いです",
+					"現在の睡眠時間は目標の" + displayRate + "%です。十分な休息を心がけましょう。", today.atStartOfDay(), "alert-triangle"));
+		} else if (rate < 100) {
+			String title = rate >= 80 ? "もう少しで睡眠目標達成です" : "睡眠目標に向けて順調です";
+			String message = rate >= 80 ? "現在 " + displayRate + "% 達成しています。あと少し休息時間を確保しましょう。"
+					: "現在 " + displayRate + "% 達成しています。引き続き十分な休息を心がけましょう。";
+			items.add(new FeedbackItem(FeedbackType.SLEEP_SHORT, FeedbackLevel.LV2, title, message,
+					today.atStartOfDay(), "lightbulb"));
+		} else {
+			int hours = minutes / 60;
+			int mins = minutes % 60;
 			items.add(new FeedbackItem(FeedbackType.SLEEP_GOOD, FeedbackLevel.LV1, "睡眠目標を達成しました",
-					"今日の睡眠時間は" + hours + "時間" + mins + "分です。設定した睡眠目標を達成しました！",
-					today.atStartOfDay(), "check-circle"));
-			return;
+					"今日の睡眠時間は" + hours + "時間" + mins + "分です。設定した睡眠目標を達成しました！", today.atStartOfDay(), "check-circle"));
 		}
-
-		int shortageMinutes = sleepGoalMinutes - minutes;
-		int shortageHours = shortageMinutes / 60;
-		int shortageMins = shortageMinutes % 60;
-
-		String shortageText = shortageHours > 0 ? shortageHours + "時間" + shortageMins + "分" : shortageMins + "分";
-
-		items.add(new FeedbackItem(FeedbackType.SLEEP_SHORT, FeedbackLevel.LV1, "睡眠目標に届いていません",
-				"今日の睡眠時間は" + hours + "時間" + mins + "分でした。設定した目標まであと" + shortageText + "です。無理のない範囲で休息時間を確保しましょう。",
-				today.atStartOfDay(), "lightbulb"));
 	}
 
 	private FeedbackItem buildReminder(LocalDate today, String title, String message) {

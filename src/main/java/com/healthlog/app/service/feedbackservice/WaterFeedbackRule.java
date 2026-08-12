@@ -50,13 +50,9 @@ public class WaterFeedbackRule {
 		}
 		long daysSinceLast = ChronoUnit.DAYS.between(lastEverOpt.get().getRecordedDate(), today);
 		if (daysSinceLast >= NO_RECORD_DAYS_THRESHOLD) {
-			items.add(new FeedbackItem(
-					FeedbackType.WATER_NO_RECORD,
-					FeedbackLevel.LV2,
-					"最近、水分記録がありません",
+			items.add(new FeedbackItem(FeedbackType.WATER_NO_RECORD, FeedbackLevel.LV2, "最近、水分記録がありません",
 					"最後の記録から" + daysSinceLast + "日経っています。今日の水分摂取を記録してみましょう。",
-					lastEverOpt.get().getRecordedDate().atStartOfDay(),
-					"lightbulb"));
+					lastEverOpt.get().getRecordedDate().atStartOfDay(), "lightbulb"));
 			return items;
 		}
 
@@ -75,17 +71,12 @@ public class WaterFeedbackRule {
 		Optional<Water> previousBeforeToday = waterRepository
 				.findTopByProfile_IdAndRecordedDateLessThanOrderByRecordedDateDesc(profileId, today);
 		if (previousBeforeToday.isPresent()) {
-			long gapDays = ChronoUnit.DAYS.between(previousBeforeToday.get().getRecordedDate(), today);
-			if (gapDays > 1) {
-				items.add(new FeedbackItem(
-						FeedbackType.WATER_RESUMED,
-						FeedbackLevel.LV0,
-						"記録を再開しました",
-						"前回の記録から" + gapDays + "日空きましたが、今日また記録できました。この調子で続けましょう。",
-						today.atStartOfDay(),
+			long totalGap = ChronoUnit.DAYS.between(previousBeforeToday.get().getRecordedDate(), today);
+			if (totalGap > 1) {
+				long emptyDays = totalGap - 1; // 前回と今日の間に実際に記録が無かった日数
+				items.add(new FeedbackItem(FeedbackType.WATER_RESUMED, FeedbackLevel.LV0, "記録を再開しました",
+						"前回の記録から" + emptyDays + "日空きましたが、今日また記録できました。この調子で続けましょう。", today.atStartOfDay(),
 						"calendar-check"));
-			} else if (!dailyTotals.containsKey(yesterday)) {
-				items.add(buildNoRecordReminder(today, "昨日の水分記録がありません", "昨日分の水分摂取データが記録されていません。忘れずに記録しましょう。"));
 			}
 		}
 
@@ -95,21 +86,20 @@ public class WaterFeedbackRule {
 		boolean hasGoal = goal != null && goal > 0;
 
 		if (mainFeedback.isEmpty()) {
-			if (!hasGoal) {
-				mainFeedback.add(new FeedbackItem(
-						FeedbackType.WATER_NO_GOAL,
-						FeedbackLevel.LV0,
-						"水分摂取の目標が設定されていません",
-						"目標を設定すると、あなたに合ったフィードバックが受け取れます。",
-						today.atStartOfDay(),
-						"target"));
-			} else {
-				checkLowWater(dailyTotals, today, goal, mainFeedback); // LV3
-				if (mainFeedback.isEmpty()) {
-					checkAlmostGoal(dailyTotals, today, goal, mainFeedback); // LV2
-				}
-				if (mainFeedback.isEmpty()) {
-					checkComplete(dailyTotals, today, goal, mainFeedback); // LV1
+			// LV4: 4000ml超は目標設定の有無に関係なく判定
+			checkTooMuchWater(dailyTotals, today, mainFeedback);
+			if (mainFeedback.isEmpty()) {
+				if (!hasGoal) {
+					mainFeedback.add(new FeedbackItem(FeedbackType.WATER_NO_GOAL, FeedbackLevel.LV0,
+							"水分摂取の目標が設定されていません", "目標を設定すると、あなたに合ったフィードバックが受け取れます。", today.atStartOfDay(), "target"));
+				} else {
+					checkLowWater(dailyTotals, today, goal, mainFeedback);
+					if (mainFeedback.isEmpty()) {
+						checkAlmostGoal(dailyTotals, today, goal, mainFeedback);
+					}
+					if (mainFeedback.isEmpty()) {
+						checkComplete(dailyTotals, today, goal, mainFeedback);
+					}
 				}
 			}
 		}
@@ -117,17 +107,17 @@ public class WaterFeedbackRule {
 		return items;
 	}
 
-	//1日の摂取量が4000ml超（目標未設定でも判定する）
+	// 1日の摂取量が4000ml超（目標未設定でも判定する）
 	private void checkTooMuchWater(Map<LocalDate, Integer> dailyTotals, LocalDate today, List<FeedbackItem> items) {
 		Integer total = dailyTotals.get(today);
 		if (total == null || total <= MAX_DAILY_AMOUNT) {
 			return;
 		}
-		items.add(new FeedbackItem(FeedbackType.WATER_EXCESS, FeedbackLevel.LV4, "水分を摂りすぎています", "本日の摂取量は" +
-				total + "mlです。必要以上の水分摂取には注意しましょう。", today.atStartOfDay(), "alert-octagon"));
+		items.add(new FeedbackItem(FeedbackType.WATER_EXCESS, FeedbackLevel.LV4, "水分を摂りすぎています",
+				"本日の摂取量は" + total + "mlです。必要以上の水分摂取には注意しましょう。", today.atStartOfDay(), "alert-octagon"));
 	}
 
-	//目標80%以上達成
+	// 目標の50～99% → LV2
 	private void checkAlmostGoal(Map<LocalDate, Integer> dailyTotals, LocalDate today, Integer goal,
 			List<FeedbackItem> items) {
 		Integer total = dailyTotals.get(today);
@@ -135,11 +125,17 @@ public class WaterFeedbackRule {
 			return;
 		}
 		int rate = (int) Math.round(total * 100.0 / goal);
-		if (rate < ALMOST_MIN_PERCENT || rate >= 100) {
+		// 50～99% → LV2
+		if (rate < LOW_THRESHOLD_PERCENT || rate >= 100) {
 			return;
 		}
-		items.add(new FeedbackItem(FeedbackType.WATER_ALMOST, FeedbackLevel.LV2,
-				"もう少しで目標達成です", "現在 " + rate + "% 達成しています。あと少し水分を摂りましょう。", today.atStartOfDay(), "lightbulb"));
+		if (rate >= ALMOST_MIN_PERCENT) {
+			items.add(new FeedbackItem(FeedbackType.WATER_ALMOST, FeedbackLevel.LV2, "もう少しで目標達成です",
+					"現在 " + rate + "% 達成しています。あと少し水分を摂りましょう。", today.atStartOfDay(), "lightbulb"));
+		} else {
+			items.add(new FeedbackItem(FeedbackType.WATER_ALMOST, FeedbackLevel.LV2, "目標に向けて順調です",
+					"現在 " + rate + "% 達成しています。引き続き水分補給を心がけましょう。", today.atStartOfDay(), "lightbulb"));
+		}
 	}
 
 	private void checkComplete(Map<LocalDate, Integer> dailyTotals, LocalDate today, Integer goal,
@@ -153,11 +149,10 @@ public class WaterFeedbackRule {
 			return;
 		}
 		items.add(new FeedbackItem(FeedbackType.WATER_COMPLETE, FeedbackLevel.LV1, "水分目標を達成しました",
-				"本日の水分摂取量は" + total + "mlです。設定した水分目標を達成しました！",
-				today.atStartOfDay(), "check-circle"));
+				"本日の水分摂取量は" + total + "mlです。設定した水分目標を達成しました！", today.atStartOfDay(), "check-circle"));
 	}
 
-	//目標の50%未満
+	// 目標の50%未満
 	private void checkLowWater(Map<LocalDate, Integer> dailyTotals, LocalDate today, Integer goal,
 			List<FeedbackItem> items) {
 		Integer total = dailyTotals.get(today);
@@ -168,13 +163,13 @@ public class WaterFeedbackRule {
 		if (rate >= LOW_THRESHOLD_PERCENT) {
 			return;
 		}
-		items.add(new FeedbackItem(FeedbackType.WATER_LOW, FeedbackLevel.LV3,
-				"水分摂取が不足しています", "現在の摂取量は目標の" + rate + "%です。水分補給を心がけましょう。", today.atStartOfDay(), "alert-triangle"));
+		items.add(new FeedbackItem(FeedbackType.WATER_LOW, FeedbackLevel.LV3, "水分摂取が不足しています",
+				"現在の摂取量は目標の" + rate + "%です。水分補給を心がけましょう。", today.atStartOfDay(), "alert-triangle"));
 	}
 
 	private FeedbackItem buildNoRecordReminder(LocalDate today, String title, String message) {
-		return new FeedbackItem(FeedbackType.WATER_NO_RECORD, FeedbackLevel.LV0, title, message,
-				today.atStartOfDay(), "calendar-x");
+		return new FeedbackItem(FeedbackType.WATER_NO_RECORD, FeedbackLevel.LV0, title, message, today.atStartOfDay(),
+				"calendar-x");
 	}
 
 	// 日ごとの合計摂取量
