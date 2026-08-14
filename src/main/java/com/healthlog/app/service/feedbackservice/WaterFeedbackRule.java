@@ -125,16 +125,16 @@ public class WaterFeedbackRule {
 			return;
 		}
 		int rate = (int) Math.round(total * 100.0 / goal);
-		// 50～99% → LV2
 		if (rate < LOW_THRESHOLD_PERCENT || rate >= 100) {
 			return;
 		}
+		int remaining = goal - total;
 		if (rate >= ALMOST_MIN_PERCENT) {
 			items.add(new FeedbackItem(FeedbackType.WATER_ALMOST, FeedbackLevel.LV2, "もう少しで目標達成です",
-					"現在 " + rate + "% 達成しています。あと少し水分を摂りましょう。", today.atStartOfDay(), "lightbulb"));
+					"現在 " + rate + "% 達成しています。目標まであと" + remaining + "mlです。", today.atStartOfDay(), "lightbulb"));
 		} else {
 			items.add(new FeedbackItem(FeedbackType.WATER_ALMOST, FeedbackLevel.LV2, "目標に向けて順調です",
-					"現在 " + rate + "% 達成しています。引き続き水分補給を心がけましょう。", today.atStartOfDay(), "lightbulb"));
+					"現在 " + rate + "% 達成しています。目標まであと" + remaining + "mlです。", today.atStartOfDay(), "lightbulb"));
 		}
 	}
 
@@ -163,8 +163,9 @@ public class WaterFeedbackRule {
 		if (rate >= LOW_THRESHOLD_PERCENT) {
 			return;
 		}
+		int remaining = goal - total;
 		items.add(new FeedbackItem(FeedbackType.WATER_LOW, FeedbackLevel.LV3, "水分摂取が不足しています",
-				"現在の摂取量は目標の" + rate + "%です。水分補給を心がけましょう。", today.atStartOfDay(), "alert-triangle"));
+				"現在の摂取量は目標の" + rate + "%です。目標まであと" + remaining + "mlです。", today.atStartOfDay(), "alert-triangle"));
 	}
 
 	private FeedbackItem buildNoRecordReminder(LocalDate today, String title, String message) {

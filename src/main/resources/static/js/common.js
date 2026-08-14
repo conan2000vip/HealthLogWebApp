@@ -428,63 +428,189 @@ document.addEventListener("DOMContentLoaded", () => {
    汎用: 数値入力で負の値・不正な文字を入力させない（全画面共通）
    対象: min="0" が設定された <input type="number">
    ========================================================= */
-function initPositiveNumberInputs() {
-    const inputs = document.querySelectorAll('input[type="number"][min="0"]');
-    inputs.forEach((input) => {
-        const allowDecimal = input.hasAttribute("step") && input.step !== "1";
-        // 許可するキー（数字 + 制御キー + 小数点があるフィールドのみ "."）
-        input.addEventListener("keydown", (e) => {
-            const key = e.key;
-            // Backspace, Delete, Tab, 矢印キーなどはそのまま許可
-            if (
-                key === "Backspace" ||
-                key === "Delete" ||
-                key === "Tab" ||
-                key === "ArrowLeft" ||
-                key === "ArrowRight" ||
-                key === "ArrowUp" ||
-                key === "ArrowDown" ||
-                key === "Home" ||
-                key === "End" ||
-                e.ctrlKey ||
-                e.metaKey // Ctrl+C, Ctrl+V, Ctrl+A などは許可
-            ) {
-                return;
-            }
-            // 数字はOK
-            if (/^[0-9]$/.test(key)) {
-                return;
-            }
-            // 小数点はステップが小数対応のフィールドのみ、かつ1回だけ許可
-            if (allowDecimal && key === "." && !input.value.includes(".")) {
-                return;
-            }
-            // それ以外（文字、-、+、eなど）は全てブロック
-            e.preventDefault();
-        });
+   function initPositiveNumberInputs() {
+       const inputs = document.querySelectorAll(
+           'input[type="number"][min="0"], #height'
+       );
 
-        // ペースト対策：数値以外が含まれる場合は除去
-        input.addEventListener("input", () => {
-            let value = input.value;
-            if (allowDecimal) {
-                // 数字と小数点のみ残す（先頭の小数点は除去、2個目以降の小数点も除去）
-                value = value.replace(/[^0-9.]/g, "");
-                const parts = value.split(".");
-                if (parts.length > 2) {
-                    value = parts[0] + "." + parts.slice(1).join("");
-                }
-            } else {
-                value = value.replace(/[^0-9]/g, "");
-            }
-            if (value !== input.value) {
-                input.value = value;
-            }
-            if (input.value !== "" && Number(input.value) < 0) {
-                input.value = 0;
-            }
-        });
-    });
-}
+       inputs.forEach((input) => {
+
+           // 身長: 30～250cm
+           const isHeight = input.id === "height";
+
+           // Decimal allowed:
+           // height / step="0.1" / step="0.5" ...
+           const allowDecimal =
+               isHeight ||
+               (input.hasAttribute("step") && input.step !== "1");
+
+           input.addEventListener("keydown", (e) => {
+               const key = e.key;
+
+               // Control keys
+               if (
+                   key === "Backspace" ||
+                   key === "Delete" ||
+                   key === "Tab" ||
+                   key === "ArrowLeft" ||
+                   key === "ArrowRight" ||
+                   key === "ArrowUp" ||
+                   key === "ArrowDown" ||
+                   key === "Home" ||
+                   key === "End" ||
+                   e.ctrlKey ||
+                   e.metaKey
+               ) {
+                   return;
+               }
+
+               // Number
+               if (/^[0-9]$/.test(key)) {
+                   return;
+               }
+
+               // Decimal point
+               if (
+                   allowDecimal &&
+                   key === "." &&
+                   !input.value.includes(".")
+               ) {
+                   return;
+               }
+
+               // Block:
+               // e, E, +, -, letters, etc.
+               e.preventDefault();
+           });
+
+           input.addEventListener("input", () => {
+               let value = input.value;
+
+               if (allowDecimal) {
+                   // Keep only numbers and "."
+                   value = value.replace(/[^0-9.]/g, "");
+
+                   // Only one decimal point
+                   const parts = value.split(".");
+
+                   if (parts.length > 2) {
+                       value = parts[0] + "." + parts.slice(1).join("");
+                   }
+               } else {
+                   // Integer only
+                   value = value.replace(/[^0-9]/g, "");
+               }
+
+               if (value !== input.value) {
+                   input.value = value;
+               }
+
+               // 身長: 30～250
+               // Do not force the value while typing.
+               // Range validation is done when submitting.
+           });
+
+           // Paste protection
+           input.addEventListener("paste", (e) => {
+               e.preventDefault();
+
+               const pasted = e.clipboardData.getData("text");
+
+               let value;
+
+               if (allowDecimal) {
+                   value = pasted
+                       .replace(/[^0-9.]/g, "");
+
+                   const parts = value.split(".");
+
+                   if (parts.length > 2) {
+                       value =
+                           parts[0] +
+                           "." +
+                           parts.slice(1).join("");
+                   }
+               } else {
+                   value = pasted.replace(/[^0-9]/g, "");
+               }
+
+               input.value = value;
+
+               // Trigger input event
+               input.dispatchEvent(new Event("input", {
+                   bubbles: true
+               }));
+           });
+
+           // 身長専用: submit時に30～250をチェック
+           if (isHeight) {
+               const form = input.closest("form");
+
+               if (form) {
+                   form.addEventListener("submit", (e) => {
+                       const value = input.value.trim();
+
+                       // 空欄はSpring Validationに任せる
+                       if (value === "") {
+                           return;
+                       }
+
+                       const height = Number(value);
+
+                       if (
+                           !Number.isFinite(height) ||
+                           height < 30 ||
+                           height > 250
+                       ) {
+                           e.preventDefault();
+
+                           showHeightError(
+                               "身長は30～250cmの範囲で入力してください。"
+                           );
+
+                           input.focus();
+                           return;
+                       }
+
+                       // 小数点以下1桁まで
+                       if (!/^\d+(\.\d)?$/.test(value)) {
+                           e.preventDefault();
+
+                           showHeightError(
+                               "身長は小数点以下1桁まで入力してください。"
+                           );
+
+                           input.focus();
+                       }
+                   });
+               }
+           }
+       });
+   }
+
+
+   /**
+    * 身長エラー表示
+    */
+   function showHeightError(message) {
+       const input = document.getElementById("height");
+
+       if (!input) return;
+
+       const group = input.closest(".input-group");
+
+       if (!group) return;
+
+       let error = group.querySelector(".js-height-error");
+
+       if (!error) {
+           error = document.createElement("span");
+           error.className = "field-error show js-height-error";
+           group.appendChild(error);
+       }
+
+       error.textContent = message;
+   }
 
 //Business Error + FieldError
 function clearBusinessError() {

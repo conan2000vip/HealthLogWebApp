@@ -8,8 +8,10 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.springframework.stereotype.Service;
 
@@ -57,8 +59,93 @@ public class HomeService {
 		data.put("familyMembers", familyMembers);
 		data.put("familySummary", buildFamilySummary(familyMembers));
 		data.put("feedbackList", feedbackService.getHomeFeedback(profileId));
+		data.put("currentStreak", getCurrentStreak(profileId, currentUserId, today));
 
 		return data;
+	}
+
+	// =========================================================
+	// Health Streak
+	// =========================================================
+
+	private int getCurrentStreak(Long profileId, Long currentUserId, LocalDate today) {
+		Set<LocalDate> weightDates = new HashSet<>();
+		Set<LocalDate> sleepDates = new HashSet<>();
+		Set<LocalDate> waterDates = new HashSet<>();
+		Set<LocalDate> stepDates = new HashSet<>();
+
+		try {
+			Map<String, Object> result = weightService.list(profileId, currentUserId, LocalDate.of(2000, 1, 1), today,
+					0);
+			List<?> logs = (List<?>) result.get("logs");
+			if (logs != null) {
+				for (Object log : logs) {
+					if (log instanceof Weight w && w.getRecordedDate() != null) {
+						weightDates.add(w.getRecordedDate());
+					}
+				}
+			}
+		} catch (BusinessException e) {
+		}
+
+		try {
+			Map<String, Object> result = sleepService.list(profileId, currentUserId, LocalDate.of(2000, 1, 1), today,
+					0);
+			List<?> logs = (List<?>) result.get("logs");
+			if (logs != null) {
+				for (Object log : logs) {
+					if (log instanceof Sleep s && s.getRecordedDate() != null) {
+						sleepDates.add(s.getRecordedDate());
+					}
+				}
+			}
+		} catch (BusinessException e) {
+		}
+
+		try {
+			Map<String, Object> result = waterService.list(profileId, currentUserId, LocalDate.of(2000, 1, 1), today,
+					0);
+			List<?> logs = (List<?>) result.get("logs");
+			if (logs != null) {
+				for (Object log : logs) {
+					if (log instanceof Water w && w.getRecordedDate() != null) {
+						waterDates.add(w.getRecordedDate());
+					}
+				}
+			}
+		} catch (BusinessException e) {
+		}
+
+		try {
+			Map<String, Object> result = stepService.list(profileId, currentUserId, LocalDate.of(2000, 1, 1), today, 0);
+			List<?> logs = (List<?>) result.get("logs");
+			if (logs != null) {
+				for (Object log : logs) {
+					if (log instanceof Step s && s.getRecordedDate() != null) {
+						stepDates.add(s.getRecordedDate());
+					}
+				}
+			}
+		} catch (BusinessException e) {
+		}
+
+		// 4種類すべてが記録された日だけを残す（AND条件）
+		Set<LocalDate> recordedDates = new HashSet<>(weightDates);
+		recordedDates.retainAll(sleepDates);
+		recordedDates.retainAll(waterDates);
+		recordedDates.retainAll(stepDates);
+
+		if (!recordedDates.contains(today)) {
+			return 0;
+		}
+
+		int streak = 0;
+		LocalDate checkDate = today;
+		while (recordedDates.contains(checkDate)) {
+			streak++;
+			checkDate = checkDate.minusDays(1);
+		}
+		return streak;
 	}
 
 	// =========================================================

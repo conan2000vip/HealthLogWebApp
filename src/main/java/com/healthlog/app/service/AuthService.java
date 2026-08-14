@@ -4,6 +4,7 @@ import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.Collections;
+import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -41,6 +42,7 @@ public class AuthService {
 	private static final int MAX_PASSWORD_LENGTH = 100;
 	private static final String TOKEN_TYPE_EMAIL_VERIFICATION = "email_verification";
 	private static final String TOKEN_TYPE_PASSWORD_RESET = "password_reset";
+	private static final int RESEND_COOLDOWN_SECONDS = 60;
 
 	private static final Pattern EMAIL_PATTERN = Pattern
 			.compile("^[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(\\.[A-Za-z0-9-]+)*\\.[A-Za-z]{2,}$");
@@ -48,9 +50,8 @@ public class AuthService {
 			// @, $, !, %, \*, ?, #, &
 			.compile("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&#]).{8,}$");
 
-	private static final Set<String> WEAK_PASSWORDS = Set.of(
-			"password", "password1", "12345678", "123456789", "qwerty123", "Password123!",
-			"letmein1", "admin123", "welcome1", "iloveyou1", "abc12345");
+	private static final Set<String> WEAK_PASSWORDS = Set.of("qwerty123!", "admin123!", "welcome123!", "password1!",
+			"password123!", "welcome1!", "iloveyou1!", "abc12345!");
 
 	private final UserRepository userRepository;
 	private final ProfileRepository profileRepository;
@@ -61,12 +62,8 @@ public class AuthService {
 	private final SecurityContextRepository securityContextRepository = new HttpSessionSecurityContextRepository();
 	private final SecureRandom secureRandom = new SecureRandom();
 
-	public AuthService(
-			UserRepository userRepository,
-			ProfileRepository profileRepository,
-			AuthTokenRepository authTokenRepository,
-			PasswordEncoder passwordEncoder,
-			EmailService emailService) {
+	public AuthService(UserRepository userRepository, ProfileRepository profileRepository,
+			AuthTokenRepository authTokenRepository, PasswordEncoder passwordEncoder, EmailService emailService) {
 		this.userRepository = userRepository;
 		this.authTokenRepository = authTokenRepository;
 		this.passwordEncoder = passwordEncoder;
@@ -112,7 +109,6 @@ public class AuthService {
 		}
 	}
 
-	// fieldName: register→"password", confirmPasswordReset→"newPassword" (id khác nhau giữa 2 form)
 	private void validatePasswordPolicy(String password, String fieldName) {
 		if (!StringUtils.hasText(password)) {
 			throw new BusinessException(HttpStatus.BAD_REQUEST, fieldName, "パスワードを入力してください");
@@ -174,8 +170,7 @@ public class AuthService {
 			throw new BusinessException(HttpStatus.BAD_REQUEST, "トークンが指定されていません");
 		}
 
-		AuthToken authToken = authTokenRepository
-				.findByTokenAndTokenType(token, TOKEN_TYPE_EMAIL_VERIFICATION)
+		AuthToken authToken = authTokenRepository.findByTokenAndTokenType(token, TOKEN_TYPE_EMAIL_VERIFICATION)
 				.orElseThrow(() -> new BusinessException(HttpStatus.BAD_REQUEST, "トークンが無効です"));
 
 		if (Boolean.TRUE.equals(authToken.getUsedFlg())) {
@@ -204,17 +199,23 @@ public class AuthService {
 		if (!EMAIL_PATTERN.matcher(email).matches()) {
 			throw new BusinessException(HttpStatus.BAD_REQUEST, "メールアドレスの形式が正しくありません");
 		}
-
 		// メールアドレスが登録されていない場合、または既にメール認証済みの場合でも
 		// セキュリティ上の理由から常に成功として返す（実際の送信のみスキップする）
 		userRepository.findByEmail(email).ifPresent(user -> {
 			if (user.getEmailVerifiedAt() != null) {
 				return; // 既に認証済みなら何もしない
 			}
-			authTokenRepository.invalidateActiveTokens(user.getId(), TOKEN_TYPE_EMAIL_VERIFICATION);
+			// 直近のトークン発行から一定時間内（クールダウン中）であれば再送をスキップ
+			// ※ 列挙攻撃対策のため、呼び出し元には常に同一の成功メッセージを返す
+			Optional<AuthToken> latestToken = authTokenRepository
+					.findFirstByUser_IdAndTokenTypeOrderByCreatedAtDesc(user.getId(), TOKEN_TYPE_EMAIL_VERIFICATION);
 
-			AuthToken newToken = issueAuthToken(user, TOKEN_TYPE_EMAIL_VERIFICATION,
-					EMAIL_TOKEN_EXPIRY_MINUTES);
+			if (latestToken.isPresent() && latestToken.get().getCreatedAt().plusSeconds(RESEND_COOLDOWN_SECONDS)
+					.isAfter(LocalDateTime.now())) {
+				return; // クールダウン中のため送信スキップ
+			}
+			authTokenRepository.invalidateActiveTokens(user.getId(), TOKEN_TYPE_EMAIL_VERIFICATION);
+			AuthToken newToken = issueAuthToken(user, TOKEN_TYPE_EMAIL_VERIFICATION, EMAIL_TOKEN_EXPIRY_MINUTES);
 			emailService.sendVerificationEmail(user.getEmail(), newToken.getToken());
 		});
 	}
@@ -235,8 +236,7 @@ public class AuthService {
 		userRepository.findByEmail(email).ifPresent(user -> {
 			authTokenRepository.invalidateActiveTokens(user.getId(), TOKEN_TYPE_PASSWORD_RESET);
 
-			AuthToken resetToken = issueAuthToken(user, TOKEN_TYPE_PASSWORD_RESET,
-					RESET_TOKEN_EXPIRY_MINUTES);
+			AuthToken resetToken = issueAuthToken(user, TOKEN_TYPE_PASSWORD_RESET, RESET_TOKEN_EXPIRY_MINUTES);
 			emailService.sendPasswordResetEmail(user.getEmail(), resetToken.getToken());
 		});
 	}
@@ -248,8 +248,7 @@ public class AuthService {
 		if (!StringUtils.hasText(token)) {
 			throw new BusinessException(HttpStatus.BAD_REQUEST, "トークンが指定されていません");
 		}
-		AuthToken authToken = authTokenRepository
-				.findByTokenAndTokenType(token, TOKEN_TYPE_PASSWORD_RESET)
+		AuthToken authToken = authTokenRepository.findByTokenAndTokenType(token, TOKEN_TYPE_PASSWORD_RESET)
 				.orElseThrow(() -> new BusinessException(HttpStatus.BAD_REQUEST, "トークンが無効です"));
 
 		if (Boolean.TRUE.equals(authToken.getUsedFlg())) {
@@ -294,9 +293,7 @@ public class AuthService {
 	}
 
 	public User getCurrentUser() {
-		Authentication authentication = SecurityContextHolder
-				.getContext()
-				.getAuthentication();
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		String email = authentication.getName();
 		return userRepository.findByEmail(email)
 				.orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "ユーザーが見つかりません"));

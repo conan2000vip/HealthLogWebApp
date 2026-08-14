@@ -16,6 +16,8 @@ public interface WeightRepository extends JpaRepository<Weight, Long> {
 
 	boolean existsByProfile_Id(Long profileId);
 
+	boolean existsByProfile_IdAndRecordedDate(Long profileId, LocalDate recordedDate);
+
 	List<Weight> findByProfile_IdAndRecordedDateBetweenOrderByRecordedDateDesc(Long profileId, LocalDate startDate,
 			LocalDate endDate);
 
@@ -27,14 +29,14 @@ public interface WeightRepository extends JpaRepository<Weight, Long> {
 
 	Page<Weight> findByProfile_IdOrderByRecordedDateDesc(Long profileId, Pageable pageable);
 
-	Page<Weight> findByProfile_IdAndRecordedDateBetweenOrderByRecordedDateDesc(
-			Long profileId, LocalDate from, LocalDate to, Pageable pageable);
+	Page<Weight> findByProfile_IdAndRecordedDateBetweenOrderByRecordedDateDesc(Long profileId, LocalDate from,
+			LocalDate to, Pageable pageable);
 
-	Page<Weight> findByProfile_IdAndRecordedDateGreaterThanEqualOrderByRecordedDateDesc(
-			Long profileId, LocalDate from, Pageable pageable);
+	Page<Weight> findByProfile_IdAndRecordedDateGreaterThanEqualOrderByRecordedDateDesc(Long profileId, LocalDate from,
+			Pageable pageable);
 
-	Page<Weight> findByProfile_IdAndRecordedDateLessThanEqualOrderByRecordedDateDesc(
-			Long profileId, LocalDate to, Pageable pageable);
+	Page<Weight> findByProfile_IdAndRecordedDateLessThanEqualOrderByRecordedDateDesc(Long profileId, LocalDate to,
+			Pageable pageable);
 
 	Optional<Weight> findTopByProfile_IdOrderByRecordedDateDesc(Long profileId);
 

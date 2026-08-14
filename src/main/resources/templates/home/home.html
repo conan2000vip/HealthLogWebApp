@@ -7,6 +7,7 @@
 		<title>Home | HealthLog</title>
 		<link rel="stylesheet" th:href="@{/css/common.css}" />
 		<link rel="stylesheet" th:href="@{/css/home.css}" />
+		<link rel="stylesheet" th:href="@{/css/streak-modal.css}" />
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.462.0/umd/lucide.min.js"></script>
 	</head>
 
@@ -164,16 +165,24 @@
 						(${today.stepGoalStatus == 'NO_GOAL'} ? ' is-empty' : ' is-progress'))" th:text="${today.stepGoalText}"> 歩数目標を達成しました </p>
 			</article>
 		</section>
-		<!-- ============ Health Feedback ============ -->
+		
 		<section class="feedback-panel">
 			<div class="feedback-panel__header">
 				<h2>
-					<img th:src="@{/image/shield.png}" alt="" class="icon-sm" /> 健康フィードバック（重要度の高い順に表示）
+					<img th:src="@{/image/shield.png}" alt="" class="icon-sm" />健康フィードバック（重要度の高い順に表示）
 				</h2>
+				<button type="button" id="streakViewButton" class="streak-view-btn">
+				    <span class="streak-view-btn__icon">🔥</span>
+				    <span class="streak-view-btn__text">現在の連続記録：
+				        <strong th:text="${currentStreak}">0</strong>日
+				    </span>
+				    <span class="streak-view-btn__arrow">›</span>
+				</button>
 			</div>
 			<div th:replace="~{layout/data-controls :: feedbackList(feedbackList=${feedbackList})}"></div>
 			<p class="empty-text" th:if="${#lists.isEmpty(feedbackList)}">現在フィードバックはありません。</p>
 		</section>
+		
 		<!-- ============ Family Summary ============ -->
 		<section class="family-card">
 			<div class="family-card__header">
@@ -226,6 +235,7 @@
 			</div>
 			<p class="empty-text" th:if="${#lists.isEmpty(familyMembers)}">登録されているプロファイルはありません。</p>
 		</section>
+		
 		<!-- ============ Recent Memo ============ -->
 		<section class="memo-card">
 			<div class="memo-card__header">
@@ -243,8 +253,63 @@
 			</ul>
 			<p class="empty-text" th:if="${recentMemos == null or #lists.isEmpty(recentMemos)}">直近3日間のメモはありません。</p>
 		</section>
+		
+		<!-- Health Streak Achievement Modal -->
+		<div id="streakModal" class="streak-modal" aria-hidden="true">
+		    <div class="streak-modal__overlay"></div>
+		    <div class="streak-modal__content">
+		        <div class="streak-modal__confetti" id="streakConfetti"></div>
+
+		        <!-- Trophy -->
+		        <div class="streak-modal__icon">
+		            <span id="streakIcon">🏆</span>
+		        </div>
+
+		        <!-- Badge -->
+		        <div class="streak-modal__badge">CONTINUOUS RECORD</div>
+
+		        <!-- Title（★変更：左右に月桂樹の飾りを追加） -->
+		        <h2 class="streak-modal__title-row">
+		            <span class="streak-modal__laurel streak-modal__laurel--left" aria-hidden="true">🌿</span>
+		            <span id="streakTitle">7日間連続達成！</span>
+		            <span class="streak-modal__laurel streak-modal__laurel--right" aria-hidden="true">🌿</span>
+		        </h2>
+
+		        <!-- Message -->
+		        <p id="streakMessage" class="streak-modal__paragraph">
+		            1週間、毎日健康記録を続けることができました！<br>
+		            素晴らしい習慣の第一歩です。
+		        </p>
+
+		        <!-- ★追加：星区切り線 -->
+		        <div class="streak-modal__divider" aria-hidden="true">
+		            <span class="streak-modal__divider-line"></span>
+		            <span class="streak-modal__divider-star">★</span>
+		            <span class="streak-modal__divider-line"></span>
+		        </div>
+
+		        <!-- Paragraph block 2（★変更：アイコン付きの囲みボックスに） -->
+		        <div class="streak-modal__note">
+		            <span class="streak-modal__note-icon" aria-hidden="true">★</span>
+		            <p class="streak-modal__paragraph streak-modal__paragraph--note">
+		                毎日の積み重ねが、あなたの未来の健康をつくります。
+		                この調子で無理なく続けていきましょう！
+		            </p>
+		        </div>
+
+		        <!-- Button（★変更：右矢印アイコンを追加） -->
+		        <button type="button" class="streak-modal__button" id="streakModalButton">閉じる
+		            <span class="streak-modal__button-arrow" aria-hidden="true">→</span>
+		        </button>
+		    </div>
+		</div>
+
+		<script th:inline="javascript">
+		    window.currentProfileId = /*[[${currentProfile.id}]]*/ null;
+		    window.homeFeedback = /*[[${feedbackList}]]*/ [];
+		</script>
+
 		<script th:src="@{/js/home.js}"></script>
 		<script th:src="@{/js/common.js}"></script>
 </body>
-
 </html>

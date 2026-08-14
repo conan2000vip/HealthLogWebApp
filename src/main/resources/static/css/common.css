@@ -702,10 +702,6 @@ body {
 	padding: 6px 10px;
 }
 
-.feedback-list__toggle:hover {
-	text-decoration: underline;
-}
-
 /* =========================================================
    共通サマリーカード
    最新値・平均値・最大値などの統計情報を表示
@@ -966,10 +962,6 @@ body {
 	white-space: nowrap;
 }
 
-.filter-bar__reset:hover {
-	text-decoration: underline;
-}
-
 /* =========================================================
    共通グラフカード
    体重・睡眠・水分・歩数などの推移グラフを表示
@@ -1005,14 +997,16 @@ body {
 .link-btn {
 	background: none;
 	border: none;
-	color: var(--wp-text-muted);
+	color: var(--wp-primary-dark);
 	font-size: 13px;
+	font-weight: 600;
 	cursor: pointer;
 	padding: 4px;
+	text-decoration: none;
 }
 
 .link-btn:hover {
-	color: var(--wp-primary-dark);
+	filter: brightness(0.85);
 }
 
 .chart-card__body {

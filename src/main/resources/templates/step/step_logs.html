@@ -79,7 +79,12 @@
 				<div class="summary-card">
 					<span class="summary-card__label">目標達成率</span>
 					<span class="summary-card__value">
-						<span th:text="${stats?.goalRate ?: '--'}"></span>%
+						<span th:if="${stats?.goalRate != null}" class="badge"
+							  th:classappend="${stats.goalRate < 50 ? ' badge--danger' :
+							                   stats.goalRate < 80 ? ' badge--warning' :
+							                   stats.goalRate < 100 ? ' badge--info' : ' badge--success'}"
+							  th:text="${stats.goalRate + '%'}"></span>
+						<span th:unless="${stats?.goalRate != null}">--</span>
 					</span>
 					<span class="summary-card__sub" th:if="${stats?.goalRate != null}">本日の目標に対する割合</span>
 				</div>

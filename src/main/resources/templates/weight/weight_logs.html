@@ -232,10 +232,11 @@
 					<input type="hidden" name="recordId" id="recordId" value="" />
 
 					<div class="input-group">
-					    <label for="measuredAt">日時 <span class="required">*</span></label>
-					    <input id="measuredAt" name="measuredAt" type="datetime-local" required />
+					    <label for="measuredAtDate">日付 <span class="required">*</span></label>
+					    <input id="measuredAtDate" type="date" required />
 					    <div id="measuredAtError" class="field-error"><span></span></div>
 					</div>
+					<input type="hidden" id="measuredAt" name="measuredAt" />
 
 					<div class="input-group">
 						<label for="weight">体重 (kg) <span class="required">*</span></label>

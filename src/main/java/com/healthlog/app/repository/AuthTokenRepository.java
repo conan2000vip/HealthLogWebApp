@@ -27,6 +27,9 @@ public interface AuthTokenRepository extends JpaRepository<AuthToken, Long> {
 	@Lock(LockModeType.PESSIMISTIC_WRITE)
 	Optional<AuthToken> findByTokenAndTokenType(String token, String tokenType);
 
+	// resendVerification() のクールダウン判定用 — ユーザー・種別ごとの最新トークン発行日時を取得
+	Optional<AuthToken> findFirstByUser_IdAndTokenTypeOrderByCreatedAtDesc(Long userId, String tokenType);
+
 	// idx_auth_tokens_user_type — ユーザーごとのトークン種別検索
 	List<AuthToken> findByUser_IdAndTokenType(Long userId, String tokenType);
 
