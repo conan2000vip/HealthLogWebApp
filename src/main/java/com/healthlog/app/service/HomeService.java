@@ -36,6 +36,15 @@ public class HomeService {
 	private final FeedbackService feedbackService;
 	private final MemoService memoService;
 
+	private static final java.util.Map<com.healthlog.app.service.feedbackservice.model.FeedbackType, String> SEVERE_LABELS = java.util.Map
+			.of(com.healthlog.app.service.feedbackservice.model.FeedbackType.WEIGHT_SUDDEN_CHANGE, "体重変化大",
+					com.healthlog.app.service.feedbackservice.model.FeedbackType.WEIGHT_BIG_CHANGE, "体重変化大",
+					com.healthlog.app.service.feedbackservice.model.FeedbackType.SLEEP_CONTINUOUS_SHORT, "睡眠不足が継続",
+					com.healthlog.app.service.feedbackservice.model.FeedbackType.SLEEP_SHORT, "睡眠不足",
+					com.healthlog.app.service.feedbackservice.model.FeedbackType.WATER_EXCESS, "水分過剰",
+					com.healthlog.app.service.feedbackservice.model.FeedbackType.WATER_LOW, "水分不足",
+					com.healthlog.app.service.feedbackservice.model.FeedbackType.STEP_LOW, "歩数不足");
+
 	// =========================================================
 	// Home
 	// =========================================================
@@ -134,13 +143,18 @@ public class HomeService {
 		recordedDates.retainAll(sleepDates);
 		recordedDates.retainAll(waterDates);
 		recordedDates.retainAll(stepDates);
+		LocalDate startPoint;
 
-		if (!recordedDates.contains(today)) {
+		if (recordedDates.contains(today)) {
+			startPoint = today;
+		} else if (recordedDates.contains(today.minusDays(1))) {
+			startPoint = today.minusDays(1);
+		} else {
 			return 0;
 		}
 
 		int streak = 0;
-		LocalDate checkDate = today;
+		LocalDate checkDate = startPoint;
 		while (recordedDates.contains(checkDate)) {
 			streak++;
 			checkDate = checkDate.minusDays(1);
@@ -436,6 +450,13 @@ public class HomeService {
 				attentionItems.add("まだ健康データがありません");
 			} else {
 				long noRecordDays = ChronoUnit.DAYS.between(latestRecordedDate, today);
+
+				// ★追加：LV3/LV4の重大フィードバックを最優先で注意事項に入れる
+				boolean hasSevereFeedback = addSevereFeedbackAttention(profile.getId(), attentionItems);
+				if (hasSevereFeedback) {
+					danger = true;
+				}
+
 				if (noRecordDays >= 3) {
 					attentionItems.add(noRecordDays + "日間記録がありません");
 					danger = true;
@@ -454,7 +475,6 @@ public class HomeService {
 
 			String status;
 			String statusLabel;
-
 			if (!hasAnyHistoricalData) {
 				status = "NO_RECORD";
 				statusLabel = "未記録";
@@ -470,7 +490,6 @@ public class HomeService {
 			}
 
 			String updatedTime = getFamilyUpdatedTime(profile.getId(), currentUserId, today);
-
 			Map<String, Object> member = new HashMap<>();
 			member.put("id", profile.getId());
 			member.put("name", profile.getName());
@@ -481,11 +500,40 @@ public class HomeService {
 			member.put("doneItems", doneItems);
 			member.put("totalItems", totalItems);
 			member.put("updatedTime", updatedTime);
-
 			members.add(member);
 		}
-
 		return members;
+	}
+
+	// ★追加：4つのFeedbackRuleからLV3/LV4（重大フィードバック）を検出
+	private boolean addSevereFeedbackAttention(Long profileId, List<String> attentionItems) {
+		List<com.healthlog.app.service.feedbackservice.model.FeedbackItem> allItems = new ArrayList<>();
+		allItems.addAll(feedbackService.getWeightFeedback(profileId));
+		allItems.addAll(feedbackService.getSleepFeedback(profileId));
+		allItems.addAll(feedbackService.getWaterFeedback(profileId));
+		allItems.addAll(feedbackService.getStepFeedback(profileId));
+
+		boolean hasLv4 = false;
+
+		List<com.healthlog.app.service.feedbackservice.model.FeedbackItem> severe = allItems.stream()
+				.filter(item -> item.getLevel()
+						.getPriority() >= com.healthlog.app.service.feedbackservice.model.FeedbackLevel.LV3
+								.getPriority())
+				.sorted(java.util.Comparator.comparingInt(
+						(com.healthlog.app.service.feedbackservice.model.FeedbackItem i) -> i.getLevel().getPriority())
+						.reversed())
+				.toList();
+
+		for (com.healthlog.app.service.feedbackservice.model.FeedbackItem item : severe) {
+			if (item.getLevel() == com.healthlog.app.service.feedbackservice.model.FeedbackLevel.LV4) {
+				hasLv4 = true;
+			}
+			String label = SEVERE_LABELS.getOrDefault(item.getType(), item.getTitle());
+			if (!attentionItems.contains(label)) {
+				attentionItems.add(0, label);
+			}
+		}
+		return hasLv4;
 	}
 
 	private void addSleepAttention(List<String> attentionItems, Map<String, Object> familyToday,
