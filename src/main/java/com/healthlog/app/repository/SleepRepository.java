@@ -17,61 +17,42 @@ public interface SleepRepository extends JpaRepository<Sleep, Long> {
 
 	boolean existsByProfile_Id(Long profileId);
 
+	boolean existsByProfile_IdAndRecordedDate(Long profileId, LocalDate recordedDate);
+
 	// List
 
 	List<Sleep> findByProfile_IdOrderByRecordedDateDesc(Long profileId);
 
-	List<Sleep> findByProfile_IdAndRecordedDateOrderByStartTimeAsc(
-			Long profileId,
-			LocalDate recordedDate);
+	List<Sleep> findByProfile_IdAndRecordedDateOrderByStartTimeAsc(Long profileId, LocalDate recordedDate);
 
-	List<Sleep> findByProfile_IdAndRecordedDateGreaterThanEqualOrderByRecordedDateDesc(
-			Long profileId,
-			LocalDate from);
+	List<Sleep> findByProfile_IdAndRecordedDateGreaterThanEqualOrderByRecordedDateDesc(Long profileId, LocalDate from);
 
-	List<Sleep> findByProfile_IdAndRecordedDateLessThanEqualOrderByRecordedDateDesc(
-			Long profileId,
-			LocalDate to);
+	List<Sleep> findByProfile_IdAndRecordedDateLessThanEqualOrderByRecordedDateDesc(Long profileId, LocalDate to);
 
-	List<Sleep> findByProfile_IdAndRecordedDateAndSleepTypeOrderByStartTimeAsc(
-			Long profileId,
-			LocalDate recordedDate,
+	List<Sleep> findByProfile_IdAndRecordedDateAndSleepTypeOrderByStartTimeAsc(Long profileId, LocalDate recordedDate,
 			SleepType sleepType);
 
-	List<Sleep> findByProfile_IdAndRecordedDateBetweenOrderByRecordedDateDesc(
-			Long profileId,
-			LocalDate startDate,
+	List<Sleep> findByProfile_IdAndRecordedDateBetweenOrderByRecordedDateDesc(Long profileId, LocalDate startDate,
 			LocalDate endDate);
 
 	// Page
 
-	Page<Sleep> findByProfile_IdOrderByRecordedDateDesc(
-			Long profileId,
+	Page<Sleep> findByProfile_IdOrderByRecordedDateDesc(Long profileId, Pageable pageable);
+
+	Page<Sleep> findByProfile_IdAndRecordedDateBetweenOrderByRecordedDateDesc(Long profileId, LocalDate from,
+			LocalDate to, Pageable pageable);
+
+	Page<Sleep> findByProfile_IdAndRecordedDateGreaterThanEqualOrderByRecordedDateDesc(Long profileId, LocalDate from,
 			Pageable pageable);
 
-	Page<Sleep> findByProfile_IdAndRecordedDateBetweenOrderByRecordedDateDesc(
-			Long profileId,
-			LocalDate from,
-			LocalDate to,
-			Pageable pageable);
-
-	Page<Sleep> findByProfile_IdAndRecordedDateGreaterThanEqualOrderByRecordedDateDesc(
-			Long profileId,
-			LocalDate from,
-			Pageable pageable);
-
-	Page<Sleep> findByProfile_IdAndRecordedDateLessThanEqualOrderByRecordedDateDesc(
-			Long profileId,
-			LocalDate to,
+	Page<Sleep> findByProfile_IdAndRecordedDateLessThanEqualOrderByRecordedDateDesc(Long profileId, LocalDate to,
 			Pageable pageable);
 
 	Optional<Sleep> findTopByProfile_IdAndRecordedDateLessThanOrderByRecordedDateDesc(Long profileId, LocalDate date);
 
 	Optional<Sleep> findTopByProfile_IdOrderByRecordedDateDesc(Long profileId);
 
-	Optional<Sleep> findFirstByProfile_IdAndRecordedDateAndSleepType(
-			Long profileId,
-			LocalDate recordedDate,
+	Optional<Sleep> findFirstByProfile_IdAndRecordedDateAndSleepType(Long profileId, LocalDate recordedDate,
 			SleepType sleepType);
 
 }

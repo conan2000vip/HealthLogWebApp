@@ -24,6 +24,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Transactional
 public class MemoService {
+	private static final int MAX_MEMOS_PER_DAY = 5;
+	private static final int RECENT_MEMOS_LIMIT = 5;
 
 	private final MemoRepository memoRepository;
 	private final ProfileRepository profileRepository;
@@ -63,7 +65,7 @@ public class MemoService {
 		}
 
 		boolean hasAnyLog = memoRepository.existsByProfile_Id(profileId);
-		Pageable pageable = PageRequest.of(Math.max(page, 0), 20);
+		Pageable pageable = PageRequest.of(Math.max(page, 0), 10);
 		Page<Memo> logPage = fetchLogsPage(profileId, from, to, pageable);
 
 		Map<String, Object> result = new HashMap<>();
@@ -77,14 +79,14 @@ public class MemoService {
 		return result;
 	}
 
-	// Recent three days / 直近3日間のメモ
+	// Recent three days / 直近3日間のメモ（最大5件まで表示）
 	public List<Memo> getRecentThreeDays(Long profileId, Long currentUserId) {
 		findProfile(profileId, currentUserId);
-
 		LocalDate to = LocalDate.now();
 		LocalDate from = to.minusDays(2);
-
-		return memoRepository.findByProfile_IdAndRecordedDateBetweenOrderByRecordedDateDescIdDesc(profileId, from, to);
+		List<Memo> memos = memoRepository.findByProfile_IdAndRecordedDateBetweenOrderByRecordedDateDescIdDesc(profileId,
+				from, to);
+		return memos.size() > RECENT_MEMOS_LIMIT ? memos.subList(0, RECENT_MEMOS_LIMIT) : memos;
 	}
 
 	// ---------------------------------------------------------
@@ -109,6 +111,10 @@ public class MemoService {
 		normalizeInput(memo);
 		validateMemoInput(memo);
 
+		long countOnDate = memoRepository.countByProfile_IdAndRecordedDate(profileId, memo.getRecordedDate());
+		if (countOnDate >= MAX_MEMOS_PER_DAY) {
+			throw new BusinessException(HttpStatus.BAD_REQUEST, "1日に記録できるメモは" + MAX_MEMOS_PER_DAY + "件までです");
+		}
 		memo.setProfile(profile);
 		return memoRepository.save(memo);
 	}
@@ -149,13 +155,16 @@ public class MemoService {
 	// ---------------------------------------------------------
 	private Page<Memo> fetchLogsPage(Long profileId, LocalDate from, LocalDate to, Pageable pageable) {
 		if (from != null && to != null) {
-			return memoRepository.findByProfile_IdAndRecordedDateBetweenOrderByRecordedDateDescIdDesc(profileId, from, to, pageable);
+			return memoRepository.findByProfile_IdAndRecordedDateBetweenOrderByRecordedDateDescIdDesc(profileId, from,
+					to, pageable);
 		}
 		if (from != null) {
-			return memoRepository.findByProfile_IdAndRecordedDateGreaterThanEqualOrderByRecordedDateDescIdDesc(profileId, from, pageable);
+			return memoRepository.findByProfile_IdAndRecordedDateGreaterThanEqualOrderByRecordedDateDescIdDesc(
+					profileId, from, pageable);
 		}
 		if (to != null) {
-			return memoRepository.findByProfile_IdAndRecordedDateLessThanEqualOrderByRecordedDateDescIdDesc(profileId, to, pageable);
+			return memoRepository.findByProfile_IdAndRecordedDateLessThanEqualOrderByRecordedDateDescIdDesc(profileId,
+					to, pageable);
 		}
 		return memoRepository.findByProfile_IdOrderByRecordedDateDescIdDesc(profileId, pageable);
 	}

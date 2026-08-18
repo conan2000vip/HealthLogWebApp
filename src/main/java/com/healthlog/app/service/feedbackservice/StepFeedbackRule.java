@@ -69,13 +69,12 @@ public class StepFeedbackRule {
 		Optional<Step> previousBeforeToday = stepRepository
 				.findTopByProfile_IdAndRecordedDateLessThanOrderByRecordedDateDesc(profileId, today);
 		if (previousBeforeToday.isPresent()) {
-			long gapDays = ChronoUnit.DAYS.between(previousBeforeToday.get().getRecordedDate(), today);
-			if (gapDays > 1) {
+			long totalGap = ChronoUnit.DAYS.between(previousBeforeToday.get().getRecordedDate(), today);
+			if (totalGap > 1) {
+				long emptyDays = totalGap - 1; // 前回と今日の間に実際に記録が無かった日数
 				items.add(new FeedbackItem(FeedbackType.STEP_RESUMED, FeedbackLevel.LV0, "記録を再開しました",
-						"前回の記録から" + gapDays + "日空きましたが、今日また記録できました。この調子で続けましょう。", today.atStartOfDay(),
+						"前回の記録から" + emptyDays + "日空きましたが、今日また記録できました。この調子で続けましょう。", today.atStartOfDay(),
 						"calendar-check"));
-			} else if (!dailyTotals.containsKey(yesterday)) {
-				items.add(buildNoRecordReminder(today, "昨日の歩数記録がありません", "昨日分の歩数データが記録されていません。忘れずに記録しましょう。"));
 			}
 		}
 
@@ -111,8 +110,9 @@ public class StepFeedbackRule {
 		if (rate >= LOW_THRESHOLD_PERCENT) {
 			return;
 		}
+		int remaining = goal - total;
 		items.add(new FeedbackItem(FeedbackType.STEP_LOW, FeedbackLevel.LV3, "歩数が少ないです",
-				"現在の歩数は目標の" + rate + "%です。少し体を動かしてみましょう。", today.atStartOfDay(), "alert-triangle"));
+				"現在の歩数は目標の" + rate + "%です。目標まであと" + remaining + "歩です。", today.atStartOfDay(), "alert-triangle"));
 	}
 
 	// 目標50%以上100%未満
@@ -126,17 +126,16 @@ public class StepFeedbackRule {
 		if (rate < LOW_THRESHOLD_PERCENT || rate >= 100) {
 			return;
 		}
+		int remaining = goal - total;
 		String title;
 		String message;
 
 		if (rate < ALMOST_MIN_PERCENT) {
-			// 50～79%
 			title = "目標達成に向けて順調です";
-			message = "現在 " + rate + "% 達成しています。目標達成に向けて、もう少し歩いてみましょう。";
+			message = "現在 " + rate + "% 達成しています。目標まであと" + remaining + "歩です。";
 		} else {
-			// 80～99%
 			title = "もう少しで目標達成です";
-			message = "現在 " + rate + "% 達成しています。あと少しで目標達成です。";
+			message = "現在 " + rate + "% 達成しています。目標まであと" + remaining + "歩です。";
 		}
 		items.add(new FeedbackItem(FeedbackType.STEP_ALMOST, FeedbackLevel.LV2, title, message, today.atStartOfDay(),
 				"lightbulb"));

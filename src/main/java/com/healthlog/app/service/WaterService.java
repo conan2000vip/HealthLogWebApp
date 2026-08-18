@@ -89,7 +89,7 @@ public class WaterService {
 				: (int) Math.round(dailyTotalsMonth.values().stream().mapToInt(Integer::intValue).average().orElse(0));
 
 		// ---- 現在ページ分: テーブル表示用（1件ごとの目標比を計算） ----
-		Pageable pageable = PageRequest.of(page, 20);
+		Pageable pageable = PageRequest.of(page, 10);
 		Page<Water> logPage = fetchLogsPage(profileId, from, to, pageable);
 		List<Water> pageLogs = logPage.getContent();
 		for (Water w : pageLogs) {

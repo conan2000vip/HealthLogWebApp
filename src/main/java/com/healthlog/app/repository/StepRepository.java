@@ -16,6 +16,8 @@ public interface StepRepository extends JpaRepository<Step, Long> {
 
 	boolean existsByProfile_Id(Long profileId);
 
+	boolean existsByProfile_IdAndRecordedDate(Long profileId, LocalDate recordedDate);
+
 	Optional<Step> findTopByProfile_IdAndRecordedDateLessThanOrderByRecordedDateDesc(Long profileId, LocalDate date);
 
 	Optional<Step> findTopByProfile_IdOrderByRecordedDateDescIdDesc(Long profileId);

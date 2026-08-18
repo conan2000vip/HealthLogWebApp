@@ -71,13 +71,12 @@ public class WaterFeedbackRule {
 		Optional<Water> previousBeforeToday = waterRepository
 				.findTopByProfile_IdAndRecordedDateLessThanOrderByRecordedDateDesc(profileId, today);
 		if (previousBeforeToday.isPresent()) {
-			long gapDays = ChronoUnit.DAYS.between(previousBeforeToday.get().getRecordedDate(), today);
-			if (gapDays > 1) {
+			long totalGap = ChronoUnit.DAYS.between(previousBeforeToday.get().getRecordedDate(), today);
+			if (totalGap > 1) {
+				long emptyDays = totalGap - 1; // 前回と今日の間に実際に記録が無かった日数
 				items.add(new FeedbackItem(FeedbackType.WATER_RESUMED, FeedbackLevel.LV0, "記録を再開しました",
-						"前回の記録から" + gapDays + "日空きましたが、今日また記録できました。この調子で続けましょう。", today.atStartOfDay(),
+						"前回の記録から" + emptyDays + "日空きましたが、今日また記録できました。この調子で続けましょう。", today.atStartOfDay(),
 						"calendar-check"));
-			} else if (!dailyTotals.containsKey(yesterday)) {
-				items.add(buildNoRecordReminder(today, "昨日の水分記録がありません", "昨日分の水分摂取データが記録されていません。忘れずに記録しましょう。"));
 			}
 		}
 
@@ -126,16 +125,16 @@ public class WaterFeedbackRule {
 			return;
 		}
 		int rate = (int) Math.round(total * 100.0 / goal);
-		// 50～99% → LV2
 		if (rate < LOW_THRESHOLD_PERCENT || rate >= 100) {
 			return;
 		}
+		int remaining = goal - total;
 		if (rate >= ALMOST_MIN_PERCENT) {
 			items.add(new FeedbackItem(FeedbackType.WATER_ALMOST, FeedbackLevel.LV2, "もう少しで目標達成です",
-					"現在 " + rate + "% 達成しています。あと少し水分を摂りましょう。", today.atStartOfDay(), "lightbulb"));
+					"現在 " + rate + "% 達成しています。目標まであと" + remaining + "mlです。", today.atStartOfDay(), "lightbulb"));
 		} else {
 			items.add(new FeedbackItem(FeedbackType.WATER_ALMOST, FeedbackLevel.LV2, "目標に向けて順調です",
-					"現在 " + rate + "% 達成しています。引き続き水分補給を心がけましょう。", today.atStartOfDay(), "lightbulb"));
+					"現在 " + rate + "% 達成しています。目標まであと" + remaining + "mlです。", today.atStartOfDay(), "lightbulb"));
 		}
 	}
 
@@ -164,8 +163,9 @@ public class WaterFeedbackRule {
 		if (rate >= LOW_THRESHOLD_PERCENT) {
 			return;
 		}
+		int remaining = goal - total;
 		items.add(new FeedbackItem(FeedbackType.WATER_LOW, FeedbackLevel.LV3, "水分摂取が不足しています",
-				"現在の摂取量は目標の" + rate + "%です。水分補給を心がけましょう。", today.atStartOfDay(), "alert-triangle"));
+				"現在の摂取量は目標の" + rate + "%です。目標まであと" + remaining + "mlです。", today.atStartOfDay(), "alert-triangle"));
 	}
 
 	private FeedbackItem buildNoRecordReminder(LocalDate today, String title, String message) {

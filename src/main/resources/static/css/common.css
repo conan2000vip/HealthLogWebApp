@@ -43,7 +43,8 @@ body {
 	backdrop-filter: blur(12px);
 	border-bottom: 1px solid #e5e7eb;
 	box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
-	position: relative;
+	position: sticky;
+	top: 0;
 	z-index: 300;
 }
 
@@ -114,13 +115,20 @@ body {
 	align-items: center;
 	gap: 4px;
 	flex: 1;
+	min-width: 0;
 	background: #ffffff;
 	border: none;
 	border-radius: 18px;
 	padding: 4px;
-	overflow: visible;
+	overflow-x: auto;
+	overflow-y: hidden;
 	white-space: nowrap;
 	flex-wrap: nowrap;
+	scrollbar-width: none;
+}
+
+.app-header__nav::-webkit-scrollbar {
+	display: none;
 }
 
 .app-header__nav-item {
@@ -426,16 +434,12 @@ body {
 		display: none;
 	}
 
-	.app-header__nav {
-		overflow-x: auto;
-	}
-
 	.app-header__user-info {
 		display: none;
 	}
 }
 
-@media (max-width: 1100px) {
+@media (max-width: 1280px) {
 	.app-header__inner {
 		position: relative;
 	}
@@ -446,10 +450,12 @@ body {
 
 	.app-header__nav {
 		display: none;
-		position: absolute;
-		top: 100%;
+		position: fixed;
+		top: var(--app-header-height);
 		left: 0;
 		right: 0;
+		max-height: calc(100vh - var(--app-header-height));
+		overflow-y: auto;
 		flex-direction: column;
 		align-items: stretch;
 		background: #fff;
@@ -458,7 +464,6 @@ body {
 		box-shadow: 0 12px 24px rgba(15, 23, 42, 0.1);
 		padding: 8px;
 		gap: 2px;
-		overflow: visible;
 		white-space: normal;
 		z-index: 150;
 	}
@@ -695,10 +700,6 @@ body {
 	font-weight: 600;
 	cursor: pointer;
 	padding: 6px 10px;
-}
-
-.feedback-list__toggle:hover {
-	text-decoration: underline;
 }
 
 /* =========================================================
@@ -961,10 +962,6 @@ body {
 	white-space: nowrap;
 }
 
-.filter-bar__reset:hover {
-	text-decoration: underline;
-}
-
 /* =========================================================
    共通グラフカード
    体重・睡眠・水分・歩数などの推移グラフを表示
@@ -1000,14 +997,16 @@ body {
 .link-btn {
 	background: none;
 	border: none;
-	color: var(--wp-text-muted);
+	color: var(--wp-primary-dark);
 	font-size: 13px;
+	font-weight: 600;
 	cursor: pointer;
 	padding: 4px;
+	text-decoration: none;
 }
 
 .link-btn:hover {
-	color: var(--wp-primary-dark);
+	filter: brightness(0.85);
 }
 
 .chart-card__body {
@@ -1058,8 +1057,6 @@ body {
 }
 
 .data-table-scroll {
-	max-height: 320px;
-	overflow-y: auto;
 	overflow-x: auto;
 	-webkit-overflow-scrolling: touch;
 }
@@ -1295,6 +1292,7 @@ body {
 	background: #fff;
 	color: #374151;
 	border: 1px solid #d1d5db;
+	text-decoration: none;
 }
 
 .btn--ghost:hover {

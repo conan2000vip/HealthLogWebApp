@@ -83,13 +83,12 @@ public class SleepFeedbackRule {
 		Optional<Sleep> previousBeforeToday = sleepRepository
 				.findTopByProfile_IdAndRecordedDateLessThanOrderByRecordedDateDesc(profileId, today);
 		if (previousBeforeToday.isPresent()) {
-			long gapDays = ChronoUnit.DAYS.between(previousBeforeToday.get().getRecordedDate(), today);
-			if (gapDays > 1) {
+			long totalGap = ChronoUnit.DAYS.between(previousBeforeToday.get().getRecordedDate(), today);
+			if (totalGap > 1) {
+				long emptyDays = totalGap - 1; // 前回と今日の間に実際に記録が無かった日数
 				items.add(new FeedbackItem(FeedbackType.SLEEP_RESUMED, FeedbackLevel.LV0, "記録を再開しました",
-						"前回の記録から" + gapDays + "日空きましたが、今日また記録できました。この調子で続けましょう。", today.atStartOfDay(),
+						"前回の記録から" + emptyDays + "日空きましたが、今日また記録できました。この調子で続けましょう。", today.atStartOfDay(),
 						"calendar-check"));
-			} else if (!dailyTotals.containsKey(yesterday)) {
-				items.add(buildReminder(today, "昨日の睡眠記録がありません", "昨日分の睡眠データが記録されていません。忘れずに記録しましょう。"));
 			}
 		}
 
@@ -175,12 +174,14 @@ public class SleepFeedbackRule {
 		double rate = minutes * 100.0 / sleepGoalMinutes;
 		int displayRate = (int) Math.round(rate);
 		if (rate < 50) {
+			int remaining = sleepGoalMinutes - minutes;
 			items.add(new FeedbackItem(FeedbackType.SLEEP_SHORT, FeedbackLevel.LV3, "睡眠時間が目標よりかなり短いです",
-					"現在の睡眠時間は目標の" + displayRate + "%です。十分な休息を心がけましょう。", today.atStartOfDay(), "alert-triangle"));
+					"現在の睡眠時間は目標の" + displayRate + "%です。目標まであと" + formatMinutes(remaining) + "です。", today.atStartOfDay(),
+					"alert-triangle"));
 		} else if (rate < 100) {
+			int remaining = sleepGoalMinutes - minutes;
 			String title = rate >= 80 ? "もう少しで睡眠目標達成です" : "睡眠目標に向けて順調です";
-			String message = rate >= 80 ? "現在 " + displayRate + "% 達成しています。あと少し休息時間を確保しましょう。"
-					: "現在 " + displayRate + "% 達成しています。引き続き十分な休息を心がけましょう。";
+			String message = "現在 " + displayRate + "% 達成しています。目標まであと" + formatMinutes(remaining) + "です。";
 			items.add(new FeedbackItem(FeedbackType.SLEEP_SHORT, FeedbackLevel.LV2, title, message,
 					today.atStartOfDay(), "lightbulb"));
 		} else {
@@ -189,6 +190,16 @@ public class SleepFeedbackRule {
 			items.add(new FeedbackItem(FeedbackType.SLEEP_GOOD, FeedbackLevel.LV1, "睡眠目標を達成しました",
 					"今日の睡眠時間は" + hours + "時間" + mins + "分です。設定した睡眠目標を達成しました！", today.atStartOfDay(), "check-circle"));
 		}
+	}
+
+	// ヘルパー: 分数を「X時間Y分」形式に変換（Homeの表示形式と統一）
+	private String formatMinutes(int totalMinutes) {
+		int hours = totalMinutes / 60;
+		int mins = totalMinutes % 60;
+		if (hours > 0) {
+			return hours + "時間" + mins + "分";
+		}
+		return mins + "分";
 	}
 
 	private FeedbackItem buildReminder(LocalDate today, String title, String message) {

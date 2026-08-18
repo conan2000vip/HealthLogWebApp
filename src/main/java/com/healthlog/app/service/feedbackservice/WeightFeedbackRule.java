@@ -65,13 +65,12 @@ public class WeightFeedbackRule {
 			items.add(buildNoRecordReminder(today, "体重記録がありません", "今日の体重データがまだ記録されていません。記録すると、あなたに合ったフィードバックが受け取れます。"));
 		} else if (latestLogs.size() >= 2) {
 			LocalDate previousDate = latestLogs.get(1).getRecordedDate();
-			long gapDays = ChronoUnit.DAYS.between(previousDate, today);
-			if (gapDays > 1) {
+			long totalGap = ChronoUnit.DAYS.between(previousDate, today);
+			if (totalGap > 1) {
+				long emptyDays = totalGap - 1; // 前回と今日の間に実際に記録が無かった日数
 				items.add(new FeedbackItem(FeedbackType.WEIGHT_RESUMED, FeedbackLevel.LV0, "記録を再開しました",
-						"前回の記録から" + gapDays + "日空きましたが、今日また記録できました。この調子で続けましょう。", today.atStartOfDay(),
+						"前回の記録から" + emptyDays + "日空きましたが、今日また記録できました。この調子で続けましょう。", today.atStartOfDay(),
 						"calendar-check"));
-			} else if (!latestLogs.stream().anyMatch(w -> w.getRecordedDate().isEqual(yesterday))) {
-				items.add(buildNoRecordReminder(today, "昨日の体重記録がありません", "昨日分の体重データが記録されていません。忘れずに記録しましょう。"));
 			}
 		}
 

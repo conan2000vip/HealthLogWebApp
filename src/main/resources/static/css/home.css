@@ -18,15 +18,6 @@
 	gap: 20px;
 }
 
-.link-btn {
-	background: none;
-	border: none;
-	color: #2563eb;
-	font-size: 13px;
-	cursor: pointer;
-	text-decoration: none;
-}
-
 .icon-sm {
 	width: 15px;
 	height: 15px;
@@ -210,7 +201,7 @@
 	flex-shrink: 0;
 	font-size: 12px;
 	font-weight: 600;
-	color: #2563eb;
+	color: 	var(--wp-primary-dark);
 	white-space: nowrap;
 }
 
@@ -378,15 +369,6 @@
 }
 
 /* ---------- Family card ---------- */
-.family-card__header {
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	gap: 12px;
-	flex-wrap: wrap;
-	margin-bottom: 14px;
-}
-
 .family-card__note {
 	font-size: 13px;
 	color: var(--c-text-mute);
@@ -480,28 +462,28 @@
 }
 
 .family-member__attention span {
-	font-size: 12px;
+	font-size: 13px;
 	font-weight: 600;
 	line-height: 1.5;
 	color: var(--c-text);
 }
 
 .family-member__label {
-	font-size: 12px;
+	font-size: 13px;
 	font-weight: 500;
 	color: var(--c-text-mute);
 	white-space: nowrap;
 }
 
 .family-member__colon {
-	font-size: 12px;
+	font-size: 13px;
 	color: var(--c-text-mute);
 	text-align: center;
 }
 
 .family-member__value {
 	min-width: 0;
-	font-size: 12px;
+	font-size: 13px;
 	font-weight: 600;
 	color: var(--c-text);
 }
@@ -528,34 +510,7 @@
 	flex-shrink: 0;
 }
 
-.family-card__select-btn {
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	gap: 6px;
-	align-self: center;
-	margin-top: 14px;
-	padding: 8px 14px;
-	border: none;
-	border-radius: 8px;
-	background: rgb(85, 151, 50);
-	color: #fff;
-	font-size: 13px;
-	font-weight: 600;
-	text-decoration: none;
-	white-space: nowrap;
-	cursor: pointer;
-	transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.family-card__select-btn:hover {
-	background: rgb(80, 156, 50);
-	transform: translateY(-1px);
-	box-shadow: 0 4px 10px rgb(83, 176, 60);
-}
-
 /* ---------- Responsive ---------- */
-
 @media (max-width: 1100px) {
 	.stat-grid {
 		grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -567,6 +522,18 @@
 }
 
 @media (max-width: 600px) {
+	.feedback-panel__header {
+		flex-direction: column;
+		align-items: stretch;
+		gap: 10px;
+	}
+
+	.streak-view-btn {
+		justify-content: center;
+		width: 100%;
+		box-sizing: border-box;
+	}
+
 	.home {
 		padding: 16px 12px 40px;
 		gap: 14px;
@@ -634,7 +601,7 @@
 	}
 
 	.stat-card__detail {
-		font-size: 10.5px;
+		font-size: 11px;
 	}
 
 	.stat-card__value {
@@ -644,13 +611,13 @@
 	}
 
 	.stat-card__pill {
-		font-size: 10px;
+		font-size: 11px;
 		padding: 2px 6px;
 	}
 
 	.stat-card__goal-status {
 		padding-top: 7px;
-		font-size: 11px;
+		font-size: 12px;
 		line-height: 1.45;
 	}
 
@@ -680,11 +647,8 @@
 
 	/* Family */
 	.family-card__grid {
-		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(240px, 280px));
-		gap: 14px;
-		align-items: stretch;
-		justify-content: start;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 10px;
 	}
 
 	.family-member {
@@ -776,7 +740,7 @@
 	}
 
 	.stat-card__detail {
-		font-size: 9.5px;
+		font-size: 10px;
 	}
 
 	.stat-card__value {
@@ -784,12 +748,12 @@
 	}
 
 	.stat-card__pill {
-		font-size: 9px;
+		font-size: 10px;
 		padding: 2px 5px;
 	}
 
 	.stat-card__goal-status {
-		font-size: 10px;
+		font-size: 11px;
 		padding-top: 6px;
 	}
 
@@ -809,4 +773,349 @@
 	.goal-chip__value {
 		font-size: 11px;
 	}
+}
+
+/* =========================================================
+   Health Streak Achievement Modal
+   ========================================================= */
+.streak-modal {
+	position: fixed;
+	inset: 0;
+	z-index: 500;
+	display: none;
+	align-items: center;
+	justify-content: center;
+	padding: 20px;
+}
+
+.streak-modal.is-visible {
+	display: flex;
+}
+
+.streak-modal__overlay {
+	position: absolute;
+	inset: 0;
+	background: rgba(15, 23, 42, 0.55);
+	backdrop-filter: blur(2px);
+}
+
+.streak-modal__content {
+	position: relative;
+	width: 100%;
+	max-width: 480px;
+	max-height: calc(100dvh - 40px);
+	overflow-y: auto;
+	background: linear-gradient(180deg, #fffdf7 0%, #fffaf0 60%, #fff8ec 100%);
+	border-radius: 28px;
+	box-shadow: 0 30px 70px rgba(15, 23, 42, 0.35);
+	padding: 40px 36px 32px;
+	text-align: center;
+	animation: streak-modal-in 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+	overflow: hidden;
+}
+
+@keyframes streak-modal-in {
+	from {
+		opacity: 0;
+		transform: translateY(16px) scale(0.96);
+	}
+
+	to {
+		opacity: 1;
+		transform: translateY(0) scale(1);
+	}
+}
+
+.streak-modal__close {
+	position: absolute;
+	top: 18px;
+	right: 18px;
+	left: auto;
+	width: 34px;
+	height: 34px;
+	border: none;
+	background: rgba(15, 23, 42, 0.06);
+	border-radius: 50%;
+	font-size: 20px;
+	line-height: 1;
+	color: #64748b;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	z-index: 3;
+	transition: background 0.15s ease;
+}
+
+.streak-modal__close:hover {
+	background: rgba(15, 23, 42, 0.12);
+	color: #1f2937;
+}
+
+/* ---------- Trophy icon with glow ---------- */
+.streak-modal__icon {
+	position: relative;
+	width: 150px;
+	height: 150px;
+	margin: 4px auto 18px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 50%;
+	background: radial-gradient(circle, #fff4d6 0%, #ffe9b8 45%, rgba(255, 233, 184, 0) 75%);
+}
+
+.streak-modal__icon span {
+	font-size: 84px;
+	line-height: 1;
+	filter: drop-shadow(0 6px 10px rgba(217, 164, 6, 0.35));
+}
+
+/* ---------- Badge: CONTINUOUS RECORD ---------- */
+.streak-modal__badge {
+	display: inline-block;
+	margin-bottom: 14px;
+	padding: 6px 18px;
+	border-radius: 999px;
+	background: linear-gradient(180deg, #ffe9ae 0%, #ffd873 100%);
+	color: #8a5b00;
+	font-size: 12px;
+	font-weight: 800;
+	letter-spacing: 0.12em;
+	box-shadow: 0 2px 6px rgba(217, 164, 6, 0.25);
+}
+
+/* ---------- Title with laurel ornaments ---------- */
+.streak-modal__title-row {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 10px;
+	margin: 0 0 14px;
+	font-size: 28px;
+	font-weight: 800;
+	color: #1f2937;
+}
+
+.streak-modal__laurel {
+	font-size: 26px;
+	opacity: 0.85;
+	transform: scaleX(-1);
+}
+
+.streak-modal__laurel--right {
+	transform: scaleX(1);
+}
+
+/* ---------- Paragraphs ---------- */
+.streak-modal__paragraph {
+	margin: 0 0 16px;
+	font-size: 15px;
+	line-height: 1.8;
+	color: #4b5563;
+}
+
+/* --------- Star divider ---------- */
+.streak-modal__divider {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 10px;
+	margin: 4px 0 18px;
+}
+
+.streak-modal__divider-line {
+	flex: 1;
+	max-width: 90px;
+	height: 1px;
+	background: linear-gradient(90deg, transparent, #e7d4a1, transparent);
+}
+
+.streak-modal__divider-star {
+	color: #f2c14e;
+	font-size: 14px;
+}
+
+/* ---------- Note box (second paragraph) ---------- */
+.streak-modal__note {
+	display: flex;
+	align-items: flex-start;
+	gap: 12px;
+	text-align: left;
+	background: #fdf3df;
+	border-radius: 16px;
+	padding: 16px 18px;
+	margin-bottom: 26px;
+}
+
+.streak-modal__note-icon {
+	flex-shrink: 0;
+	width: 26px;
+	height: 26px;
+	border-radius: 50%;
+	background: linear-gradient(180deg, #c9a8ff 0%, #a878f0 100%);
+	color: #fff;
+	font-size: 13px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	margin-top: 2px;
+}
+
+.streak-modal__paragraph--note {
+	margin: 0;
+	font-size: 13.5px;
+	color: #6b6152;
+	line-height: 1.7;
+}
+
+/* ---------- Button ---------- */
+.streak-modal__button {
+	width: 100%;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 10px;
+	height: 52px;
+	border: none;
+	border-radius: 999px;
+	background: linear-gradient(180deg, #1f2937 0%, #0b1220 100%);
+	color: #fff;
+	font-size: 16px;
+	font-weight: 700;
+	cursor: pointer;
+	transition: transform 0.1s ease, box-shadow 0.15s ease;
+}
+
+.streak-modal__button:hover {
+	box-shadow: 0 10px 24px rgba(15, 23, 42, 0.35);
+}
+
+.streak-modal__button:active {
+	transform: scale(0.98);
+}
+
+.streak-modal__button-arrow {
+	font-size: 18px;
+}
+
+/* ---------- Confetti ---------- */
+.streak-modal__confetti {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+	overflow: hidden;
+	z-index: 1;
+}
+
+.streak-confetti-piece {
+	position: absolute;
+	top: -10px;
+	width: 8px;
+	height: 14px;
+	border-radius: 2px;
+	opacity: 0.9;
+	animation: streak-confetti-fall 1.4s ease-out forwards;
+}
+
+@keyframes streak-confetti-fall {
+	0% {
+		transform: translate(0, 0) rotate(0deg);
+		opacity: 1;
+	}
+
+	100% {
+		transform: translate(var(--x), var(--y)) rotate(var(--rotate));
+		opacity: 0;
+	}
+}
+
+/* Content sits above confetti layer */
+.streak-modal__close,
+.streak-modal__icon,
+.streak-modal__badge,
+.streak-modal__title-row,
+.streak-modal__paragraph,
+.streak-modal__divider,
+.streak-modal__note,
+.streak-modal__button {
+	position: relative;
+	z-index: 2;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 560px) {
+	.streak-modal__content {
+		padding: 32px 22px 24px;
+		border-radius: 22px;
+	}
+
+	.streak-modal__icon {
+		width: 120px;
+		height: 120px;
+	}
+
+	.streak-modal__icon span {
+		font-size: 64px;
+	}
+
+	.streak-modal__title-row {
+		font-size: 22px;
+	}
+}
+
+/* =========================================================
+   Health Streak View Button
+   ========================================================= */
+.feedback-panel__header h2 {
+	margin: 0;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.streak-view-btn {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	padding: 9px 16px;
+	border: 1px solid #f3d27a;
+	border-radius: 999px;
+	background: #fff8e6;
+	color: #8a5a00;
+	font-size: 14px;
+	font-weight: 700;
+	cursor: pointer;
+	white-space: nowrap;
+	transition:
+		background 0.15s ease,
+		border-color 0.15s ease,
+		transform 0.15s ease,
+		box-shadow 0.15s ease;
+}
+
+.streak-view-btn__arrow {
+	font-size: 15px;
+	line-height: 1;
+	color: #8a5a00;
+}
+
+.streak-view-btn:hover {
+	background: #fff1c7;
+	border-color: #e8bf54;
+	box-shadow: 0 4px 12px rgba(180, 130, 30, 0.12);
+	transform: translateY(-1px);
+}
+
+.streak-view-btn:active {
+	transform: translateY(0);
+}
+
+.streak-view-btn__icon {
+	font-size: 16px;
+	line-height: 1;
+}
+
+.streak-view-btn__text {
+	line-height: 1;
 }

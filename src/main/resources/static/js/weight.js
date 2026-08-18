@@ -6,31 +6,32 @@ document.addEventListener("DOMContentLoaded", () => {
 /* =========================================================
    1) 体重推移グラフ
    共通の health-chart.js を使用する
+   （★変更なし。元のコードのまま）
    ========================================================= */
-   function initChart() {
-       const isSearching = Boolean(
-           document.getElementById("startDateInput")?.value ||
-           document.getElementById("endDateInput")?.value
-       );
+function initChart() {
+    const isSearching = Boolean(
+        document.getElementById("startDateInput")?.value ||
+        document.getElementById("endDateInput")?.value
+    );
 
-       const chart = HealthChart.create({
-           canvasId: "weightChart",
-           data: window.weightChartData,
-           unit: "kg",
-           type: "bar",
-           days: 7,
-           isSearching: isSearching
-       });
+    const chart = HealthChart.create({
+        canvasId: "weightChart",
+        data: window.weightChartData,
+        unit: "kg",
+        type: "bar",
+        days: 7,
+        isSearching: isSearching
+    });
 
-       const wrapper = document.getElementById("chartWrapper");
-       const chartUrl = wrapper?.closest(".chart-card")?.dataset.chartUrl;
-       const from = window.weightChartData?.from;
-       const to = window.weightChartData?.to;
+    const wrapper = document.getElementById("chartWrapper");
+    const chartUrl = wrapper?.closest(".chart-card")?.dataset.chartUrl;
+    const from = window.weightChartData?.from;
+    const to = window.weightChartData?.to;
 
-       if (chart && wrapper && chartUrl && from && to) {
-           initChartSwipe({ chart, wrapperEl: wrapper, chartUrl, initialFrom: from, initialTo: to });
-       }
-   }
+    if (chart && wrapper && chartUrl && from && to) {
+        initChartSwipe({ chart, wrapperEl: wrapper, chartUrl, initialFrom: from, initialTo: to });
+    }
+}
 
 /* =========================================================
    2) モーダル（新規登録 / 編集）— weight ページ専用
@@ -50,18 +51,61 @@ function initModal() {
     const form = document.getElementById("weightForm");
 
     const recordId = document.getElementById("recordId");
-    const measuredAtInput = document.getElementById("measuredAt");
+
+    // ★変更：表示用は日付のみのinput、送信用hiddenは従来通りdatetime-local文字列
+    const measuredAtDateInput = document.getElementById("measuredAtDate");
+    const measuredAtInput = document.getElementById("measuredAt"); // hidden
+
     const weightInput = document.getElementById("weight");
     const heightInput = document.getElementById("height");
     const memoInput = document.getElementById("memo");
 
     if (!overlay || !form) return;
 
+    // ★追加：現在開いているモーダルが create か edit かを保持
+    let currentMode = "create";
+
+    // 現在日時を YYYY-MM-DDTHH:MM 形式で返す（hidden input送信用）
+    function currentDateTimeLocal() {
+        const d = new Date();
+        const yyyy = d.getFullYear();
+        const mm = String(d.getMonth() + 1).padStart(2, "0");
+        const dd = String(d.getDate()).padStart(2, "0");
+        const hh = String(d.getHours()).padStart(2, "0");
+        const min = String(d.getMinutes()).padStart(2, "0");
+        return `${yyyy}-${mm}-${dd}T${hh}:${min}`;
+    }
+
+    // 現在日付を YYYY-MM-DD 形式で返す（date input用）
+    function currentDateOnly() {
+        return currentDateTimeLocal().slice(0, 10);
+    }
+
+    // date input の値 + 現在時刻 を合成して hidden(measuredAt) に反映
+    function syncMeasuredAtFromDate() {
+        if (!measuredAtDateInput.value) {
+            measuredAtInput.value = "";
+            return;
+        }
+        const now = new Date();
+        const hh = String(now.getHours()).padStart(2, "0");
+        const min = String(now.getMinutes()).padStart(2, "0");
+        measuredAtInput.value = `${measuredAtDateInput.value}T${hh}:${min}`;
+    }
+
     function openModal({ mode = "create", id = "", measuredAt = "", weight = "", height = "", memo = "" } = {}) {
         modalTitle.textContent = mode === "edit" ? "体重を編集する" : "体重を記録する";
+        currentMode = mode; // ★追加
         recordId.value = id;
-        measuredAtInput.value = measuredAt || currentDateTimeLocal();
-        measuredAtInput.max = currentDateTimeLocal();
+
+        // ★変更：日付部分だけを date input にセット。未来日は選べないようmaxを設定
+        const initialDateTime = measuredAt || currentDateTimeLocal();
+        measuredAtDateInput.value = initialDateTime.slice(0, 10);
+        measuredAtDateInput.max = currentDateOnly();
+
+        // hidden側は「編集時は元の時刻を保持／新規時はその場で現在時刻」を初期セット
+        measuredAtInput.value = initialDateTime;
+
         weightInput.value = weight;
         // 新規登録の場合はprofileの身長を初期値にする
         if (mode === "create") {
@@ -73,7 +117,7 @@ function initModal() {
         memoInput.value = memo;
         clearAllErrors();
         overlay.classList.add("is-open");
-        measuredAtInput.focus();
+        measuredAtDateInput.focus();
     }
 
     function closeModal() {
@@ -106,22 +150,28 @@ function initModal() {
         });
     });
 
-    // 入力時にエラーをクリア
-    [measuredAtInput, weightInput, heightInput].forEach((input) => {
+    // ★変更：日付が変更されたら、その時点の現在時刻と合成してhiddenへ反映
+    measuredAtDateInput.addEventListener("change", () => {
+        syncMeasuredAtFromDate();
+        clearError("measuredAt");
+    });
+
+    // 入力時にエラーをクリア（体重・身長は従来通り）
+    [weightInput, heightInput].forEach((input) => {
         if (input) input.addEventListener("input", () => clearError(input.id));
     });
 
-    // バリデーション
+    // ★変更：バリデーション対象は「日付」のみ。時刻は自動付与のため未来チェック対象外
     function validateMeasuredAt() {
-        if (!measuredAtInput.value) {
-            showError("measuredAt", "日時を入力してください");
+        if (!measuredAtDateInput.value) {
+            showError("measuredAt", "日付を入力してください");
             return false;
         }
-
-        const selected = new Date(measuredAtInput.value);
-        const now = new Date();
-        if (selected > now) {
-            showError("measuredAt", "未来の日時は入力できません");
+        const selectedDate = new Date(measuredAtDateInput.value + "T00:00:00");
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        if (selectedDate > today) {
+            showError("measuredAt", "未来の日付は入力できません");
             return false;
         }
         clearError("measuredAt");
@@ -165,24 +215,29 @@ function initModal() {
 
         if (!isMeasuredAtValid || !isWeightValid || !isHeightValid) {
             event.preventDefault();
+            return;
+        }
+        if (currentMode === "create") {
+            syncMeasuredAtFromDate();
         }
     });
 
     function showError(inputId, message) {
-        const input = document.getElementById(inputId);
+        // ★変更：measuredAtのエラーは実際に見えている#measuredAtDateに付与する
         const errorBox = document.getElementById(inputId + "Error");
-        if (!input || !errorBox) return;
-        input.classList.add("invalid");
+        const targetInput = inputId === "measuredAt" ? measuredAtDateInput : document.getElementById(inputId);
+        if (!targetInput || !errorBox) return;
+        targetInput.classList.add("invalid");
         const span = errorBox.querySelector("span");
         if (span) span.textContent = message;
         errorBox.classList.add("show");
     }
 
     function clearError(inputId) {
-        const input = document.getElementById(inputId);
         const errorBox = document.getElementById(inputId + "Error");
-        if (!input || !errorBox) return;
-        input.classList.remove("invalid");
+        const targetInput = inputId === "measuredAt" ? measuredAtDateInput : document.getElementById(inputId);
+        if (!targetInput || !errorBox) return;
+        targetInput.classList.remove("invalid");
         const span = errorBox.querySelector("span");
         if (span) span.textContent = "";
         errorBox.classList.remove("show");
@@ -190,16 +245,5 @@ function initModal() {
 
     function clearAllErrors() {
         ["measuredAt", "weight", "height"].forEach(clearError);
-    }
-
-    // 現在日時を YYYY-MM-DDTHH:MM 形式で返す（datetime-local 用）
-    function currentDateTimeLocal() {
-        const d = new Date();
-        const yyyy = d.getFullYear();
-        const mm = String(d.getMonth() + 1).padStart(2, "0");
-        const dd = String(d.getDate()).padStart(2, "0");
-        const hh = String(d.getHours()).padStart(2, "0");
-        const min = String(d.getMinutes()).padStart(2, "0");
-        return `${yyyy}-${mm}-${dd}T${hh}:${min}`;
     }
 }

@@ -110,6 +110,7 @@
 	.memo-table {
 		table-layout: auto;
 		font-size: 13px;
+		min-width: 600px;
 	}
 
 	.memo-page__inner {
@@ -124,11 +125,5 @@
 	.memo-table th,
 	.memo-table td {
 		width: auto !important;
-	}
-
-	/* メモ内容はモバイルでは非表示 */
-	.memo-table th:nth-child(3),
-	.memo-table td:nth-child(3) {
-		display: none;
 	}
 }
