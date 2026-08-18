@@ -200,8 +200,8 @@ function initModal() {
             return true;
         }
         const num = parseFloat(value);
-        if (Number.isNaN(num) || num < 30 || num > 250) {
-            showError("height", "身長は30〜250cmの範囲で入力してください");
+        if (Number.isNaN(num) || num < 10 || num > 350) {
+            showError("height", "身長は10〜350cmの範囲で入力してください");
             return false;
         }
         clearError("height");

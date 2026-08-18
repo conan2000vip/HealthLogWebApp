@@ -50,7 +50,7 @@
 						<div class="input-group">
 							<label for="email">メールアドレス</label>
 							<input id="email" name="email" type="email" th:value="${email}"
-								th:classappend="${emailError} ? ' invalid' : ''" placeholder="example@email.com"
+								th:classappend="${emailError} ? ' invalid' : ''" placeholder="メールアドレスを入力"
 								autocomplete="email" />
 							<div id="emailError" class="field-error" th:classappend="${emailError} ? ' show' : ''">
 								<i data-lucide="alert-circle"></i>
