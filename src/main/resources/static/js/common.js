@@ -78,7 +78,7 @@ function initFeedbackToggle() {
    ========================================================= */
 function initDeleteConfirm() {
     const overlay = document.getElementById("deleteModalOverlay");
-    if (!overlay) return; // フラグメントを読み込んでいないページはスキップ
+    if (!overlay) return;
 
     const closeBtn = document.getElementById("closeDeleteModalBtn");
     const cancelBtn = document.getElementById("cancelDeleteBtn");
@@ -129,7 +129,6 @@ function initDeleteConfirm() {
 
 /* =========================================================
    汎用: Alert 自動非表示（全画面共通）
-   HTML側で data-auto-hide="true" があれば10秒後にフェードアウト
    ========================================================= */
 function initAutoHideAlerts() {
     document
@@ -144,12 +143,6 @@ function initAutoHideAlerts() {
         });
 }
 
-/* =========================================================
-   汎用: 期間フィルター（全画面共通）
-   使い方: <form id="filterForm"> 内の <input type="date"> を
-   選択/Enterで自動submit。weight/sleep/water/step 共通で使う。
-   ========================================================= */
-function initFilterForm() {}
 window.HealthChart = (() => {
     const DEFAULT_DAYS = 7;
     function create({
@@ -203,35 +196,20 @@ window.HealthChart = (() => {
                     },
                 ],
             },
-
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-
                 plugins: {
-                    legend: {
-                        display: false,
-                    },
-
+                    legend: { display: false },
                     tooltip: {
                         callbacks: {
                             label: (ctx) => `${ctx.parsed.y} ${unit}`,
                         },
                     },
                 },
-
                 scales: {
-                    x: {
-                        grid: {
-                            display: false,
-                        },
-                    },
-
-                    y: {
-                        grid: {
-                            color: "#f1f5f9",
-                        },
-                    },
+                    x: { grid: { display: false } },
+                    y: { grid: { color: "#f1f5f9" } },
                 },
             },
         });
@@ -241,7 +219,6 @@ window.HealthChart = (() => {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         const result = [];
-
         for (let i = n - 1;i >= 0;i--) {
             const date = new Date(today);
             date.setDate(date.getDate() - i);
@@ -283,14 +260,9 @@ window.HealthChart = (() => {
         const b = bigint & 255;
         return `rgba(${r}, ${g}, ${b}, ${alpha})`;
     }
-    return {
-        create,
-    };
+    return { create };
 })();
 
-/* =========================================================
-   汎用: グラフの表示/非表示切り替え（全画面共通）
-   ========================================================= */
 function initChartToggle() {
     const toggleBtn = document.getElementById("toggleChartBtn");
     const wrapper = document.getElementById("chartWrapper");
@@ -302,10 +274,6 @@ function initChartToggle() {
     });
 }
 
-/* =========================================================
-   汎用: グラフを左右スワイプで前後の期間に切り替える（全画面共通）
-   使い方: 各ページの initChart() で、フィルター中のときだけ呼び出す
-   ========================================================= */
 function initChartSwipe({ chart, wrapperEl, chartUrl, initialFrom, initialTo }) {
     if (!chart || !wrapperEl || !chartUrl || !initialFrom || !initialTo) return;
 
@@ -346,7 +314,7 @@ function initChartSwipe({ chart, wrapperEl, chartUrl, initialFrom, initialTo }) 
         if (touchStartX === null) return;
         const dx = e.changedTouches[0].clientX - touchStartX;
         touchStartX = null;
-        if (Math.abs(dx) < 40) return; // ngưỡng vuốt tối thiểu
+        if (Math.abs(dx) < 40) return;
 
         const spanDays = Math.round((currentTo - currentFrom) / 86400000) + 1;
         const from = new Date(currentFrom);
@@ -355,7 +323,7 @@ function initChartSwipe({ chart, wrapperEl, chartUrl, initialFrom, initialTo }) 
         if (dx < 0) {
             from.setDate(from.getDate() + spanDays);
             to.setDate(to.getDate() + spanDays);
-            if (from > new Date()) return; // không cho vuốt sang tương lai
+            if (from > new Date()) return;
         } else {
             from.setDate(from.getDate() - spanDays);
             to.setDate(to.getDate() - spanDays);
@@ -364,12 +332,6 @@ function initChartSwipe({ chart, wrapperEl, chartUrl, initialFrom, initialTo }) 
     }, { passive: true });
 }
 
-/* =========================================================
-   汎用: 前回比バッジ（↘ -1.0 / ↗ +1.0）（全画面共通）
-   使い方: 履歴テーブルに data-history-table 属性を付ける。
-   各行は th:data-value="${record.xxx}" のような形で
-   data-value 属性に比較したい数値を入れる（新しい日付が上＝降順前提）。
-   ========================================================= */
 function initDiffBadges() {
     const table = document.querySelector("[data-history-table]");
     if (!table) return;
@@ -397,7 +359,7 @@ function initDiffBadges() {
 
 function initMemoExpand() {
     document.querySelectorAll(".memo-cell").forEach((cell) => {
-        if (!cell.textContent.trim()) return; // memo rỗng thì không cho click
+        if (!cell.textContent.trim()) return;
         cell.addEventListener("click", () => {
             cell.classList.toggle("is-expanded");
         });
@@ -426,35 +388,30 @@ document.addEventListener("DOMContentLoaded", () => {
 
 /* =========================================================
    汎用: 数値入力で負の値・不正な文字を入力させない（全画面共通）
-   対象: min="0" が設定された <input type="number">
+   対象: すべての <input type="number">（＋ #height）
+
+   ★修正履歴：
+   以前は `input[type="number"][min="0"]` のみを対象にしていたため、
+   min="0.1"（目標体重）/ min="1"（水分目標・歩数目標・水分記録・歩数記録）/
+   min="0.5"（睡眠目標）など、min="0" 以外の項目がすべて対象から漏れており、
+   これらの欄にマイナス値・文字（e, +, - 等）が入力できてしまっていた。
+   → type="number" の入力欄はすべて対象にするよう修正。
    ========================================================= */
 function initPositiveNumberInputs() {
-
     const inputs = document.querySelectorAll(
-        'input[type="number"], ' +
-        '#height, ' +
-        '#targetWeight, ' +
-        '#waterGoalMl, ' +
-        '#stepGoal, ' +
-        '#sleepGoalHours'
+        'input[type="number"], #height'
     );
 
     inputs.forEach((input) => {
+        const isHeight = input.id === "height";
 
-        const isDecimal =
-            input.inputMode === "decimal" ||
-            input.type === "number" &&
-            input.hasAttribute("step") &&
-            input.step !== "1";
+        const allowDecimal =
+            isHeight ||
+            (input.hasAttribute("step") && input.step !== "1");
 
-        // ==============================
-        // Keyboard
-        // ==============================
         input.addEventListener("keydown", (e) => {
-
             const key = e.key;
 
-            // Control keys
             if (
                 key === "Backspace" ||
                 key === "Delete" ||
@@ -471,105 +428,105 @@ function initPositiveNumberInputs() {
                 return;
             }
 
-            // 0-9
             if (/^[0-9]$/.test(key)) {
                 return;
             }
 
-            // Decimal point
             if (
-                isDecimal &&
+                allowDecimal &&
                 key === "." &&
                 !input.value.includes(".")
             ) {
                 return;
             }
-            // Block everything else
+
             e.preventDefault();
         });
 
         input.addEventListener("input", () => {
             let value = input.value;
-            if (isDecimal) {
-                // Only numbers and decimal point
+
+            if (allowDecimal) {
                 value = value.replace(/[^0-9.]/g, "");
-                // Only one decimal point
                 const parts = value.split(".");
                 if (parts.length > 2) {
-                    value =
-                        parts[0] +
-                        "." +
-                        parts.slice(1).join("");
+                    value = parts[0] + "." + parts.slice(1).join("");
                 }
             } else {
-                // Integer only
                 value = value.replace(/[^0-9]/g, "");
             }
-            if (input.value !== value) {
+
+            if (value !== input.value) {
                 input.value = value;
             }
         });
+
+        input.addEventListener("paste", (e) => {
+            e.preventDefault();
+            const pasted = e.clipboardData.getData("text");
+            let value;
+
+            if (allowDecimal) {
+                value = pasted.replace(/[^0-9.]/g, "");
+                const parts = value.split(".");
+                if (parts.length > 2) {
+                    value = parts[0] + "." + parts.slice(1).join("");
+                }
+            } else {
+                value = pasted.replace(/[^0-9]/g, "");
+            }
+
+            input.value = value;
+            input.dispatchEvent(new Event("input", { bubbles: true }));
+        });
+
+        if (isHeight) {
+            const form = input.closest("form");
+
+            // ★変更：範囲を 30〜250 → 10〜350 に統一（weight.js側と合わせる）
+            const HEIGHT_MIN = 10;
+            const HEIGHT_MAX = 350;
+
+            if (form) {
+                form.addEventListener("submit", (e) => {
+                    const value = input.value.trim();
+
+                    if (value === "") {
+                        return;
+                    }
+
+                    const height = Number(value);
+
+                    if (
+                        !Number.isFinite(height) ||
+                        height < HEIGHT_MIN ||
+                        height > HEIGHT_MAX
+                    ) {
+                        e.preventDefault();
+                        showHeightError(`身長は${HEIGHT_MIN}～${HEIGHT_MAX}cmの範囲で入力してください。`);
+                        input.focus();
+                        return;
+                    }
+
+                    if (!/^\d+(\.\d)?$/.test(value)) {
+                        e.preventDefault();
+                        showHeightError("身長は小数点以下1桁まで入力してください。");
+                        input.focus();
+                    }
+                });
+            }
+        }
     });
 }
 
-// 身長専用: submit時に30～250をチェック
-if (isHeight) {
-    const form = input.closest("form");
-
-    if (form) {
-        form.addEventListener("submit", (e) => {
-            const value = input.value.trim();
-
-            // 空欄はSpring Validationに任せる
-            if (value === "") {
-                return;
-            }
-
-            const height = Number(value);
-
-            if (
-                !Number.isFinite(height) ||
-                height < 30 ||
-                height > 250
-            ) {
-                e.preventDefault();
-
-                showHeightError(
-                    "身長は30～250cmの範囲で入力してください。"
-                );
-
-                input.focus();
-                return;
-            }
-
-            // 小数点以下1桁まで
-            if (!/^\d+(\.\d)?$/.test(value)) {
-                e.preventDefault();
-
-                showHeightError(
-                    "身長は小数点以下1桁まで入力してください。"
-                );
-
-                input.focus();
-            }
-        });
-    }
-}
-
-/**
- * 身長エラー表示
- */
 function showHeightError(message) {
     const input = document.getElementById("height");
-
     if (!input) return;
 
     const group = input.closest(".input-group");
-
     if (!group) return;
 
     let error = group.querySelector(".js-height-error");
-
     if (!error) {
         error = document.createElement("span");
         error.className = "field-error show js-height-error";
@@ -594,14 +551,13 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 });
 
-// FieldError
 function clearFieldError(event) {
     const group = event.target.closest(".input-group");
     if (!group) return;
 
     const error = group.querySelector(".field-error");
     if (error) {
-        error.classList.remove("show"); // エラー表示を非表示にする
+        error.classList.remove("show");
         const span = error.querySelector("span");
         if (span) span.textContent = "";
     }
@@ -615,7 +571,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
 /* =========================================================
    汎用: クイック期間フィルター（1日/1週/1ヶ月/6ヶ月/1年）
-   全画面共通で filterBar フラグメントに使用
    ========================================================= */
 function initFilterForm() {
     const bar = document.getElementById("quickRangeBar");
@@ -645,7 +600,6 @@ function initFilterForm() {
         return [from, to];
     }
 
-    // Highlight
     function syncActiveButton() {
         bar.querySelectorAll(".quick-btn").forEach((b) => b.classList.remove("is-active"));
         if (!startInput.value || !endInput.value) return;

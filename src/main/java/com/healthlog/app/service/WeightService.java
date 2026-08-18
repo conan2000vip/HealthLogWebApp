@@ -395,9 +395,9 @@ public class WeightService {
 			throw new BusinessException(HttpStatus.BAD_REQUEST, "体重は1〜300kgの範囲で入力してください");
 		}
 		if (w.getHeight() != null) {
-			if (w.getHeight().compareTo(BigDecimal.valueOf(30)) < 0
-					|| w.getHeight().compareTo(BigDecimal.valueOf(250)) > 0) {
-				throw new BusinessException(HttpStatus.BAD_REQUEST, "身長は30〜250cmの範囲で入力してください");
+			if (w.getHeight().compareTo(BigDecimal.valueOf(10)) < 0
+					|| w.getHeight().compareTo(BigDecimal.valueOf(350)) > 0) {
+				throw new BusinessException(HttpStatus.BAD_REQUEST, "身長は10〜350cmの範囲で入力してください");
 			}
 		}
 		if (w.getMemo() != null && w.getMemo().length() > 500) {
