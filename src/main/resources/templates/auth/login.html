@@ -44,12 +44,13 @@
 					</div>
 
 					<!-- 確認メール再送（メール未認証でログイン失敗した時だけ表示） -->
-					<form th:if="${emailNotVerified}"
+					<!-- ★変更：id を付与し、JS側で hidden input を現在のメール欄と同期できるようにした -->
+					<form id="resendVerificationForm" th:if="${emailNotVerified}"
 					      th:action="@{/auth/resend-verification}"
 					      method="post"
 					      class="resend-form">
-					    <input type="hidden" name="email" th:value="${email}" />
-					    <button type="submit" class="submit-btn resend-btn">
+					    <input type="hidden" id="resendEmailHidden" name="email" th:value="${email}" />
+					    <button id="resendVerificationBtn" type="submit" class="submit-btn resend-btn">
 					        <i data-lucide="mail"></i>
 					        確認メールを再送する
 					    </button>
@@ -62,7 +63,7 @@
 						<div class="input-group">
 							<label for="email">メールアドレス</label>
 							<input id="email" name="email" type="email" th:value="${email}"
-								placeholder="example@email.com" autocomplete="email" />
+								placeholder="メールアドレスを入力" autocomplete="email" />
 							<div id="emailError" class="field-error">
 								<i data-lucide="alert-circle"></i>
 								<span></span>

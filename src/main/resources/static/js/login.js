@@ -8,9 +8,37 @@ document.addEventListener("DOMContentLoaded", () => {
     const password = document.getElementById("password");
     const toggleBtn = document.getElementById("togglePassword");
 
-    // リアルタイムでのバリデーション
-	if (email) email.addEventListener("input", validateEmail);
-	if (password) password.addEventListener("input", validatePassword);
+    // ★追加：確認メール再送フォーム関連
+    const backendError = document.getElementById("backendError");
+    const resendForm = document.getElementById("resendVerificationForm");
+
+    const EMAIL_PATTERN = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}$/;
+
+    // ★変更：メール・パスワードいずれかが編集されたら、
+    //   直前のログイン失敗時の状態（エラーバナー＋確認メール再送ボタン）は
+    //   もう現在の入力内容と対応しなくなるため、まとめて非表示にする。
+    //   （再度ログインを試みて失敗すれば、サーバー側から正しい状態で再表示される）
+    function hideStaleLoginFailureState() {
+        if (backendError) {
+            backendError.style.display = "none";
+        }
+        if (resendForm) {
+            resendForm.style.display = "none";
+        }
+    }
+
+    if (email) {
+        email.addEventListener("input", () => {
+            validateEmail();
+            hideStaleLoginFailureState(); // ★変更
+        });
+    }
+    if (password) {
+        password.addEventListener("input", () => {
+            validatePassword();
+            hideStaleLoginFailureState(); // ★変更
+        });
+    }
 
     // パスワードの表示/非表示切り替え
     if (toggleBtn && password) {
@@ -24,10 +52,6 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // username@domain.extension
-    const EMAIL_PATTERN = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}$/;
-
-    // エラーメッセージを表示する関数
     function showError(inputId, message) {
         const input = document.getElementById(inputId);
         const errorBox = document.getElementById(inputId + "Error");
@@ -38,7 +62,6 @@ document.addEventListener("DOMContentLoaded", () => {
         errorBox.classList.add("show");
     }
 
-	// エラーメッセージをクリアする関数
     function clearError(inputId) {
         const input = document.getElementById(inputId);
         const errorBox = document.getElementById(inputId + "Error");
@@ -49,7 +72,6 @@ document.addEventListener("DOMContentLoaded", () => {
         errorBox.classList.remove("show");
     }
 
-    // メールアドレスのバリデーション
     function validateEmail() {
         if (!email) return true;
         const value = email.value.trim();
@@ -69,23 +91,21 @@ document.addEventListener("DOMContentLoaded", () => {
         return true;
     }
 
-	// パスワードのバリデーション
-	function validatePassword() {
-	    if (!password) return true;
-	    const value = password.value;
-	    if (!value) {
-	        showError("password", "パスワードを入力してください");
-	        return false;
-	    }
-	    if (value.length < 8) {
-	        showError("password", "パスワードは8文字以上で入力してください");
-	        return false;
-	    }
-	    clearError("password");
-	    return true;
-	}
+    function validatePassword() {
+        if (!password) return true;
+        const value = password.value;
+        if (!value) {
+            showError("password", "パスワードを入力してください");
+            return false;
+        }
+        if (value.length < 8) {
+            showError("password", "パスワードは8文字以上で入力してください");
+            return false;
+        }
+        clearError("password");
+        return true;
+    }
 
-    // フォームの送信時にバリデーションを実行
     if (loginForm) {
         loginForm.addEventListener("submit", (event) => {
             const isEmailValid = validateEmail();

@@ -167,17 +167,17 @@ public class AuthService {
 	// メール認証処理（トークンの検証とユーザーのメール認証状態の更新）
 	public void verifyEmail(String token) {
 		if (!StringUtils.hasText(token)) {
-			throw new BusinessException(HttpStatus.BAD_REQUEST, "トークンが指定されていません");
+			throw new BusinessException(HttpStatus.BAD_REQUEST, "リンクが指定されていません");
 		}
 
 		AuthToken authToken = authTokenRepository.findByTokenAndTokenType(token, TOKEN_TYPE_EMAIL_VERIFICATION)
-				.orElseThrow(() -> new BusinessException(HttpStatus.BAD_REQUEST, "トークンが無効です"));
+				.orElseThrow(() -> new BusinessException(HttpStatus.BAD_REQUEST, "リンクが無効です"));
 
 		if (Boolean.TRUE.equals(authToken.getUsedFlg())) {
-			throw new BusinessException(HttpStatus.BAD_REQUEST, "トークンが無効です");
+			throw new BusinessException(HttpStatus.BAD_REQUEST, "リンクが無効です");
 		}
 		if (authToken.getExpiresAt().isBefore(LocalDateTime.now())) {
-			throw new BusinessException(HttpStatus.BAD_REQUEST, "トークンの有効期限が切れています");
+			throw new BusinessException(HttpStatus.BAD_REQUEST, "リンクの有効期限が切れています");
 		}
 
 		User user = authToken.getUser();
@@ -246,16 +246,16 @@ public class AuthService {
 	// パスワードリセット確認処理（トークンの検証と新しいパスワードの設定）
 	public void confirmPasswordReset(String token, String newPassword) {
 		if (!StringUtils.hasText(token)) {
-			throw new BusinessException(HttpStatus.BAD_REQUEST, "トークンが指定されていません");
+			throw new BusinessException(HttpStatus.BAD_REQUEST, "リンクが指定されていません");
 		}
 		AuthToken authToken = authTokenRepository.findByTokenAndTokenType(token, TOKEN_TYPE_PASSWORD_RESET)
-				.orElseThrow(() -> new BusinessException(HttpStatus.BAD_REQUEST, "トークンが無効です"));
+				.orElseThrow(() -> new BusinessException(HttpStatus.BAD_REQUEST, "リンクが無効です"));
 
 		if (Boolean.TRUE.equals(authToken.getUsedFlg())) {
-			throw new BusinessException(HttpStatus.BAD_REQUEST, "トークンが無効です");
+			throw new BusinessException(HttpStatus.BAD_REQUEST, "リンクが無効です");
 		}
 		if (authToken.getExpiresAt().isBefore(LocalDateTime.now())) {
-			throw new BusinessException(HttpStatus.BAD_REQUEST, "トークンの有効期限が切れています");
+			throw new BusinessException(HttpStatus.BAD_REQUEST, "リンクの有効期限が切れています");
 		}
 
 		// パスワード形式を先に検証（不正な形式のまま次に進まない）
