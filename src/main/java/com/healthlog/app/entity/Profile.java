@@ -31,10 +31,8 @@ import lombok.Setter;
 @Setter
 @Getter
 @Entity
-@Table(name = "profiles", indexes = {
-		@Index(name = "idx_profiles_user_id", columnList = "user_id"),
-		@Index(name = "idx_profiles_user_primary", columnList = "user_id, is_primary")
-})
+@Table(name = "profiles", indexes = { @Index(name = "idx_profiles_user_id", columnList = "user_id"),
+		@Index(name = "idx_profiles_user_primary", columnList = "user_id, is_primary") })
 public class Profile {
 
 	@Id
@@ -74,8 +72,8 @@ public class Profile {
 	@Column(name = "daily_sleep_goal", precision = 3, scale = 1)
 	private BigDecimal sleepGoalHours;
 
-	@Column(name = "profile_color", length = 20)
-	private String profileColor; // nullable
+	@Column(name = "avatar", length = 20)
+	private String avatar = "avatar_01";
 
 	@Column(name = "is_primary", nullable = false)
 	private Boolean isPrimary = false;
@@ -114,7 +112,7 @@ public class Profile {
 		this.updatedAt = LocalDateTime.now();
 	}
 
-	//Age form datebirth
+	// Age form datebirth
 	@Transient
 	public Integer getAge() {
 		if (birthDate == null) {

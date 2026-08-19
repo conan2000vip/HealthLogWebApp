@@ -24,8 +24,7 @@ import lombok.Setter;
 @Getter
 @Entity
 @Table(name = "memo_logs", indexes = {
-		@Index(name = "idx_memo_profile_date", columnList = "profile_id,recored_date"),
-})
+		@Index(name = "idx_memo_profile_date", columnList = "profile_id,recored_date"), })
 public class Memo {
 
 	@Id
@@ -43,7 +42,7 @@ public class Memo {
 	@Column(name = "title", length = 100)
 	private String title;
 
-	@Column(name = "content", nullable = false)
+	@Column(name = "content", nullable = false, length = 2000)
 	private String content;
 
 	@Column(name = "created_at", nullable = false, updatable = false)

@@ -1,48 +1,66 @@
-//IIFE (Immediately Invoked Function Expression) dropdown menu
+// =========================================================
+// ヘッダーナビゲーション & プロファイルメニュー制御 (Đã hợp nhất)
+// =========================================================
 (function() {
-    const toggle = document.getElementById("userMenuToggle");
-    const dropdown = document.getElementById("userMenuDropdown");
-    if (!toggle || !dropdown) return;
+    // 1. Lấy các phần tử của Profile
+    const userToggle = document.getElementById("userMenuToggle");
+    const userDropdown = document.getElementById("userMenuDropdown");
 
-    toggle.addEventListener("click", function(e) {
-        e.stopPropagation();
-        const isOpen = dropdown.classList.toggle("is-open");
-        toggle.setAttribute("aria-expanded", isOpen ? "true" : "false");
-    });
-
-    document.addEventListener("click", function(e) {
-        if (!dropdown.contains(e.target) && !toggle.contains(e.target)) {
-            dropdown.classList.remove("is-open");
-            toggle.setAttribute("aria-expanded", "false");
-        }
-    });
-})();
-
-(function() {
+    // 2. Lấy các phần tử của Hamburger Menu
     const menuToggle = document.getElementById("menuToggle");
     const nav = document.querySelector(".app-header__nav");
 
-    if (!menuToggle || !nav) return;
+    // 3. Sự kiện bấm nút Profile
+    if (userToggle && userDropdown) {
+        userToggle.addEventListener("click", function(e) {
+            e.stopPropagation();
 
-    menuToggle.addEventListener("click", function(e) {
-        e.stopPropagation();
-        nav.classList.toggle("open");
-    });
+            // NẾU Hamburger đang mở -> Ép đóng lại
+            if (nav && nav.classList.contains("open")) {
+                nav.classList.remove("open");
+            }
 
+            const isOpen = userDropdown.classList.toggle("is-open");
+            userToggle.setAttribute("aria-expanded", isOpen ? "true" : "false");
+        });
+    }
+
+    // 4. Sự kiện bấm nút Hamburger
+    if (menuToggle && nav) {
+        menuToggle.addEventListener("click", function(e) {
+            e.stopPropagation();
+
+            // NẾU Profile đang mở -> Ép đóng lại
+            if (userDropdown && userDropdown.classList.contains("is-open")) {
+                userDropdown.classList.remove("is-open");
+                if (userToggle) userToggle.setAttribute("aria-expanded", "false");
+            }
+
+            nav.classList.toggle("open");
+        });
+    }
+
+    // 5. Click ra ngoài màn hình để đóng cả hai
     document.addEventListener("click", function(e) {
-        if (!nav.contains(e.target) && !menuToggle.contains(e.target)) {
+        if (userDropdown && userToggle && !userDropdown.contains(e.target) && !userToggle.contains(e.target)) {
+            userDropdown.classList.remove("is-open");
+            userToggle.setAttribute("aria-expanded", "false");
+        }
+        if (nav && menuToggle && !nav.contains(e.target) && !menuToggle.contains(e.target)) {
             nav.classList.remove("open");
         }
     });
 
+    // 6. Click vào link trong Hamburger menu thì tự đóng
     document.querySelectorAll(".app-header__nav-item").forEach((item) => {
         item.addEventListener("click", function() {
-            nav.classList.remove("open");
+            if (nav) nav.classList.remove("open");
         });
     });
 
+    // 7. Reset khi kéo giãn màn hình lớn hơn 1280px
     window.addEventListener("resize", function() {
-        if (window.innerWidth > 1280) {
+        if (window.innerWidth > 1280 && nav) {
             nav.classList.remove("open");
         }
     });

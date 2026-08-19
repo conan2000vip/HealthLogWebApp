@@ -109,11 +109,11 @@
 						</div>
 
 						<div class="input-group">
-							<label for="profileColor">プロファイルカラー</label>
-							<div class="color-picker">
-								<label class="color-option" th:each="c : ${profileColors}">
-									<input type="radio" th:field="*{profileColor}" th:value="${c}" />
-									<span class="color-swatch" th:style="'background:' + ${c}"></span>
+							<label>アバター選択</label>
+							<div class="avatar-picker">
+								<label class="avatar-option" th:each="a : ${avatars}">
+									<input type="radio" th:field="*{avatar}" th:value="${a}" />
+									<img th:src="@{/image/avatar/{name}.png(name=${a})}" alt="Avatar" class="avatar-img" />
 								</label>
 							</div>
 						</div>

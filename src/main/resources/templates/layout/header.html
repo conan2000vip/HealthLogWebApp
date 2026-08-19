@@ -72,9 +72,10 @@
 				<div class="app-header__user-wrap">
 					<button type="button" class="app-header__user" id="userMenuToggle" aria-haspopup="true"
 						aria-expanded="false">
-						<span class="app-header__avatar"
-							th:style="'background:' + (${currentProfile?.profileColor} ?: '#94a3b8')"
-							th:text="${#strings.substring(currentProfile?.name ?: '?', 0, 1)}">山</span>
+						<!-- SỬA 1: Đổi từ span sang img hiển thị avatar hiện tại -->
+						<img class="app-header__avatar"
+						     th:src="@{/image/avatar/{name}.png(name=${currentProfile?.avatar ?: 'avatar_01'})}"
+						     alt="Avatar" />
 						<span class="app-header__user-info">
 							<span class="app-header__user-name" th:text="${currentProfile?.name ?: 'ゲスト'}">山田 太郎</span>
 							<span class="app-header__user-badge"
@@ -89,9 +90,10 @@
 								<form th:action="@{/profile/switch/{id}(id=${p.id})}" method="post">
 									<button type="submit" class="app-header__profile-item"
 										th:classappend="${currentProfile != null and p.id == currentProfile.id} ? 'is-current'">
-										<span class="app-header__avatar"
-											th:style="'background:' + (${p.profileColor} ?: '#94a3b8')"
-											th:text="${#strings.substring(p.name,0,1)}">山</span>
+										<!-- SỬA 2: Đổi từ span sang img hiển thị avatar danh sách dropdown -->
+										<img class="app-header__avatar"
+										     th:src="@{/image/avatar/{name}.png(name=${p.avatar ?: 'avatar_01'})}"
+										     alt="Avatar" />
 										<span class="app-header__profile-name-wrap">
 											<span class="app-header__profile-name" th:text="${p.name}">山田 太郎</span>
 											<span class="app-header__profile-relation"

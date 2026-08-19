@@ -17,10 +17,9 @@
 		<main class="home">
 			<!-- ============ Profile Card ============ -->
 			<section class="profile-card">
-				<div class="profile-card__avatar"
-					th:style="${'background:' + (currentProfile.profileColor != null ? currentProfile.profileColor : '#6ec1e4')}">
-					<span th:text="${#strings.substring(currentProfile.name,0,1)}">A</span>
-			</div>
+				<img class="profile-card__avatar"
+				     th:src="@{/image/avatar/{name}.png(name=${currentProfile.avatar ?: 'avatar_01'})}"
+				     th:alt="${currentProfile.name}" />
 			<div class="profile-card__info">
 				<div class="profile-card__title-row">
 					<span class="profile-card__label">現在のプロファイル</span>

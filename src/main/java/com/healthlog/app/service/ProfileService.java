@@ -55,11 +55,9 @@ public class ProfileService {
 		} else {
 			profile.setIsPrimary(false);
 
-			if (UNIQUE_RELATIONSHIPS.contains(profile.getRelationship())
-					&& profileRepository.existsByUser_IdAndRelationship(
-							profile.getUser().getId(), profile.getRelationship())) {
-				throw new BusinessException(HttpStatus.BAD_REQUEST,
-						"「" + profile.getRelationship() + "」はすでに登録されています");
+			if (UNIQUE_RELATIONSHIPS.contains(profile.getRelationship()) && profileRepository
+					.existsByUser_IdAndRelationship(profile.getUser().getId(), profile.getRelationship())) {
+				throw new BusinessException(HttpStatus.BAD_REQUEST, "「" + profile.getRelationship() + "」はすでに登録されています");
 			}
 		}
 
@@ -69,19 +67,15 @@ public class ProfileService {
 	@Transactional
 	public Profile update(Profile profile) {
 		Profile dbProfile = profileRepository.findById(profile.getId())
-				.orElseThrow(() -> new BusinessException(
-						HttpStatus.NOT_FOUND,
-						"プロファイルが見つかりません"));
+				.orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "プロファイルが見つかりません"));
 
 		// Keep the primary profile relationship unchanged / 本人プロファイルの続柄は変更しない
 		if (Boolean.TRUE.equals(dbProfile.getIsPrimary())) {
 			profile.setRelationship(dbProfile.getRelationship());
 		} else if (UNIQUE_RELATIONSHIPS.contains(profile.getRelationship())
-				&& !profile.getRelationship().equals(dbProfile.getRelationship())
-				&& profileRepository.existsByUser_IdAndRelationship(
-						dbProfile.getUser().getId(), profile.getRelationship())) {
-			throw new BusinessException(HttpStatus.BAD_REQUEST,
-					"「" + profile.getRelationship() + "」はすでに登録されています");
+				&& !profile.getRelationship().equals(dbProfile.getRelationship()) && profileRepository
+						.existsByUser_IdAndRelationship(dbProfile.getUser().getId(), profile.getRelationship())) {
+			throw new BusinessException(HttpStatus.BAD_REQUEST, "「" + profile.getRelationship() + "」はすでに登録されています");
 		}
 
 		// Update editable profile information / 編集可能なプロフィール情報を更新
@@ -90,7 +84,7 @@ public class ProfileService {
 		dbProfile.setRelationship(profile.getRelationship());
 		dbProfile.setGender(profile.getGender());
 		dbProfile.setHeight(profile.getHeight());
-		dbProfile.setProfileColor(profile.getProfileColor());
+		dbProfile.setAvatar(profile.getAvatar());
 
 		// Update goals / 目標値を更新
 		// NULL means that the goal has not been set / NULLは目標未設定を表す
@@ -116,9 +110,7 @@ public class ProfileService {
 
 		if (currentId != null && currentId.equals(profileId)) {
 			profileRepository.findByUser_IdAndIsPrimaryTrue(userId)
-					.ifPresent(primary -> session.setAttribute(
-							SessionConstants.CURRENT_PROFILE_ID,
-							primary.getId()));
+					.ifPresent(primary -> session.setAttribute(SessionConstants.CURRENT_PROFILE_ID, primary.getId()));
 		}
 	}
 
@@ -141,9 +133,7 @@ public class ProfileService {
 
 		Optional<Profile> primary = profileRepository.findByUser_IdAndIsPrimaryTrue(userId);
 
-		primary.ifPresent(profile -> session.setAttribute(
-				SessionConstants.CURRENT_PROFILE_ID,
-				profile.getId()));
+		primary.ifPresent(profile -> session.setAttribute(SessionConstants.CURRENT_PROFILE_ID, profile.getId()));
 
 		return primary.orElse(null);
 	}

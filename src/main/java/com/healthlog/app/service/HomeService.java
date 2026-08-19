@@ -7,6 +7,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -21,6 +22,8 @@ import com.healthlog.app.entity.Step;
 import com.healthlog.app.entity.Water;
 import com.healthlog.app.entity.Weight;
 import com.healthlog.app.exception.BusinessException;
+import com.healthlog.app.service.feedbackservice.model.FeedbackItem;
+import com.healthlog.app.service.feedbackservice.model.FeedbackLevel;
 
 import lombok.RequiredArgsConstructor;
 
@@ -35,6 +38,13 @@ public class HomeService {
 	private final StepService stepService;
 	private final FeedbackService feedbackService;
 	private final MemoService memoService;
+
+	private static final int SLEEP_TOLERANCE_MINUTES = 30; // 睡眠: 30分
+	private static final int STEP_TOLERANCE_COUNT = 300; // 歩数: 300歩
+	private static final int STEP_TOLERANCE_PERCENT = 95; // 歩数: 95%
+	private static final int WATER_TOLERANCE_ML = 100; // 水分: 100ml
+	private static final int WATER_TOLERANCE_PERCENT = 95; // 水分: 95%
+	private static final BigDecimal WEIGHT_TOLERANCE_KG = BigDecimal.valueOf(0.5); // 体重: 0.5kg
 
 	private static final java.util.Map<com.healthlog.app.service.feedbackservice.model.FeedbackType, String> SEVERE_LABELS = java.util.Map
 			.of(com.healthlog.app.service.feedbackservice.model.FeedbackType.WEIGHT_SUDDEN_CHANGE, "体重変化大",
@@ -76,7 +86,6 @@ public class HomeService {
 	// =========================================================
 	// Health Streak
 	// =========================================================
-
 	private int getCurrentStreak(Long profileId, Long currentUserId, LocalDate today) {
 		Set<LocalDate> weightDates = new HashSet<>();
 		Set<LocalDate> sleepDates = new HashSet<>();
@@ -138,13 +147,12 @@ public class HomeService {
 		} catch (BusinessException e) {
 		}
 
-		// 4種類すべてが記録された日だけを残す（AND条件）
 		Set<LocalDate> recordedDates = new HashSet<>(weightDates);
 		recordedDates.retainAll(sleepDates);
 		recordedDates.retainAll(waterDates);
 		recordedDates.retainAll(stepDates);
-		LocalDate startPoint;
 
+		LocalDate startPoint;
 		if (recordedDates.contains(today)) {
 			startPoint = today;
 		} else if (recordedDates.contains(today.minusDays(1))) {
@@ -213,7 +221,8 @@ public class HomeService {
 	private void applyWeightToday(Map<String, Object> today, Profile profile, Long profileId, Long currentUserId,
 			LocalDate todayDate) {
 		try {
-			Map<String, Object> result = weightService.list(profileId, currentUserId, todayDate, todayDate, 0);
+			Map<String, Object> result = weightService.list(profileId, currentUserId, LocalDate.of(2000, 1, 1),
+					todayDate, 0);
 			List<?> logs = (List<?>) result.get("logs");
 
 			if (logs == null || logs.isEmpty()) {
@@ -221,14 +230,19 @@ public class HomeService {
 			}
 
 			Object weight = logs.get(0);
-
 			if (!(weight instanceof Weight w)) {
 				return;
 			}
 
-			today.put("weightKg", w.getWeight());
 			today.put("bmi", w.getBmi());
 
+			if (!todayDate.equals(w.getRecordedDate())) {
+				today.put("weightGoalStatus", "NO_RECORD");
+				today.put("weightGoalText", "今日の体重は未記録です");
+				return;
+			}
+
+			today.put("weightKg", w.getWeight());
 			BigDecimal targetWeight = profile.getTargetWeight();
 
 			if (targetWeight == null || targetWeight.compareTo(BigDecimal.ZERO) <= 0 || w.getWeight() == null) {
@@ -238,17 +252,15 @@ public class HomeService {
 			}
 
 			today.put("targetWeight", targetWeight);
-
 			BigDecimal difference = w.getWeight().subtract(targetWeight);
 
-			if (difference.abs().compareTo(BigDecimal.valueOf(0.5)) <= 0) {
+			if (difference.abs().compareTo(WEIGHT_TOLERANCE_KG) <= 0) {
 				today.put("weightGoalStatus", "ACHIEVED");
 				today.put("weightGoalText", "目標体重を達成しました");
 				return;
 			}
 
 			BigDecimal remaining = difference.abs().setScale(1, RoundingMode.HALF_UP);
-
 			if (difference.compareTo(BigDecimal.ZERO) > 0) {
 				today.put("weightGoalStatus", "LOSE");
 			} else {
@@ -277,13 +289,11 @@ public class HomeService {
 			}
 
 			Object sleep = logs.get(0);
-
 			if (!(sleep instanceof Sleep s) || s.getSleepMinutes() == null) {
 				return;
 			}
 
 			Integer durationMinutes = s.getSleepMinutes();
-
 			int hours = durationMinutes / 60;
 			int minutes = durationMinutes % 60;
 
@@ -291,7 +301,6 @@ public class HomeService {
 			today.put("sleepMinute", minutes);
 
 			BigDecimal sleepGoalHours = profile.getSleepGoalHours();
-
 			if (sleepGoalHours == null || sleepGoalHours.compareTo(BigDecimal.ZERO) <= 0) {
 				today.put("sleepGoalStatus", "NO_GOAL");
 				today.put("sleepGoalText", "睡眠の目標が設定されていません");
@@ -299,10 +308,9 @@ public class HomeService {
 			}
 
 			int goalMinutes = sleepGoalHours.multiply(BigDecimal.valueOf(60)).intValue();
-
 			today.put("sleepGoalMinutes", goalMinutes);
 
-			if (durationMinutes >= goalMinutes) {
+			if (durationMinutes >= (goalMinutes - SLEEP_TOLERANCE_MINUTES)) {
 				today.put("sleepGoalStatus", "ACHIEVED");
 				today.put("sleepGoalText", "睡眠目標を達成しました");
 				return;
@@ -313,7 +321,6 @@ public class HomeService {
 			int remainingMins = remainingMinutes % 60;
 
 			today.put("sleepGoalStatus", "NOT_ACHIEVED");
-
 			if (remainingHours > 0) {
 				today.put("sleepGoalText", "目標まであと" + remainingHours + "時間" + remainingMins + "分");
 			} else {
@@ -357,10 +364,9 @@ public class HomeService {
 			}
 
 			int percent = (int) Math.round(total * 100.0 / goal);
-
 			today.put("waterPercent", percent);
 
-			if (total >= goal) {
+			if (total >= goal || percent >= WATER_TOLERANCE_PERCENT || (goal - total) <= WATER_TOLERANCE_ML) {
 				today.put("waterGoalStatus", "ACHIEVED");
 				today.put("waterGoalText", "水分目標を達成しました");
 			} else {
@@ -405,10 +411,9 @@ public class HomeService {
 			}
 
 			int percent = (int) Math.round(steps * 100.0 / goal);
-
 			today.put("stepPercent", percent);
 
-			if (steps >= goal) {
+			if (steps >= goal || percent >= STEP_TOLERANCE_PERCENT || (goal - steps) <= STEP_TOLERANCE_COUNT) {
 				today.put("stepGoalStatus", "ACHIEVED");
 				today.put("stepGoalText", "歩数目標を達成しました");
 			} else {
@@ -431,69 +436,97 @@ public class HomeService {
 		for (Profile profile : profiles) {
 			Map<String, Object> familyToday = buildToday(profile.getId(), currentUserId);
 
-			boolean hasWeightToday = !"NO_RECORD".equals(familyToday.get("weightGoalStatus"));
-			boolean hasSleepToday = !"NO_RECORD".equals(familyToday.get("sleepGoalStatus"));
-			boolean hasWaterToday = !"NO_RECORD".equals(familyToday.get("waterGoalStatus"));
-			boolean hasStepToday = !"NO_RECORD".equals(familyToday.get("stepGoalStatus"));
+			boolean hasWeight = !"NO_RECORD".equals(familyToday.get("weightGoalStatus"));
+			boolean hasSleep = !"NO_RECORD".equals(familyToday.get("sleepGoalStatus"));
+			boolean hasWater = !"NO_RECORD".equals(familyToday.get("waterGoalStatus"));
+			boolean hasStep = !"NO_RECORD".equals(familyToday.get("stepGoalStatus"));
 
 			int totalItems = 4;
-			int doneItems = (hasWeightToday ? 1 : 0) + (hasSleepToday ? 1 : 0) + (hasWaterToday ? 1 : 0)
-					+ (hasStepToday ? 1 : 0);
+			int doneItems = (hasWeight ? 1 : 0) + (hasSleep ? 1 : 0) + (hasWater ? 1 : 0) + (hasStep ? 1 : 0);
 
-			List<String> attentionItems = new ArrayList<>();
-			boolean danger = false;
+			boolean weightOk = "ACHIEVED".equals(familyToday.get("weightGoalStatus"))
+					|| "NO_GOAL".equals(familyToday.get("weightGoalStatus"));
+			boolean sleepOk = "ACHIEVED".equals(familyToday.get("sleepGoalStatus"))
+					|| "NO_GOAL".equals(familyToday.get("sleepGoalStatus"));
+			boolean waterOk = "ACHIEVED".equals(familyToday.get("waterGoalStatus"))
+					|| "NO_GOAL".equals(familyToday.get("waterGoalStatus"));
+			boolean stepOk = "ACHIEVED".equals(familyToday.get("stepGoalStatus"))
+					|| "NO_GOAL".equals(familyToday.get("stepGoalStatus"));
+
 			LocalDate historyFrom = LocalDate.of(2000, 1, 1);
 			LocalDate latestRecordedDate = getLatestRecordedDate(profile.getId(), currentUserId, historyFrom, today);
 			boolean hasAnyHistoricalData = latestRecordedDate != null;
 
-			if (!hasAnyHistoricalData) {
-				attentionItems.add("まだ健康データがありません");
-			} else {
-				long noRecordDays = ChronoUnit.DAYS.between(latestRecordedDate, today);
+			List<String> severeFeedbackLabels = new ArrayList<>();
+			boolean hasLv4 = extractHealthTrendFeedback(profile.getId(), severeFeedbackLabels);
 
-				// ★追加：LV3/LV4の重大フィードバックを最優先で注意事項に入れる
-				boolean hasSevereFeedback = addSevereFeedbackAttention(profile.getId(), attentionItems);
-				if (hasSevereFeedback) {
-					danger = true;
-				}
+			List<String> missingItems = new ArrayList<>();
+			if (!hasWeight)
+				missingItems.add("体重");
+			if (!hasSleep)
+				missingItems.add("睡眠");
+			if (!hasWater)
+				missingItems.add("水分");
+			if (!hasStep)
+				missingItems.add("歩数");
 
-				if (noRecordDays >= 3) {
-					attentionItems.add(noRecordDays + "日間記録がありません");
-					danger = true;
-				}
-				addSleepAttention(attentionItems, familyToday, hasSleepToday);
-				addWaterAttention(attentionItems, familyToday, hasWaterToday);
-				addStepAttention(attentionItems, familyToday, hasStepToday);
-				if (!danger && doneItems < totalItems) {
-					addMissingRecordAttention(attentionItems, hasWeightToday, hasSleepToday, hasWaterToday,
-							hasStepToday);
-				}
-			}
-			if (attentionItems.size() > 2) {
-				attentionItems = new ArrayList<>(attentionItems.subList(0, 2));
-			}
+			List<String> unachievedItems = new ArrayList<>();
+			if (hasWeight && !weightOk)
+				unachievedItems.add("体重");
+			if (hasSleep && !sleepOk)
+				unachievedItems.add("睡眠");
+			if (hasWater && !waterOk)
+				unachievedItems.add("水分");
+			if (hasStep && !stepOk)
+				unachievedItems.add("歩数");
 
+			List<String> attentionItems = new ArrayList<>();
 			String status;
 			String statusLabel;
+
 			if (!hasAnyHistoricalData) {
 				status = "NO_RECORD";
 				statusLabel = "未記録";
-			} else if (danger) {
+				attentionItems.add("まだ健康データがありません");
+			} else if (hasLv4 || !severeFeedbackLabels.isEmpty()) {
 				status = "DANGER";
-				statusLabel = "注意";
-			} else if (!attentionItems.isEmpty()) {
+				statusLabel = severeFeedbackLabels.get(0);
+				attentionItems.addAll(severeFeedbackLabels);
+			} else if (ChronoUnit.DAYS.between(latestRecordedDate, today) >= 3) {
+				long days = ChronoUnit.DAYS.between(latestRecordedDate, today);
+				status = "DANGER";
+				statusLabel = days + "日未記録";
+				attentionItems.add(days + "日間記録がありません");
+			} else if (doneItems < totalItems) {
 				status = "WARN";
-				statusLabel = "要確認";
+				statusLabel = missingItems.size() == 1 ? missingItems.get(0) + "未入力" : "未入力あり";
+
+				if (missingItems.size() == 1) {
+					attentionItems.add(missingItems.get(0) + "が未入力です");
+				} else {
+					attentionItems.add("未入力の項目があります (" + missingItems.size() + "件)");
+				}
+			} else if (!unachievedItems.isEmpty()) {
+				status = "WARN";
+				statusLabel = unachievedItems.size() == 1 ? unachievedItems.get(0) + "未達成" : "目標未達成あり";
+
+				if (unachievedItems.size() == 1) {
+					attentionItems.add(unachievedItems.get(0) + "が未達成です");
+				} else {
+					attentionItems.add("一部の目標が未達成です (" + unachievedItems.size() + "件)");
+				}
 			} else {
 				status = "OK";
-				statusLabel = "良好";
+				statusLabel = "完了";
 			}
 
 			String updatedTime = getFamilyUpdatedTime(profile.getId(), currentUserId, today);
+
 			Map<String, Object> member = new HashMap<>();
 			member.put("id", profile.getId());
 			member.put("name", profile.getName());
 			member.put("age", profile.getAge());
+			member.put("avatar", profile.getAvatar());
 			member.put("status", status);
 			member.put("statusLabel", statusLabel);
 			member.put("attentionItems", attentionItems);
@@ -505,107 +538,28 @@ public class HomeService {
 		return members;
 	}
 
-	// ★追加：4つのFeedbackRuleからLV3/LV4（重大フィードバック）を検出
-	private boolean addSevereFeedbackAttention(Long profileId, List<String> attentionItems) {
-		List<com.healthlog.app.service.feedbackservice.model.FeedbackItem> allItems = new ArrayList<>();
+	private boolean extractHealthTrendFeedback(Long profileId, List<String> attentionItems) {
+		List<FeedbackItem> allItems = new ArrayList<>();
 		allItems.addAll(feedbackService.getWeightFeedback(profileId));
 		allItems.addAll(feedbackService.getSleepFeedback(profileId));
 		allItems.addAll(feedbackService.getWaterFeedback(profileId));
 		allItems.addAll(feedbackService.getStepFeedback(profileId));
 
 		boolean hasLv4 = false;
+		List<FeedbackItem> severe = allItems.stream()
+				.filter(item -> item.getLevel().getPriority() >= FeedbackLevel.LV3.getPriority())
+				.sorted(Comparator.comparingInt((FeedbackItem i) -> i.getLevel().getPriority()).reversed()).toList();
 
-		List<com.healthlog.app.service.feedbackservice.model.FeedbackItem> severe = allItems.stream()
-				.filter(item -> item.getLevel()
-						.getPriority() >= com.healthlog.app.service.feedbackservice.model.FeedbackLevel.LV3
-								.getPriority())
-				.sorted(java.util.Comparator.comparingInt(
-						(com.healthlog.app.service.feedbackservice.model.FeedbackItem i) -> i.getLevel().getPriority())
-						.reversed())
-				.toList();
-
-		for (com.healthlog.app.service.feedbackservice.model.FeedbackItem item : severe) {
-			if (item.getLevel() == com.healthlog.app.service.feedbackservice.model.FeedbackLevel.LV4) {
+		for (FeedbackItem item : severe) {
+			if (item.getLevel() == FeedbackLevel.LV4) {
 				hasLv4 = true;
 			}
 			String label = SEVERE_LABELS.getOrDefault(item.getType(), item.getTitle());
 			if (!attentionItems.contains(label)) {
-				attentionItems.add(0, label);
+				attentionItems.add(label);
 			}
 		}
 		return hasLv4;
-	}
-
-	private void addSleepAttention(List<String> attentionItems, Map<String, Object> familyToday,
-			boolean hasSleepToday) {
-		if (!hasSleepToday) {
-			return;
-		}
-
-		Integer sleepHour = (Integer) familyToday.get("sleepHour");
-		Integer sleepMinute = (Integer) familyToday.get("sleepMinute");
-
-		if (sleepHour == null) {
-			return;
-		}
-
-		int sleepMinutes = sleepHour * 60 + (sleepMinute != null ? sleepMinute : 0);
-
-		if (sleepMinutes < 300) {
-			attentionItems.add("睡眠時間が少なめです");
-		} else if ("NOT_ACHIEVED".equals(familyToday.get("sleepGoalStatus"))) {
-			attentionItems.add("睡眠目標を下回っています");
-		}
-	}
-
-	private void addWaterAttention(List<String> attentionItems, Map<String, Object> familyToday,
-			boolean hasWaterToday) {
-		if (!hasWaterToday || !"NOT_ACHIEVED".equals(familyToday.get("waterGoalStatus"))) {
-			return;
-		}
-
-		Integer waterPercent = (Integer) familyToday.get("waterPercent");
-
-		if (waterPercent != null && waterPercent < 50) {
-			attentionItems.add("水分摂取量が少なめです");
-		}
-	}
-
-	private void addStepAttention(List<String> attentionItems, Map<String, Object> familyToday, boolean hasStepToday) {
-		if (!hasStepToday || !"NOT_ACHIEVED".equals(familyToday.get("stepGoalStatus"))) {
-			return;
-		}
-
-		Integer stepPercent = (Integer) familyToday.get("stepPercent");
-
-		if (stepPercent != null && stepPercent < 50) {
-			attentionItems.add("歩数が少なめです");
-		}
-	}
-
-	private void addMissingRecordAttention(List<String> attentionItems, boolean hasWeightToday, boolean hasSleepToday,
-			boolean hasWaterToday, boolean hasStepToday) {
-		List<String> missing = new ArrayList<>();
-
-		if (!hasWeightToday) {
-			missing.add("体重");
-		}
-
-		if (!hasSleepToday) {
-			missing.add("睡眠");
-		}
-
-		if (!hasWaterToday) {
-			missing.add("水分");
-		}
-
-		if (!hasStepToday) {
-			missing.add("歩数");
-		}
-
-		if (!missing.isEmpty()) {
-			attentionItems.add(String.join("・", missing) + "が未入力です");
-		}
 	}
 
 	private Map<String, Object> buildFamilySummary(List<Map<String, Object>> familyMembers) {
@@ -623,7 +577,6 @@ public class HomeService {
 	// =========================================================
 	private String getFamilyUpdatedTime(Long profileId, Long currentUserId, LocalDate today) {
 		LocalDate from = today.minusDays(30);
-
 		LocalDateTime latestUpdatedAt = getLatestUpdatedAt(profileId, currentUserId, from, today);
 
 		if (latestUpdatedAt == null) {
@@ -643,7 +596,6 @@ public class HomeService {
 		try {
 			Map<String, Object> result = weightService.list(profileId, currentUserId, from, to, 0);
 			List<?> logs = (List<?>) result.get("logs");
-
 			if (logs != null) {
 				for (Object log : logs) {
 					if (log instanceof Weight w && w.getUpdatedAt() != null) {
@@ -657,7 +609,6 @@ public class HomeService {
 		try {
 			Map<String, Object> result = sleepService.list(profileId, currentUserId, from, to, 0);
 			List<?> logs = (List<?>) result.get("logs");
-
 			if (logs != null) {
 				for (Object log : logs) {
 					if (log instanceof Sleep s && s.getUpdatedAt() != null) {
@@ -671,7 +622,6 @@ public class HomeService {
 		try {
 			Map<String, Object> result = waterService.list(profileId, currentUserId, from, to, 0);
 			List<?> logs = (List<?>) result.get("logs");
-
 			if (logs != null) {
 				for (Object log : logs) {
 					if (log instanceof Water w && w.getUpdatedAt() != null) {
@@ -685,7 +635,6 @@ public class HomeService {
 		try {
 			Map<String, Object> result = stepService.list(profileId, currentUserId, from, to, 0);
 			List<?> logs = (List<?>) result.get("logs");
-
 			if (logs != null) {
 				for (Object log : logs) {
 					if (log instanceof Step s && s.getUpdatedAt() != null) {
@@ -704,7 +653,6 @@ public class HomeService {
 		try {
 			Map<String, Object> result = weightService.list(profileId, currentUserId, from, to, 0);
 			List<?> logs = (List<?>) result.get("logs");
-
 			if (logs != null) {
 				for (Object log : logs) {
 					if (log instanceof Weight w && w.getRecordedDate() != null) {
@@ -714,10 +662,10 @@ public class HomeService {
 			}
 		} catch (BusinessException e) {
 		}
+
 		try {
 			Map<String, Object> result = sleepService.list(profileId, currentUserId, from, to, 0);
 			List<?> logs = (List<?>) result.get("logs");
-
 			if (logs != null) {
 				for (Object log : logs) {
 					if (log instanceof Sleep s && s.getRecordedDate() != null) {
@@ -727,6 +675,7 @@ public class HomeService {
 			}
 		} catch (BusinessException e) {
 		}
+
 		try {
 			Map<String, Object> result = waterService.list(profileId, currentUserId, from, to, 0);
 			List<?> logs = (List<?>) result.get("logs");
@@ -739,10 +688,10 @@ public class HomeService {
 			}
 		} catch (BusinessException e) {
 		}
+
 		try {
 			Map<String, Object> result = stepService.list(profileId, currentUserId, from, to, 0);
 			List<?> logs = (List<?>) result.get("logs");
-
 			if (logs != null) {
 				for (Object log : logs) {
 					if (log instanceof Step s && s.getRecordedDate() != null) {
@@ -752,6 +701,7 @@ public class HomeService {
 			}
 		} catch (BusinessException e) {
 		}
+
 		return recordedDates.stream().max(LocalDate::compareTo).orElse(null);
 	}
 }

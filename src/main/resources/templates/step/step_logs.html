@@ -55,7 +55,7 @@
 						<span th:text="${stats?.latest ?: '--'}"></span> 歩
 					</span>
 					<span class="summary-card__sub" th:if="${stats?.latestUpdatedAt != null}"
-					      th:text="'最終更新：' + ${#temporals.format(stats.latestUpdatedAt, 'yyyy/MM/dd HH:mm')}">
+					      th:text="'最終更新：' + ${#temporals.format(stats.latestUpdatedAt, 'yyyy/MM/dd')}">
 					</span>
 				</div>
 

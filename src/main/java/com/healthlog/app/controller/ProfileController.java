@@ -30,9 +30,8 @@ import com.healthlog.app.service.ProfileService;
 @RequestMapping("/profile")
 public class ProfileController {
 
-	private static final List<String> PROFILE_COLORS = List.of(
-			"#4a7fe0", "#2ec4a0", "#f5a623", "#e85d75", "#9b6dd6",
-			"#5cc9f5", "#f2994a", "#6fcf97", "#eb5757", "#bb6bd9");
+	private static final List<String> AVATARS = List.of("avatar_01", "avatar_02", "avatar_03", "avatar_04", "avatar_05",
+			"avatar_06", "avatar_07", "avatar_08", "avatar_09", "avatar_10", "avatar_11", "avatar_12");
 
 	private final ProfileService profileService;
 	private final UserRepository userRepository;
@@ -43,9 +42,7 @@ public class ProfileController {
 	}
 
 	@GetMapping("/{id}/select")
-	public String selectProfile(
-			@PathVariable Long id,
-			HttpSession session) {
+	public String selectProfile(@PathVariable Long id, HttpSession session) {
 		User user = getLoginUser();
 		profileService.switchProfile(session, user.getId(), id);
 		return "redirect:/profile/" + id + "/home";
@@ -68,8 +65,7 @@ public class ProfileController {
 
 	@PostMapping("/switch/{id}")
 	public String switchProfile(@PathVariable Long id, HttpSession session,
-			@RequestHeader(value = "Referer", required = false) String referer,
-			RedirectAttributes redirectAttributes) {
+			@RequestHeader(value = "Referer", required = false) String referer, RedirectAttributes redirectAttributes) {
 		Profile profile = profileService.getProfile(getLoginUser().getId(), id);
 		User user = getLoginUser();
 		try {
@@ -88,9 +84,7 @@ public class ProfileController {
 			return "/profile/" + newProfileId + "/home";
 		}
 
-		java.util.regex.Matcher matcher = java.util.regex.Pattern
-				.compile("^/profile/\\d+(/.*)?$")
-				.matcher(path);
+		java.util.regex.Matcher matcher = java.util.regex.Pattern.compile("^/profile/\\d+(/.*)?$").matcher(path);
 		if (matcher.matches()) {
 			String suffix = matcher.group(1);
 			if (suffix == null || suffix.isBlank() || suffix.equals("/")) {
@@ -128,19 +122,19 @@ public class ProfileController {
 		User user = getLoginUser();
 		model.addAttribute("profile", new Profile());
 		model.addAttribute("isFirstProfile", !profileService.hasAnyProfile(user.getId()));
-		model.addAttribute("profileColors", PROFILE_COLORS);
+		model.addAttribute("avatars", AVATARS);
 		return "profile/profile-form";
 	}
 
 	@PostMapping("/new")
-	public String createProfile(@ModelAttribute() Profile profile,
-			BindingResult bindingResult, Model model, HttpSession session) {
+	public String createProfile(@ModelAttribute() Profile profile, BindingResult bindingResult, Model model,
+			HttpSession session) {
 		User user = getLoginUser();
 		boolean isFirstProfile = !profileService.hasAnyProfile(user.getId());
 		validate(profile, bindingResult, isFirstProfile);
 		if (bindingResult.hasErrors()) {
 			model.addAttribute("isFirstProfile", isFirstProfile);
-			model.addAttribute("profileColors", PROFILE_COLORS);
+			model.addAttribute("avatars", AVATARS);
 			return "profile/profile-form";
 		}
 		profile.setId(null);
@@ -155,7 +149,7 @@ public class ProfileController {
 		} catch (BusinessException e) {
 			model.addAttribute("errorMessage", e.getMessage());
 			model.addAttribute("isFirstProfile", isFirstProfile);
-			model.addAttribute("profileColors", PROFILE_COLORS);
+			model.addAttribute("avatars", AVATARS);
 			model.addAttribute("isPrimary", false);
 			return "profile/profile-form";
 		}
@@ -178,20 +172,18 @@ public class ProfileController {
 			return "profile/profile-manage";
 		}
 		model.addAttribute("isFirstProfile", false);
-		model.addAttribute("profileColors", PROFILE_COLORS);
+		model.addAttribute("avatars", AVATARS);
 		return "profile/profile-form";
 	}
 
 	@PostMapping("/{id}/edit")
-	public String updateProfile(@PathVariable Long id,
-			@ModelAttribute("profile") Profile formProfile,
-			BindingResult bindingResult, Model model,
-			RedirectAttributes redirectAttributes) {
+	public String updateProfile(@PathVariable Long id, @ModelAttribute("profile") Profile formProfile,
+			BindingResult bindingResult, Model model, RedirectAttributes redirectAttributes) {
 		User user = getLoginUser();
 		validate(formProfile, bindingResult, false);
 		if (bindingResult.hasErrors()) {
 			model.addAttribute("isFirstProfile", false);
-			model.addAttribute("profileColors", PROFILE_COLORS);
+			model.addAttribute("avatars", AVATARS);
 			return "profile/profile-form";
 		}
 		try {
@@ -207,13 +199,13 @@ public class ProfileController {
 			profile.setWaterGoalMl(formProfile.getWaterGoalMl());
 			profile.setStepGoal(formProfile.getStepGoal());
 			profile.setSleepGoalHours(formProfile.getSleepGoalHours());
-			profile.setProfileColor(formProfile.getProfileColor());
+			profile.setAvatar(formProfile.getAvatar());
 			profileService.update(profile);
 			redirectAttributes.addFlashAttribute("message", profile.getName() + " のプロファイルを更新しました");
 		} catch (BusinessException e) {
 			model.addAttribute("errorMessage", e.getMessage());
 			model.addAttribute("isFirstProfile", false);
-			model.addAttribute("profileColors", PROFILE_COLORS);
+			model.addAttribute("avatars", AVATARS);
 			return "profile/profile-form";
 		}
 		return "redirect:/profile/profile-manage";
@@ -259,8 +251,7 @@ public class ProfileController {
 		}
 
 		// ===== 健康目標: すべて任意項目。入力された場合のみ0以上をチェック =====
-		if (profile.getTargetWeight() != null
-				&& profile.getTargetWeight().compareTo(java.math.BigDecimal.ZERO) <= 0) {
+		if (profile.getTargetWeight() != null && profile.getTargetWeight().compareTo(java.math.BigDecimal.ZERO) <= 0) {
 			bindingResult.rejectValue("targetWeight", "invalid", "目標体重は0より大きい値を入力してください");
 		}
 
@@ -272,9 +263,8 @@ public class ProfileController {
 			bindingResult.rejectValue("stepGoal", "invalid", "歩数目標は0以上の値を入力してください");
 		}
 
-		if (profile.getSleepGoalHours() != null
-				&& (profile.getSleepGoalHours().compareTo(java.math.BigDecimal.ZERO) < 0
-						|| profile.getSleepGoalHours().compareTo(java.math.BigDecimal.valueOf(24)) > 0)) {
+		if (profile.getSleepGoalHours() != null && (profile.getSleepGoalHours().compareTo(java.math.BigDecimal.ZERO) < 0
+				|| profile.getSleepGoalHours().compareTo(java.math.BigDecimal.valueOf(24)) > 0)) {
 			bindingResult.rejectValue("sleepGoalHours", "invalid", "睡眠目標は0〜24の範囲で入力してください");
 		}
 	}

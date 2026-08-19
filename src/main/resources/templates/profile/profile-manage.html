@@ -50,9 +50,9 @@
 			<div class="profile-manage__list" th:if="${!#lists.isEmpty(profiles)}">
 				<div class="profile-manage__card" th:each="p : ${profiles}"
 					 th:classappend="${currentProfile != null and p.id == currentProfile.id} ? ' is-current'">
-					<span class="profile-manage__avatar"
-						th:style="'background:' + (${p.profileColor} ?: '#94a3b8')"
-						th:text="${#strings.substring(p.name,0,1)}">山</span>
+					 <img class="profile-manage__avatar"
+					      th:src="@{/image/avatar/{name}.png(name=${p.avatar ?: 'avatar_01'})}"
+					      th:alt="${p.name}" />
 					<div class="profile-manage__info">
 						<div class="profile-manage__name-row">
 							<span class="profile-manage__name" th:text="${p.name}">山田 太郎</span>

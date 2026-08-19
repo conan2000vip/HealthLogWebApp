@@ -27,7 +27,9 @@
 				<div class="profile-list">
 					<a th:each="profile : ${profiles}" th:href="@{/profile/{id}/select(id=${profile.id})}"
 						class="profile-card">
-						<div class="profile-avatar" th:text="${#strings.substring(profile.name,0,1)}"></div>
+						<img class="profile-avatar"
+						     th:src="@{/image/avatar/{name}.png(name=${profile.avatar ?: 'avatar_01'})}"
+						     th:alt="${profile.name}" />
 					<div class="profile-info">
 						<div class="profile-name-row">
 							<span class="profile-name" th:text="${profile.name}">山田 太郎</span>
