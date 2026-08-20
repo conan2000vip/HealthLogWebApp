@@ -67,16 +67,16 @@
 					<!-- BMI -->
 					<div class="summary-card">
 					    <span class="summary-card__label">現在のBMI</span>
-					    <div class="summary-card__value">
-					        <span th:text="${stats != null && stats.bmi != null ? stats.bmi : '--'}"></span>
-					        <span class="badge"
-					              th:if="${stats != null && stats.bmiStatus != null}"
+					    <span class="summary-card__value">
+					        <span th:text="${stats?.bmi != null ? #numbers.formatDecimal(stats.bmi, 1, 1) : '--'}">31.4</span>
+					        <span th:if="${stats?.bmiStatus != null}"
+					              class="badge"
 					              th:classappend="${'badge--' + (stats.bmiStatusCode ?: 'normal')}"
 					              th:text="${stats.bmiStatus}">
+					            肥満(2度以上)
 					        </span>
-					    </div>
-					    <span class="summary-card__sub" th:if="${stats != null && stats.bmi != null}">（最新体重から算出）
 					    </span>
+					    <span class="summary-card__sub">（最新体重から算出）</span>
 					</div>
 
 				    <!-- 期間内最小 -->
@@ -146,10 +146,10 @@
 										<span class="diff-badge" data-diff-placeholder></span>
 									</td>
 									<td>
-										<span class="badge" th:if="${record.bmi != null}"
-											th:classappend="${'badge--' + (record.bmiStatusCode ?: 'normal')}"
-											th:text="${record.bmi}">21.2</span>
-										<span class="text-muted" th:unless="${record.bmi != null}">--</span>
+									    <span class="badge" th:if="${record.bmi != null}"
+									        th:classappend="${'badge--' + (record.bmiStatusCode ?: 'normal')}"
+									        th:text="${#numbers.formatDecimal(record.bmi, 1, 2)}">21.2</span>
+									    <span class="text-muted" th:unless="${record.bmi != null}">--</span>
 									</td>
 
 									<td class="weight-table__memo memo-cell"

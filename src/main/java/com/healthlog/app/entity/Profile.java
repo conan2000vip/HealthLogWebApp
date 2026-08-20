@@ -120,4 +120,21 @@ public class Profile {
 		}
 		return Period.between(birthDate, LocalDate.now()).getYears();
 	}
+
+	public String getFormattedSleepGoal() {
+		if (this.sleepGoalHours == null || this.sleepGoalHours.compareTo(java.math.BigDecimal.ZERO) <= 0) {
+			return "-";
+		}
+		int totalMinutes = this.sleepGoalHours.multiply(java.math.BigDecimal.valueOf(60)).intValue();
+		int hours = totalMinutes / 60;
+		int minutes = totalMinutes % 60;
+
+		if (minutes == 0) {
+			return hours + " 時間";
+		}
+		if (hours == 0) {
+			return minutes + " 分";
+		}
+		return hours + " 時間 " + minutes + " 分";
+	}
 }

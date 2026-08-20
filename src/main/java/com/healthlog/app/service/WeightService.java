@@ -291,15 +291,23 @@ public class WeightService {
 	}
 
 	private String[] bmiStatusOf(BigDecimal bmi) {
-		if (bmi == null)
+		if (bmi == null) {
 			return new String[] { null, null };
-		if (bmi.compareTo(BigDecimal.valueOf(18.5)) < 0)
-			return new String[] { "低体重", "low" };
-		if (bmi.compareTo(BigDecimal.valueOf(25)) < 0)
-			return new String[] { "標準", "normal" };
-		if (bmi.compareTo(BigDecimal.valueOf(30)) < 0)
+		}
+
+		if (bmi.compareTo(BigDecimal.valueOf(18.5)) < 0) {
+			return new String[] { "低体重", "underweight" };
+		}
+
+		if (bmi.compareTo(BigDecimal.valueOf(25.0)) < 0) {
+			return new String[] { "普通体重", "normal" };
+		}
+
+		if (bmi.compareTo(BigDecimal.valueOf(30.0)) < 0) {
 			return new String[] { "肥満(1度)", "warning" };
-		return new String[] { "肥満(2度以上)", "high" };
+		}
+
+		return new String[] { "肥満(2度以上)", "obese" };
 	}
 
 // ---------------------------------------------------------

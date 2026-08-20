@@ -34,14 +34,12 @@ public class SleepFeedbackRule {
 	private static final int LV4_CONSECUTIVE_DAYS = 5;
 	private static final int LV4_DAILY_MINUTES_THRESHOLD = 6 * 60; // 6時間
 
-	// 何日以上記録がない場合に「しばらく記録がありません」を出すか（睡眠は1日1回記録が前提のためWeight/Stepと同じ3日）
 	private static final long NO_RECORD_DAYS_THRESHOLD = 3;
 
 	public List<FeedbackItem> evaluate(Long profileId) {
 		Profile profile = profileRepository.findById(profileId).orElseThrow();
 		List<FeedbackItem> items = new ArrayList<>();
 		LocalDate today = LocalDate.now();
-		LocalDate yesterday = today.minusDays(1);
 
 		// ---- お知らせ: 一度も記録がない ----
 		Optional<Sleep> lastEverOpt = sleepRepository.findTopByProfile_IdOrderByRecordedDateDesc(profileId);
@@ -53,13 +51,12 @@ public class SleepFeedbackRule {
 		LocalDate lastRecordedDate = lastEverOpt.get().getRecordedDate();
 		long daysSinceLast = ChronoUnit.DAYS.between(lastRecordedDate, today);
 
-		// LV4は「記録が途絶える直前」までの5日間を見たいため、最新記録日を起点にさかのぼって取得する
 		LocalDate from = lastRecordedDate.minusDays(LV4_CONSECUTIVE_DAYS - 1L);
 		List<Sleep> logs = sleepRepository
 				.findByProfile_IdAndRecordedDateGreaterThanEqualOrderByRecordedDateDesc(profileId, from);
 		Map<LocalDate, Integer> dailyTotals = computeDailyTotals(logs);
 
-		// ---- Lv4: 直近5日連続で睡眠時間が6時間未満（最新記録日を基準に判定。記録が途絶えていても検出する） ----
+		// ---- Lv4: 直近5日連続で睡眠時間が6時間未満 ----
 		List<FeedbackItem> mainFeedback = new ArrayList<>();
 		checkContinuousShortSleep(dailyTotals, lastRecordedDate, mainFeedback);
 
@@ -68,7 +65,7 @@ public class SleepFeedbackRule {
 			items.add(new FeedbackItem(FeedbackType.SLEEP_NO_RECORD, FeedbackLevel.LV2, "最近、睡眠記録がありません",
 					"最後の記録から" + daysSinceLast + "日経っています。今日の睡眠を記録してみましょう。", lastRecordedDate.atStartOfDay(),
 					"lightbulb"));
-			items.addAll(mainFeedback); // LV4があれば併せて表示
+			items.addAll(mainFeedback);
 			return items;
 		}
 
@@ -85,16 +82,16 @@ public class SleepFeedbackRule {
 		if (previousBeforeToday.isPresent()) {
 			long totalGap = ChronoUnit.DAYS.between(previousBeforeToday.get().getRecordedDate(), today);
 			if (totalGap > 1) {
-				long emptyDays = totalGap - 1; // 前回と今日の間に実際に記録が無かった日数
+				long emptyDays = totalGap - 1;
 				items.add(new FeedbackItem(FeedbackType.SLEEP_RESUMED, FeedbackLevel.LV0, "記録を再開しました",
 						"前回の記録から" + emptyDays + "日空きましたが、今日また記録できました。この調子で続けましょう。", today.atStartOfDay(),
 						"calendar-check"));
 			}
 		}
 
-		// ---- Main evaluation / メイン評価: LV4 > LV3/LV2 > Goal check > LV1 ----
+		// ---- Main evaluation: LV4 > LV3 > Goal check (LV2/LV1) ----
 		if (mainFeedback.isEmpty()) {
-			checkShortAverageSleep(dailyTotals, today, mainFeedback); // LV3 / LV2
+			checkShortAverageSleep(dailyTotals, today, mainFeedback); // LV3
 		}
 
 		if (mainFeedback.isEmpty()) {
@@ -106,7 +103,6 @@ public class SleepFeedbackRule {
 						"目標を設定すると、あなたに合ったフィードバックが受け取れます。", today.atStartOfDay(), "target"));
 			} else {
 				int sleepGoalMinutes = sleepGoalHours.multiply(BigDecimal.valueOf(60)).intValue();
-
 				checkSleepGoalRate(dailyTotals, today, sleepGoalMinutes, mainFeedback);
 			}
 		}
@@ -114,7 +110,6 @@ public class SleepFeedbackRule {
 		return items;
 	}
 
-	// ---- Lv4: 直近5日連続で睡眠時間が6時間未満（referenceDateを起点に判定） ----
 	private void checkContinuousShortSleep(Map<LocalDate, Integer> dailyTotals, LocalDate referenceDate,
 			List<FeedbackItem> items) {
 		for (int i = 0; i < LV4_CONSECUTIVE_DAYS; i++) {
@@ -129,7 +124,6 @@ public class SleepFeedbackRule {
 				"alert-octagon"));
 	}
 
-	// ---- Lv3: 直近3日間の平均睡眠時間が5時間未満 ----
 	private void checkShortAverageSleep(Map<LocalDate, Integer> dailyTotals, LocalDate today,
 			List<FeedbackItem> items) {
 		List<Integer> recent = new ArrayList<>();
@@ -140,19 +134,20 @@ public class SleepFeedbackRule {
 				recent.add(minutes);
 			}
 		}
-		if (recent.size() < LV3_LOOKBACK_DAYS) {
-			checkTodayShortSleep(dailyTotals, today, items);
-			return;
+		// Đủ 3 ngày và trung bình < 5h
+		if (recent.size() == LV3_LOOKBACK_DAYS) {
+			double average = recent.stream().mapToInt(Integer::intValue).average().orElse(0);
+			if (average < SHORT_SLEEP_MINUTES_THRESHOLD) {
+				items.add(new FeedbackItem(FeedbackType.SLEEP_SHORT, FeedbackLevel.LV3, "睡眠不足が継続しています",
+						"直近" + LV3_LOOKBACK_DAYS + "日間の平均睡眠時間が5時間未満です。休息時間を見直しましょう。", today.atStartOfDay(),
+						"alert-triangle"));
+				return;
+			}
 		}
-		double average = recent.stream().mapToInt(Integer::intValue).average().orElse(0);
-		if (average < SHORT_SLEEP_MINUTES_THRESHOLD) {
-			items.add(new FeedbackItem(FeedbackType.SLEEP_SHORT, FeedbackLevel.LV3, "睡眠時間が短い日が続いています",
-					"直近" + LV3_LOOKBACK_DAYS + "日間の平均睡眠時間が5時間未満です。休息時間を見直しましょう。", today.atStartOfDay(),
-					"alert-triangle"));
-		}
+		// Nếu không đủ 3 ngày liên tiếp hoặc trung bình >= 5h thì check riêng hôm nay
+		checkTodayShortSleep(dailyTotals, today, items);
 	}
 
-	// ---- Lv2: 当日の睡眠時間が5時間未満（データ不足時のフォールバック） ----
 	private void checkTodayShortSleep(Map<LocalDate, Integer> dailyTotals, LocalDate today, List<FeedbackItem> items) {
 		Integer minutesToday = dailyTotals.get(today);
 		if (minutesToday == null || minutesToday >= SHORT_SLEEP_MINUTES_THRESHOLD) {
@@ -160,24 +155,26 @@ public class SleepFeedbackRule {
 		}
 		int hours = minutesToday / 60;
 		int mins = minutesToday % 60;
-		items.add(new FeedbackItem(FeedbackType.SLEEP_SHORT, FeedbackLevel.LV2, "今日の睡眠時間が短いです",
-				"今日の睡眠は" + hours + "時間" + mins + "分でした。十分な休息を心がけましょう。", today.atStartOfDay(), "lightbulb"));
+
+		items.add(new FeedbackItem(FeedbackType.SLEEP_SHORT, FeedbackLevel.LV3, "今日の睡眠時間が短いです",
+				"今日の睡眠は" + hours + "時間" + mins + "分でした。十分な休息を心がけましょう。", today.atStartOfDay(), "alert-triangle"));
 	}
 
-	// ---- Goal達成率による評価 ----
 	private void checkSleepGoalRate(Map<LocalDate, Integer> dailyTotals, LocalDate today, int sleepGoalMinutes,
 			List<FeedbackItem> items) {
 		Integer minutes = dailyTotals.get(today);
 		if (minutes == null || sleepGoalMinutes <= 0) {
 			return;
 		}
+
 		double rate = minutes * 100.0 / sleepGoalMinutes;
 		int displayRate = (int) Math.round(rate);
+
 		if (rate < 50) {
 			int remaining = sleepGoalMinutes - minutes;
-			items.add(new FeedbackItem(FeedbackType.SLEEP_SHORT, FeedbackLevel.LV3, "睡眠時間が目標よりかなり短いです",
+			items.add(new FeedbackItem(FeedbackType.SLEEP_SHORT, FeedbackLevel.LV2, "睡眠時間が目標よりかなり短いです",
 					"現在の睡眠時間は目標の" + displayRate + "%です。目標まであと" + formatMinutes(remaining) + "です。", today.atStartOfDay(),
-					"alert-triangle"));
+					"lightbulb"));
 		} else if (rate < 100) {
 			int remaining = sleepGoalMinutes - minutes;
 			String title = rate >= 80 ? "もう少しで睡眠目標達成です" : "睡眠目標に向けて順調です";
@@ -192,7 +189,6 @@ public class SleepFeedbackRule {
 		}
 	}
 
-	// ヘルパー: 分数を「X時間Y分」形式に変換（Homeの表示形式と統一）
 	private String formatMinutes(int totalMinutes) {
 		int hours = totalMinutes / 60;
 		int mins = totalMinutes % 60;

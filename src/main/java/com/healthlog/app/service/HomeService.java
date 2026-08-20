@@ -56,7 +56,7 @@ public class HomeService {
 					com.healthlog.app.service.feedbackservice.model.FeedbackType.STEP_LOW, "歩数不足");
 
 	// =========================================================
-	// Home
+	// ホーム画面のデータを取得
 	// =========================================================
 	public Map<String, Object> getHomeData(Long profileId, Long currentUserId) {
 		LocalDate today = LocalDate.now();
@@ -84,7 +84,7 @@ public class HomeService {
 	}
 
 	// =========================================================
-	// Health Streak
+	// 連続記録日数（ストリーク）の計算
 	// =========================================================
 	private int getCurrentStreak(Long profileId, Long currentUserId, LocalDate today) {
 		Set<LocalDate> weightDates = new HashSet<>();
@@ -171,7 +171,7 @@ public class HomeService {
 	}
 
 	// =========================================================
-	// Today's health data
+	// 今日の健康データをまとめる
 	// =========================================================
 	private Map<String, Object> buildToday(Long profileId, Long currentUserId) {
 		LocalDate todayDate = LocalDate.now();
@@ -216,44 +216,54 @@ public class HomeService {
 	}
 
 	// =========================================================
-	// Weight
+	// 体重 (最新の記録のみを取得)
 	// =========================================================
 	private void applyWeightToday(Map<String, Object> today, Profile profile, Long profileId, Long currentUserId,
 			LocalDate todayDate) {
 		try {
-			Map<String, Object> result = weightService.list(profileId, currentUserId, LocalDate.of(2000, 1, 1),
-					todayDate, 0);
+			Map<String, Object> result = weightService.list(profileId, currentUserId, todayDate, todayDate, 0);
 			List<?> logs = (List<?>) result.get("logs");
 
 			if (logs == null || logs.isEmpty()) {
-				return;
-			}
-
-			Object weight = logs.get(0);
-			if (!(weight instanceof Weight w)) {
-				return;
-			}
-
-			today.put("bmi", w.getBmi());
-
-			if (!todayDate.equals(w.getRecordedDate())) {
 				today.put("weightGoalStatus", "NO_RECORD");
 				today.put("weightGoalText", "今日の体重は未記録です");
 				return;
 			}
 
-			today.put("weightKg", w.getWeight());
-			BigDecimal targetWeight = profile.getTargetWeight();
+			// 1日の最新の体重記録を検索する (measuredAtで比較)
+			Weight latestWeight = null;
+			for (Object obj : logs) {
+				if (obj instanceof Weight w) {
+					if (latestWeight == null || w.getMeasuredAt().compareTo(latestWeight.getMeasuredAt()) > 0) {
+						latestWeight = w;
+					}
+				}
+			}
 
-			if (targetWeight == null || targetWeight.compareTo(BigDecimal.ZERO) <= 0 || w.getWeight() == null) {
+			if (latestWeight == null || latestWeight.getWeight() == null) {
+				today.put("weightGoalStatus", "NO_RECORD");
+				today.put("weightGoalText", "今日の体重は未記録です");
+				return;
+			}
+			today.put("weightKg", latestWeight.getWeight());
+
+			BigDecimal bmi = latestWeight.getBmi();
+			today.put("bmi", bmi);
+			if (bmi != null) {
+				String[] statusInfo = bmiStatusOf(bmi);
+				today.put("bmiStatus", statusInfo[0]); // ví dụ: "肥満(2度以上)"
+				today.put("bmiStatusCode", statusInfo[1]); // ví dụ: "obese"
+			}
+
+			BigDecimal targetWeight = profile.getTargetWeight();
+			if (targetWeight == null || targetWeight.compareTo(BigDecimal.ZERO) <= 0) {
 				today.put("weightGoalStatus", "NO_GOAL");
 				today.put("weightGoalText", "目標体重が設定されていません");
 				return;
 			}
 
 			today.put("targetWeight", targetWeight);
-			BigDecimal difference = w.getWeight().subtract(targetWeight);
-
+			BigDecimal difference = latestWeight.getWeight().subtract(targetWeight);
 			if (difference.abs().compareTo(WEIGHT_TOLERANCE_KG) <= 0) {
 				today.put("weightGoalStatus", "ACHIEVED");
 				today.put("weightGoalText", "目標体重を達成しました");
@@ -266,17 +276,31 @@ public class HomeService {
 			} else {
 				today.put("weightGoalStatus", "GAIN");
 			}
-
 			today.put("weightGoalText", "目標まであと" + remaining + " kg");
-
 		} catch (BusinessException e) {
 			today.put("weightGoalStatus", "NO_RECORD");
 			today.put("weightGoalText", "今日の体重は未記録です");
 		}
 	}
 
+	private String[] bmiStatusOf(BigDecimal bmi) {
+		if (bmi == null) {
+			return new String[] { null, null };
+		}
+		if (bmi.compareTo(BigDecimal.valueOf(18.5)) < 0) {
+			return new String[] { "低体重", "underweight" };
+		}
+		if (bmi.compareTo(BigDecimal.valueOf(25.0)) < 0) {
+			return new String[] { "普通体重", "normal" };
+		}
+		if (bmi.compareTo(BigDecimal.valueOf(30.0)) < 0) {
+			return new String[] { "肥満(1度)", "warning" };
+		}
+		return new String[] { "肥満(2度以上)", "obese" };
+	}
+
 	// =========================================================
-	// Sleep
+	// 睡眠 (1日の合計時間を計算)
 	// =========================================================
 	private void applySleepToday(Map<String, Object> today, Profile profile, Long profileId, Long currentUserId,
 			LocalDate todayDate) {
@@ -288,15 +312,23 @@ public class HomeService {
 				return;
 			}
 
-			Object sleep = logs.get(0);
-			if (!(sleep instanceof Sleep s) || s.getSleepMinutes() == null) {
+			// 1日の睡眠時間をすべて合計する
+			int totalDurationMinutes = 0;
+			boolean hasValidRecord = false;
+
+			for (Object obj : logs) {
+				if (obj instanceof Sleep s && s.getSleepMinutes() != null) {
+					totalDurationMinutes += s.getSleepMinutes();
+					hasValidRecord = true;
+				}
+			}
+
+			if (!hasValidRecord) {
 				return;
 			}
 
-			Integer durationMinutes = s.getSleepMinutes();
-			int hours = durationMinutes / 60;
-			int minutes = durationMinutes % 60;
-
+			int hours = totalDurationMinutes / 60;
+			int minutes = totalDurationMinutes % 60;
 			today.put("sleepHour", hours);
 			today.put("sleepMinute", minutes);
 
@@ -309,14 +341,13 @@ public class HomeService {
 
 			int goalMinutes = sleepGoalHours.multiply(BigDecimal.valueOf(60)).intValue();
 			today.put("sleepGoalMinutes", goalMinutes);
-
-			if (durationMinutes >= (goalMinutes - SLEEP_TOLERANCE_MINUTES)) {
+			if (totalDurationMinutes >= (goalMinutes - SLEEP_TOLERANCE_MINUTES)) {
 				today.put("sleepGoalStatus", "ACHIEVED");
 				today.put("sleepGoalText", "睡眠目標を達成しました");
 				return;
 			}
 
-			int remainingMinutes = goalMinutes - durationMinutes;
+			int remainingMinutes = goalMinutes - totalDurationMinutes;
 			int remainingHours = remainingMinutes / 60;
 			int remainingMins = remainingMinutes % 60;
 
@@ -326,7 +357,6 @@ public class HomeService {
 			} else {
 				today.put("sleepGoalText", "目標まであと" + remainingMins + "分");
 			}
-
 		} catch (BusinessException e) {
 			today.put("sleepGoalStatus", "NO_RECORD");
 			today.put("sleepGoalText", "今日の睡眠は未記録です");
@@ -334,7 +364,7 @@ public class HomeService {
 	}
 
 	// =========================================================
-	// Water
+	// 水分
 	// =========================================================
 	@SuppressWarnings("unchecked")
 	private void applyWaterToday(Map<String, Object> today, Profile profile, Long profileId, Long currentUserId,
@@ -343,16 +373,13 @@ public class HomeService {
 			Map<String, Object> result = waterService.list(profileId, currentUserId, todayDate, todayDate, 0);
 			List<?> logs = (List<?>) result.get("logs");
 			Map<String, Object> stats = (Map<String, Object>) result.get("stats");
-
 			if (logs == null || logs.isEmpty()) {
 				return;
 			}
 
 			Integer total = stats != null ? (Integer) stats.get("todayTotal") : null;
 			Integer goal = profile.getWaterGoalMl();
-
 			today.put("waterMl", total);
-
 			if (goal == null || goal <= 0) {
 				today.put("waterGoalStatus", "NO_GOAL");
 				today.put("waterGoalText", "水分目標が設定されていません");
@@ -373,7 +400,6 @@ public class HomeService {
 				today.put("waterGoalStatus", "NOT_ACHIEVED");
 				today.put("waterGoalText", "目標まであと" + (goal - total) + " ml");
 			}
-
 		} catch (BusinessException e) {
 			today.put("waterGoalStatus", "NO_RECORD");
 			today.put("waterGoalText", "今日の水分は未記録です");
@@ -381,7 +407,7 @@ public class HomeService {
 	}
 
 	// =========================================================
-	// Step
+	// 歩数
 	// =========================================================
 	@SuppressWarnings("unchecked")
 	private void applyStepToday(Map<String, Object> today, Profile profile, Long profileId, Long currentUserId,
@@ -428,7 +454,7 @@ public class HomeService {
 	}
 
 	// =========================================================
-	// Family health summary
+	// 家族の健康サマリー (簡略化ラベル実装)
 	// =========================================================
 	private List<Map<String, Object>> buildFamilyMembers(List<Profile> profiles, Long currentUserId, LocalDate today) {
 		List<Map<String, Object>> members = new ArrayList<>();
@@ -443,15 +469,6 @@ public class HomeService {
 
 			int totalItems = 4;
 			int doneItems = (hasWeight ? 1 : 0) + (hasSleep ? 1 : 0) + (hasWater ? 1 : 0) + (hasStep ? 1 : 0);
-
-			boolean weightOk = "ACHIEVED".equals(familyToday.get("weightGoalStatus"))
-					|| "NO_GOAL".equals(familyToday.get("weightGoalStatus"));
-			boolean sleepOk = "ACHIEVED".equals(familyToday.get("sleepGoalStatus"))
-					|| "NO_GOAL".equals(familyToday.get("sleepGoalStatus"));
-			boolean waterOk = "ACHIEVED".equals(familyToday.get("waterGoalStatus"))
-					|| "NO_GOAL".equals(familyToday.get("waterGoalStatus"));
-			boolean stepOk = "ACHIEVED".equals(familyToday.get("stepGoalStatus"))
-					|| "NO_GOAL".equals(familyToday.get("stepGoalStatus"));
 
 			LocalDate historyFrom = LocalDate.of(2000, 1, 1);
 			LocalDate latestRecordedDate = getLatestRecordedDate(profile.getId(), currentUserId, historyFrom, today);
@@ -470,58 +487,40 @@ public class HomeService {
 			if (!hasStep)
 				missingItems.add("歩数");
 
-			List<String> unachievedItems = new ArrayList<>();
-			if (hasWeight && !weightOk)
-				unachievedItems.add("体重");
-			if (hasSleep && !sleepOk)
-				unachievedItems.add("睡眠");
-			if (hasWater && !waterOk)
-				unachievedItems.add("水分");
-			if (hasStep && !stepOk)
-				unachievedItems.add("歩数");
+			List<String> allIssues = new ArrayList<>();
 
-			List<String> attentionItems = new ArrayList<>();
+			allIssues.addAll(severeFeedbackLabels);
+
+			if (hasAnyHistoricalData && ChronoUnit.DAYS.between(latestRecordedDate, today) >= 3) {
+				allIssues.add(ChronoUnit.DAYS.between(latestRecordedDate, today) + "日未記録");
+			}
+
+			for (String missing : missingItems) {
+				allIssues.add(missing + "未入力");
+			}
+
 			String status;
 			String statusLabel;
 
 			if (!hasAnyHistoricalData) {
 				status = "NO_RECORD";
 				statusLabel = "未記録";
-				attentionItems.add("まだ健康データがありません");
-			} else if (hasLv4 || !severeFeedbackLabels.isEmpty()) {
-				status = "DANGER";
-				statusLabel = severeFeedbackLabels.get(0);
-				attentionItems.addAll(severeFeedbackLabels);
-			} else if (ChronoUnit.DAYS.between(latestRecordedDate, today) >= 3) {
-				long days = ChronoUnit.DAYS.between(latestRecordedDate, today);
-				status = "DANGER";
-				statusLabel = days + "日未記録";
-				attentionItems.add(days + "日間記録がありません");
-			} else if (doneItems < totalItems) {
-				status = "WARN";
-				statusLabel = missingItems.size() == 1 ? missingItems.get(0) + "未入力" : "未入力あり";
-
-				if (missingItems.size() == 1) {
-					attentionItems.add(missingItems.get(0) + "が未入力です");
-				} else {
-					attentionItems.add("未入力の項目があります (" + missingItems.size() + "件)");
-				}
-			} else if (!unachievedItems.isEmpty()) {
-				status = "WARN";
-				statusLabel = unachievedItems.size() == 1 ? unachievedItems.get(0) + "未達成" : "目標未達成あり";
-
-				if (unachievedItems.size() == 1) {
-					attentionItems.add(unachievedItems.get(0) + "が未達成です");
-				} else {
-					attentionItems.add("一部の目標が未達成です (" + unachievedItems.size() + "件)");
-				}
-			} else {
+			} else if (allIssues.isEmpty()) {
 				status = "OK";
-				statusLabel = "完了";
+				statusLabel = "記録順調";
+			} else {
+				boolean isPrimaryDanger = hasLv4 || !severeFeedbackLabels.isEmpty()
+						|| (hasAnyHistoricalData && ChronoUnit.DAYS.between(latestRecordedDate, today) >= 3);
+				status = isPrimaryDanger ? "DANGER" : "WARN";
+
+				if (allIssues.size() == 1) {
+					statusLabel = allIssues.get(0);
+				} else {
+					statusLabel = allIssues.get(0) + " ほか" + (allIssues.size() - 1) + "件";
+				}
 			}
 
 			String updatedTime = getFamilyUpdatedTime(profile.getId(), currentUserId, today);
-
 			Map<String, Object> member = new HashMap<>();
 			member.put("id", profile.getId());
 			member.put("name", profile.getName());
@@ -529,10 +528,11 @@ public class HomeService {
 			member.put("avatar", profile.getAvatar());
 			member.put("status", status);
 			member.put("statusLabel", statusLabel);
-			member.put("attentionItems", attentionItems);
 			member.put("doneItems", doneItems);
 			member.put("totalItems", totalItems);
 			member.put("updatedTime", updatedTime);
+			member.put("relationship", profile.getRelationship());
+			member.put("isPrimary", profile.getIsPrimary());
 			members.add(member);
 		}
 		return members;
@@ -546,8 +546,8 @@ public class HomeService {
 		allItems.addAll(feedbackService.getStepFeedback(profileId));
 
 		boolean hasLv4 = false;
-		List<FeedbackItem> severe = allItems.stream()
-				.filter(item -> item.getLevel().getPriority() >= FeedbackLevel.LV3.getPriority())
+		List<FeedbackItem> severe = allItems.stream().filter(
+				item -> item.getLevel() != null && item.getLevel().getPriority() >= FeedbackLevel.LV3.getPriority())
 				.sorted(Comparator.comparingInt((FeedbackItem i) -> i.getLevel().getPriority()).reversed()).toList();
 
 		for (FeedbackItem item : severe) {
@@ -573,7 +573,7 @@ public class HomeService {
 	}
 
 	// =========================================================
-	// Family update time
+	// 家族データの最終更新時間
 	// =========================================================
 	private String getFamilyUpdatedTime(Long profileId, Long currentUserId, LocalDate today) {
 		LocalDate from = today.minusDays(30);

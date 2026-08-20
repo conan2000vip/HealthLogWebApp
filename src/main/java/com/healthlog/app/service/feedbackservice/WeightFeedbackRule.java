@@ -39,10 +39,8 @@ public class WeightFeedbackRule {
 		List<FeedbackItem> items = new ArrayList<>();
 		Profile profile = profileRepository.findById(profileId).orElseThrow();
 		LocalDate today = LocalDate.now();
-		LocalDate yesterday = today.minusDays(1);
 
 		List<Weight> logs = weightRepository.findByProfile_IdOrderByRecordedDateDesc(profileId);
-		// ---- お知らせ: 記録が一度もない ----
 		if (logs.isEmpty()) {
 			items.add(buildNoRecordReminder(today, "体重記録がありません", "まだ体重データが記録されていません。記録を始めてみましょう。"));
 			return items;
@@ -51,7 +49,6 @@ public class WeightFeedbackRule {
 		Weight latest = latestLogs.get(0);
 		long daysSinceLast = ChronoUnit.DAYS.between(latest.getRecordedDate(), today);
 
-		// ---- しばらく記録がない場合はLV2のみを表示し、他の評価は行わない（重複防止） ----
 		if (daysSinceLast >= NO_RECORD_DAYS_THRESHOLD) {
 			items.add(new FeedbackItem(FeedbackType.WEIGHT_NO_RECORD, FeedbackLevel.LV2, "最近、体重記録がありません",
 					"最後の記録から" + daysSinceLast + "日経っています。今日の状態を記録してみましょう。", latest.getRecordedDate().atStartOfDay(),
@@ -67,14 +64,14 @@ public class WeightFeedbackRule {
 			LocalDate previousDate = latestLogs.get(1).getRecordedDate();
 			long totalGap = ChronoUnit.DAYS.between(previousDate, today);
 			if (totalGap > 1) {
-				long emptyDays = totalGap - 1; // 前回と今日の間に実際に記録が無かった日数
+				long emptyDays = totalGap - 1;
 				items.add(new FeedbackItem(FeedbackType.WEIGHT_RESUMED, FeedbackLevel.LV0, "記録を再開しました",
 						"前回の記録から" + emptyDays + "日空きましたが、今日また記録できました。この調子で続けましょう。", today.atStartOfDay(),
 						"calendar-check"));
 			}
 		}
 
-		// ---- メイン評価: LV4/LV3（変化）> LV1（達成） ----
+		// Main evaluation: LV4/LV3 (Thay đổi bất thường) -> LV1/LV2 (Tiến độ mục tiêu)
 		List<FeedbackItem> mainFeedback = new ArrayList<>();
 		checkWeightChange(latestLogs, mainFeedback);
 		if (mainFeedback.isEmpty()) {
@@ -84,22 +81,19 @@ public class WeightFeedbackRule {
 		return items;
 	}
 
-	// ---- Lv1/Lv2: 目標達成、または目標に向けた進捗 ----
 	private void checkAchievement(List<Weight> logs, Profile profile, LocalDate today, List<FeedbackItem> items) {
 		Weight latest = logs.get(0);
 		BigDecimal current = latest.getWeight();
 		BigDecimal target = profile.getTargetWeight();
 
-		if (current == null) {
+		if (current == null)
 			return;
-		}
 
 		boolean hasGoal = target != null && target.compareTo(BigDecimal.ZERO) > 0;
 
-		// 目標未設定：今日の記録完了
 		if (!hasGoal) {
 			if (latest.getRecordedDate().isEqual(today)) {
-				items.add(new FeedbackItem(FeedbackType.DAILY_COMPLETE, FeedbackLevel.LV1, "今日の健康記録を完了しました",
+				items.add(new FeedbackItem(FeedbackType.DAILY_COMPLETE, FeedbackLevel.LV0, "今日の健康記録を完了しました",
 						"体重の記録、お疲れさまでした！目標体重を設定すると、より詳しいフィードバックが受け取れます。", latest.getMeasuredAt(), "check-circle"));
 			}
 			return;
@@ -108,46 +102,37 @@ public class WeightFeedbackRule {
 		BigDecimal diff = current.subtract(target);
 		BigDecimal absDiff = diff.abs();
 
-		// 目標体重達成（±0.5kg以内）
 		if (absDiff.compareTo(TARGET_ACHIEVED_TOLERANCE_KG) <= 0) {
 			items.add(new FeedbackItem(FeedbackType.WEIGHT_GOAL_ACHIEVED, FeedbackLevel.LV1, "目標体重を達成しました",
 					"現在の体重は" + current + "kgです。設定した目標体重に達しています！", latest.getMeasuredAt(), "check-circle"));
 			return;
 		}
 
-		// 今日の記録でない場合は、目標までの進捗を表示しない
-		if (!latest.getRecordedDate().isEqual(today)) {
+		if (!latest.getRecordedDate().isEqual(today))
 			return;
-		}
 
 		BigDecimal remaining = absDiff.setScale(1, RoundingMode.HALF_UP);
 
-		// 現在体重 > 目標体重 → 減量目標
 		if (diff.compareTo(BigDecimal.ZERO) > 0) {
 			items.add(new FeedbackItem(FeedbackType.DAILY_COMPLETE, FeedbackLevel.LV2, "目標体重まであと" + remaining + "kgです",
 					"現在の体重は" + current + "kgです。目標体重" + target + "kgに向けて、無理のないペースで取り組みましょう。", latest.getMeasuredAt(),
 					"trending-down"));
-			return;
+		} else {
+			items.add(new FeedbackItem(FeedbackType.DAILY_COMPLETE, FeedbackLevel.LV2, "目標体重まであと" + remaining + "kgです",
+					"現在の体重は" + current + "kgです。目標体重" + target + "kgに向けて、バランスのよい食事と適度な運動を心がけましょう。",
+					latest.getMeasuredAt(), "trending-up"));
 		}
-
-		// 現在体重 < 目標体重 → 増量目標
-		items.add(new FeedbackItem(FeedbackType.DAILY_COMPLETE, FeedbackLevel.LV2, "目標体重まであと" + remaining + "kgです",
-				"現在の体重は" + current + "kgです。目標体重" + target + "kgに向けて、バランスのよい食事と適度な運動を心がけましょう。", latest.getMeasuredAt(),
-				"trending-up"));
 	}
 
-	// ---- Lv3 / Lv4: 前回比の変化 ----
 	private void checkWeightChange(List<Weight> logs, List<FeedbackItem> items) {
-		if (logs.size() < 2) {
+		if (logs.size() < 2)
 			return;
-		}
 		Weight latest = logs.get(0);
 		Weight previous = logs.get(1);
 		BigDecimal current = latest.getWeight();
 		BigDecimal before = previous.getWeight();
-		if (current == null || before == null || before.compareTo(BigDecimal.ZERO) == 0) {
+		if (current == null || before == null || before.compareTo(BigDecimal.ZERO) == 0)
 			return;
-		}
 
 		BigDecimal diff = current.subtract(before);
 		BigDecimal percent = diff.divide(before, 4, RoundingMode.HALF_UP).multiply(BigDecimal.valueOf(100)).abs();

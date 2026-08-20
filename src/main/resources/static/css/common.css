@@ -804,26 +804,26 @@ body {
 	box-sizing: border-box;
 }
 
-/* BMI: bình thường */
-.badge--normal {
-	background: #e8f5e9;
-	color: #2e7d32;
-}
-
-/* BMI: thiếu cân */
+/* BMI: 低体重  */
 .badge--underweight {
 	background: #e3f2fd;
 	color: #1976d2;
 }
 
-/* BMI: thừa cân */
-.badge--overweight {
-	background: #fff3cd;
-	color: #d97706;
+/* BMI: 普通体重  */
+.badge--normal {
+	background: #e8f5e9;
+	color: #2e7d32;
 }
 
-/* BMI: béo phì */
-.badge--obese {
+/* BMI: 肥満(1度)  */
+.badge--warning {
+	background: #fef3c7;
+	color: #b45309;
+}
+
+/* BMI: 肥満(2度以上)  */
+.badge--obese, .badge--danger {
 	background: #fde8e8;
 	color: #dc2626;
 }
