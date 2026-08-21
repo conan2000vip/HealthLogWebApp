@@ -136,7 +136,7 @@ public class WaterService {
 			return "DAY";
 		if (days <= 31)
 			return "WEEK";
-		if (days <= 1095)
+		if (days <= 730)
 			return "MONTH";
 		return "YEAR";
 	}
