@@ -101,7 +101,7 @@ public class SleepFeedbackRule {
 			if (!hasGoal) {
 				mainFeedback.add(new FeedbackItem(FeedbackType.SLEEP_NO_GOAL, FeedbackLevel.LV0, "睡眠の目標が設定されていません",
 						"目標を設定すると、あなたに合ったフィードバックが受け取れます。", today.atStartOfDay(), "target"));
-			} else {
+			} else if (sleepGoalHours != null) {
 				int sleepGoalMinutes = sleepGoalHours.multiply(BigDecimal.valueOf(60)).intValue();
 				checkSleepGoalRate(dailyTotals, today, sleepGoalMinutes, mainFeedback);
 			}

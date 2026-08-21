@@ -54,7 +54,6 @@ public class AuthService {
 			"password123!", "welcome1!", "iloveyou1!", "abc12345!");
 
 	private final UserRepository userRepository;
-	private final ProfileRepository profileRepository;
 	private final AuthTokenRepository authTokenRepository;
 	private final PasswordEncoder passwordEncoder;
 	private final EmailService emailService;
@@ -68,7 +67,6 @@ public class AuthService {
 		this.authTokenRepository = authTokenRepository;
 		this.passwordEncoder = passwordEncoder;
 		this.emailService = emailService;
-		this.profileRepository = profileRepository;
 	}
 
 	// register
