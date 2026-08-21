@@ -148,7 +148,7 @@
 									<td>
 									    <span class="badge" th:if="${record.bmi != null}"
 									        th:classappend="${'badge--' + (record.bmiStatusCode ?: 'normal')}"
-									        th:text="${#numbers.formatDecimal(record.bmi, 1, 2)}">21.2</span>
+									        th:text="${#numbers.formatDecimal(record.bmi, 1, 1)}">21.2</span>
 									    <span class="text-muted" th:unless="${record.bmi != null}">--</span>
 									</td>
 
