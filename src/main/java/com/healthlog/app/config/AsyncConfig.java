@@ -33,7 +33,6 @@ public class AsyncConfig implements WebMvcConfigurer {
 
 	@Override
 	public void addInterceptors(InterceptorRegistry registry) {
-		registry.addInterceptor(profileRequiredInterceptor)
-				.addPathPatterns("/**");
+		registry.addInterceptor(profileRequiredInterceptor).addPathPatterns("/**");
 	}
 }
