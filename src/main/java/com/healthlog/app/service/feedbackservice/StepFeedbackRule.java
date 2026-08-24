@@ -31,6 +31,10 @@ public class StepFeedbackRule {
 	private static final int LOW_THRESHOLD_PERCENT = 50;
 	private static final long NO_RECORD_DAYS_THRESHOLD = 3;
 
+	// ★ THÊM MỚI: Các Hằng số cho Ngưỡng LV4 (Số bước bất thường)
+	private static final int LV4_SUDDEN_HIGH_STEPS = 60000; // Số bước cực lớn trong 1 ngày
+	private static final int LV4_SUDDEN_STEP_DIFF = 40000; // Chênh lệch cực lớn so với ngày hôm trước
+
 	public List<FeedbackItem> evaluate(Long profileId) {
 		List<FeedbackItem> items = new ArrayList<>();
 		Profile profile = profileRepository.findById(profileId).orElseThrow();
@@ -74,24 +78,58 @@ public class StepFeedbackRule {
 		}
 
 		List<FeedbackItem> mainFeedback = new ArrayList<>();
-		Integer goal = profile.getStepGoal();
-		boolean hasGoal = goal != null && goal > 0;
 
-		if (!hasGoal) {
-			// SỬA: Đưa về LV0 cho đồng bộ hệ thống
-			mainFeedback.add(new FeedbackItem(FeedbackType.STEP_NO_GOAL, FeedbackLevel.LV0, "歩数の目標が設定されていません",
-					"目標を設定すると、より詳しいフィードバックが受け取れます。", today.atStartOfDay(), "target"));
-		} else {
-			checkLowSteps(dailyTotals, today, goal, mainFeedback); // LV3
-			if (mainFeedback.isEmpty()) {
-				checkAlmostGoal(dailyTotals, today, goal, mainFeedback); // LV2
-			}
-			if (mainFeedback.isEmpty()) {
-				checkComplete(dailyTotals, today, goal, mainFeedback); // LV1
+		// ★ THÊM MỚI: Ưu tiên kiểm tra Bất thường LV4 ĐẦU TIÊN (Cho cả trường hợp có
+		// hoặc không có mục tiêu)
+		checkSuddenStepChange(dailyTotals, today, yesterday, mainFeedback);
+
+		// Nếu không phát hiện bất thường LV4 thì mới kiểm tra tiến độ Mục tiêu (LV3 ->
+		// LV2 -> LV1 -> LV0)
+		if (mainFeedback.isEmpty()) {
+			Integer goal = profile.getStepGoal();
+			boolean hasGoal = goal != null && goal > 0;
+
+			if (!hasGoal) {
+				mainFeedback.add(new FeedbackItem(FeedbackType.STEP_NO_GOAL, FeedbackLevel.LV0, "歩数の目標が設定されていません",
+						"目標を設定すると、より詳しいフィードバックが受け取れます。", today.atStartOfDay(), "target"));
+			} else {
+				checkLowSteps(dailyTotals, today, goal, mainFeedback); // LV3
+				if (mainFeedback.isEmpty()) {
+					checkAlmostGoal(dailyTotals, today, goal, mainFeedback); // LV2
+				}
+				if (mainFeedback.isEmpty()) {
+					checkComplete(dailyTotals, today, goal, mainFeedback); // LV1
+				}
 			}
 		}
+
 		items.addAll(mainFeedback);
 		return items;
+	}
+
+	// ★ THÊM MỚI: Hàm kiểm tra số bước bất thường (LV4)
+	private void checkSuddenStepChange(Map<LocalDate, Integer> dailyTotals, LocalDate today, LocalDate yesterday,
+			List<FeedbackItem> items) {
+		Integer todaySteps = dailyTotals.get(today);
+		if (todaySteps == null)
+			return;
+
+		// Trường hợp 1: Nhập số bước cực lớn (>= 60,000 bước)
+		if (todaySteps >= LV4_SUDDEN_HIGH_STEPS) {
+			items.add(new FeedbackItem(FeedbackType.STEP_SUDDEN_CHANGE, FeedbackLevel.LV4, "急激な歩数変化があります",
+					"本日の歩数（" + todaySteps + "歩）が非常に大きいです。入力内容を確認してください。", today.atStartOfDay(), "alert-octagon"));
+			return;
+		}
+
+		// Trường hợp 2: Chênh lệch quá lớn so với ngày hôm trước (>= 40,000 bước)
+		Integer yesterdaySteps = dailyTotals.get(yesterday);
+		if (yesterdaySteps != null) {
+			int diff = Math.abs(todaySteps - yesterdaySteps);
+			if (diff >= LV4_SUDDEN_STEP_DIFF) {
+				items.add(new FeedbackItem(FeedbackType.STEP_SUDDEN_CHANGE, FeedbackLevel.LV4, "急激な歩数変化があります",
+						"前日比で " + diff + "歩の大きな変化がありました。入力内容を確認してください。", today.atStartOfDay(), "alert-octagon"));
+			}
+		}
 	}
 
 	private void checkLowSteps(Map<LocalDate, Integer> dailyTotals, LocalDate today, Integer goal,

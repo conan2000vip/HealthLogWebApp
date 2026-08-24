@@ -44,22 +44,25 @@ function initModal() {
     const modalTitle = document.getElementById("stepModalTitle");
     const form = document.getElementById("stepForm");
 
-	const recordId = document.getElementById("recordId");
-	const recordedDateInput = document.getElementById("recordedDate");
-	const stepsInput = document.getElementById("steps");
-	const memoInput = document.getElementById("memo");
+    const recordId = document.getElementById("recordId");
+    const recordedDateInput = document.getElementById("recordedDate");
+    const stepsInput = document.getElementById("steps");
+    const memoInput = document.getElementById("memo");
 
-	if (!overlay || !form || !recordId || !recordedDateInput || !stepsInput || !memoInput) {
-		console.error("Step modal element is missing:", {
-			overlay,
-			form,
-			recordId,
-			recordedDateInput,
-			stepsInput,
-			memoInput
-		});
-		return;
-	}
+    if (!overlay || !form || !recordId || !recordedDateInput || !stepsInput || !memoInput) {
+        console.error("Step modal element is missing:", {
+            overlay,
+            form,
+            recordId,
+            recordedDateInput,
+            stepsInput,
+            memoInput
+        });
+        return;
+    }
+
+    // ★ THÊM MỚI: Biến ghi nhớ trạng thái đã cảnh báo hay chưa
+    let isStepsWarned = false;
 
     function openModal({ mode = "create", id = "", date = "", steps = "", memo = "" } = {}) {
         modalTitle.textContent = mode === "edit" ? "歩数を編集する" : "歩数を記録する";
@@ -68,6 +71,7 @@ function initModal() {
         recordedDateInput.max = currentDate();
         stepsInput.value = steps;
         memoInput.value = memo;
+        isStepsWarned = false; // Reset biến cảnh báo khi mở Modal
         clearAllErrors();
         overlay.classList.add("is-open");
         recordedDateInput.focus();
@@ -108,8 +112,12 @@ function initModal() {
     });
 
     // Clear errors while typing / 入力時にエラーをクリア
-    [recordedDateInput, stepsInput].forEach((input) => {
-        if (input) input.addEventListener("input", () => clearError(input.id));
+    recordedDateInput.addEventListener("input", () => clearError("recordedDate"));
+    
+    // ★ THAY ĐỔI: Khi sửa số bước, reset lại trạng thái cảnh báo
+    stepsInput.addEventListener("input", () => {
+        isStepsWarned = false;
+        clearError("steps");
     });
 
     // Date validation / 日付チェック
@@ -132,22 +140,31 @@ function initModal() {
         return true;
     }
 
-    // Step validation / 歩数チェック
+    // Step validation / 歩数チェック (Nâng cấp logic Cảnh báo)
     function validateSteps() {
         const value = stepsInput.value;
 
         if (value === "") {
             showError("steps", "歩数を入力してください");
+            isStepsWarned = false;
             return false;
         }
 
         const steps = Number(value);
 
-        if (!Number.isInteger(steps) || steps < 0 || steps > 100000) {
-            showError("steps", "歩数は0〜100000歩の範囲で入力してください");
+        if (!Number.isInteger(steps) || steps < 0 || steps > 200000) {
+            showError("steps", "歩数は0〜200000歩の範囲で入力してください");
+            isStepsWarned = false;
             return false;
         }
 
+        if (steps > 50000 && !isStepsWarned) {
+            showError("steps", "歩数が非常に大きいです。入力内容に間違いはありませんか？（※もう一度「保存」を押すと登録されます）");
+            isStepsWarned = true; // Ghi nhớ đã phát cảnh báo
+            return false; // Lần 1: Chặn tạm thời để người dùng xác nhận lại
+        }
+
+        // Lần 2 (hoặc số bước bình thường <= 50,000): Cho phép đi tiếp để lưu
         clearError("steps");
         return true;
     }

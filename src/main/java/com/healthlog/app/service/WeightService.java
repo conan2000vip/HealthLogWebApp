@@ -399,8 +399,8 @@ public class WeightService {
 		if (w.getWeight() == null) {
 			throw new BusinessException(HttpStatus.BAD_REQUEST, "体重を入力してください");
 		}
-		if (w.getWeight().compareTo(BigDecimal.ONE) < 0 || w.getWeight().compareTo(BigDecimal.valueOf(500)) > 0) {
-			throw new BusinessException(HttpStatus.BAD_REQUEST, "体重は1〜300kgの範囲で入力してください");
+		if (w.getWeight().compareTo(BigDecimal.ONE) < 0 || w.getWeight().compareTo(BigDecimal.valueOf(700)) > 0) {
+			throw new BusinessException(HttpStatus.BAD_REQUEST, "体重は1〜700kgの範囲で入力してください");
 		}
 		if (w.getHeight() != null) {
 			if (w.getHeight().compareTo(BigDecimal.valueOf(10)) < 0

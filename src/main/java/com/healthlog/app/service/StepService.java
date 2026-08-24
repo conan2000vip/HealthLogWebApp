@@ -373,8 +373,8 @@ public class StepService {
 		if (step.getSteps() == null) {
 			throw new BusinessException(HttpStatus.BAD_REQUEST, "歩数を入力してください");
 		}
-		if (step.getSteps() < 0 || step.getSteps() > 100000) {
-			throw new BusinessException(HttpStatus.BAD_REQUEST, "歩数は0〜100000歩の範囲で入力してください");
+		if (step.getSteps() < 0 || step.getSteps() > 200000) {
+			throw new BusinessException(HttpStatus.BAD_REQUEST, "歩数は0〜200000歩の範囲で入力してください");
 		}
 		if (step.getMemo() != null && step.getMemo().length() > 500) {
 			throw new BusinessException(HttpStatus.BAD_REQUEST, "メモは500文字以内で入力してください");

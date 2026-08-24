@@ -185,13 +185,49 @@ function initModal() {
             return false;
         }
         const num = parseFloat(value);
-        if (Number.isNaN(num) || num < 1 || num > 500) {
-            showError("weight", "体重は1〜500kgの範囲で入力してください");
+        if (Number.isNaN(num) || num < 1.0) {
+            showError("weight", "正しい体重を入力してください");
+            return false;
+        }
+
+        if (num > 200.0) {
+            showError("weight", "数値が大きすぎます。小数点の押し忘れはありませんか？");
             return false;
         }
         clearError("weight");
         return true;
     }
+
+    // Biến ghi nhớ trạng thái đã cảnh báo hay chưa
+    let isWeightWarned = false;
+    function validateWeight() {
+        const value = weightInput.value;
+        if (!value) {
+            showError("weight", "体重を入力してください");
+            isWeightWarned = false;
+            return false;
+        }
+        const num = parseFloat(value);
+        if (Number.isNaN(num) || num < 1.0 || num > 1000.0) {
+            showError("weight", "正しい体重を入力してください (1〜1000kg)");
+            isWeightWarned = false;
+            return false;
+        }
+
+        // Nếu > 200kg và CHƯA từng cảnh báo -> Báo dòng chữ đỏ nhưng ghi nhớ trạng thái
+        if (num > 200.0 && !isWeightWarned) {
+            showError("weight", "数値が大きすぎます。小数点の押し忘れはありませんか？（※もう一度「保存」を押すとこのまま登録されます）");
+            isWeightWarned = true; // Đã cảnh báo rồi!
+            return false; // Lần 1: Chặn lại để người dùng đọc cảnh báo
+        }
+        clearError("weight");
+        return true; // Lần 2 (hoặc số bình thường <= 200kg): Cho phép đi tiếp để LƯU!
+    }
+    // Khi người dùng tự tay sửa lại số trong ô nhập -> Reset lại trạng thái cảnh báo
+    weightInput.addEventListener("input", () => {
+        isWeightWarned = false;
+        clearError("weight");
+    });
 
     function validateHeight() {
         const value = heightInput.value;
