@@ -4,9 +4,6 @@ import java.util.List;
 
 import jakarta.servlet.http.HttpSession;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -23,7 +20,7 @@ import com.healthlog.app.constant.SessionConstants;
 import com.healthlog.app.entity.Profile;
 import com.healthlog.app.entity.User;
 import com.healthlog.app.exception.BusinessException;
-import com.healthlog.app.repository.UserRepository;
+import com.healthlog.app.service.AuthService;
 import com.healthlog.app.service.ProfileService;
 
 @Controller
@@ -34,30 +31,30 @@ public class ProfileController {
 			"avatar_06", "avatar_07", "avatar_08", "avatar_09", "avatar_10", "avatar_11", "avatar_12");
 
 	private final ProfileService profileService;
-	private final UserRepository userRepository;
+	private final AuthService authService;
 
-	public ProfileController(ProfileService profileService, UserRepository userRepository) {
+	public ProfileController(ProfileService profileService, AuthService authService) {
 		this.profileService = profileService;
-		this.userRepository = userRepository;
+		this.authService = authService;
 	}
 
 	@GetMapping("/{id}/select")
 	public String selectProfile(@PathVariable Long id, HttpSession session) {
-		User user = getLoginUser();
+		User user = authService.getCurrentUser();
 		profileService.switchProfile(session, user.getId(), id);
 		return "redirect:/profile/" + id + "/home";
 	}
 
 	@GetMapping("/select-profile")
 	public String selectProfile(Model model) {
-		User user = getLoginUser();
+		User user = authService.getCurrentUser();
 		model.addAttribute("profiles", profileService.getProfiles(user.getId()));
 		return "profile/select-profile";
 	}
 
 	@GetMapping("/profile-manage")
 	public String manageProfile(Model model, HttpSession session) {
-		User user = getLoginUser();
+		User user = authService.getCurrentUser();
 		model.addAttribute("profiles", profileService.getProfiles(user.getId()));
 		model.addAttribute("currentProfile", profileService.resolveCurrentProfile(session, user.getId()));
 		return "profile/profile-manage";
@@ -66,18 +63,17 @@ public class ProfileController {
 	@PostMapping("/switch/{id}")
 	public String switchProfile(@PathVariable Long id, HttpSession session,
 			@RequestHeader(value = "Referer", required = false) String referer, RedirectAttributes redirectAttributes) {
-		Profile profile = profileService.getProfile(getLoginUser().getId(), id);
-		User user = getLoginUser();
+		User user = authService.getCurrentUser();
+		Profile profile = profileService.getProfile(user.getId(), id);
 		try {
 			profileService.switchProfile(session, user.getId(), id);
-			redirectAttributes.addFlashAttribute("message", profile.getName() + "プロファイルを切り替えました");
+			redirectAttributes.addFlashAttribute("message", profile.getName() + " プロファイルを切り替えました");
 		} catch (BusinessException e) {
 			redirectAttributes.addFlashAttribute("error", e.getMessage());
 		}
 		return "redirect:" + buildRedirectUrl(referer, id);
 	}
 
-	// referer の中の古い profileId を新しい id に置き換えてリダイレクト先を組み立てる。
 	private String buildRedirectUrl(String referer, Long newProfileId) {
 		String path = extractSafePath(referer);
 		if (path == null) {
@@ -93,11 +89,9 @@ public class ProfileController {
 			return "/profile/" + newProfileId + suffix;
 		}
 
-		// profileId を含まない画面（profile-manage 等）はそのまま同じ画面に留まる
 		return path;
 	}
 
-	// referer からホスト部分を除いた安全なパス（+クエリ）だけを取り出す
 	private String extractSafePath(String referer) {
 		if (referer == null || referer.isBlank()) {
 			return null;
@@ -116,52 +110,57 @@ public class ProfileController {
 	}
 
 	// ===== Create =====
-
 	@GetMapping("/new")
 	public String newProfileForm(Model model) {
-		User user = getLoginUser();
+		User user = authService.getCurrentUser();
 		model.addAttribute("profile", new Profile());
 		model.addAttribute("isFirstProfile", !profileService.hasAnyProfile(user.getId()));
+		model.addAttribute("isPrimary", false);
 		model.addAttribute("avatars", AVATARS);
 		return "profile/profile-form";
 	}
 
 	@PostMapping("/new")
-	public String createProfile(@ModelAttribute() Profile profile, BindingResult bindingResult, Model model,
-			HttpSession session) {
-		User user = getLoginUser();
+	public String createProfile(@ModelAttribute Profile profile, BindingResult bindingResult, Model model,
+			HttpSession session, RedirectAttributes redirectAttributes) {
+		User user = authService.getCurrentUser();
 		boolean isFirstProfile = !profileService.hasAnyProfile(user.getId());
+
 		validate(profile, bindingResult, isFirstProfile);
+
 		if (bindingResult.hasErrors()) {
 			model.addAttribute("isFirstProfile", isFirstProfile);
+			model.addAttribute("isPrimary", false);
 			model.addAttribute("avatars", AVATARS);
 			return "profile/profile-form";
 		}
+
 		profile.setId(null);
 		profile.setUser(user);
 
-		// 最初のプロファイルは続柄を強制的に「本人」にする（クライアント入力を信用しない）
 		if (isFirstProfile) {
 			profile.setRelationship("本人");
 		}
+
 		try {
 			profile = profileService.create(profile);
+			redirectAttributes.addFlashAttribute("message", profile.getName() + " のプロファイルを作成しました");
 		} catch (BusinessException e) {
 			model.addAttribute("errorMessage", e.getMessage());
 			model.addAttribute("isFirstProfile", isFirstProfile);
-			model.addAttribute("avatars", AVATARS);
 			model.addAttribute("isPrimary", false);
+			model.addAttribute("avatars", AVATARS);
 			return "profile/profile-form";
 		}
+
 		session.setAttribute(SessionConstants.CURRENT_PROFILE_ID, profile.getId());
-		return "redirect:/profile/" + profile.getId() + "/home";
+		return "redirect:/profile/profile-manage";
 	}
 
 	// ===== Update =====
-
 	@GetMapping("/{id}/edit")
 	public String editProfileForm(@PathVariable Long id, Model model) {
-		User user = getLoginUser();
+		User user = authService.getCurrentUser();
 		try {
 			Profile profile = profileService.getProfile(user.getId(), id);
 			model.addAttribute("profile", profile);
@@ -179,43 +178,34 @@ public class ProfileController {
 	@PostMapping("/{id}/edit")
 	public String updateProfile(@PathVariable Long id, @ModelAttribute("profile") Profile formProfile,
 			BindingResult bindingResult, Model model, RedirectAttributes redirectAttributes) {
-		User user = getLoginUser();
 		validate(formProfile, bindingResult, false);
+
 		if (bindingResult.hasErrors()) {
 			model.addAttribute("isFirstProfile", false);
+			model.addAttribute("isPrimary", Boolean.TRUE.equals(formProfile.getIsPrimary()));
 			model.addAttribute("avatars", AVATARS);
 			return "profile/profile-form";
 		}
+
 		try {
-			Profile profile = profileService.getProfile(user.getId(), id);
-			if (!Boolean.TRUE.equals(profile.getIsPrimary())) {
-				profile.setRelationship(formProfile.getRelationship());
-			}
-			profile.setName(formProfile.getName());
-			profile.setBirthDate(formProfile.getBirthDate());
-			profile.setGender(formProfile.getGender());
-			profile.setHeight(formProfile.getHeight());
-			profile.setTargetWeight(formProfile.getTargetWeight());
-			profile.setWaterGoalMl(formProfile.getWaterGoalMl());
-			profile.setStepGoal(formProfile.getStepGoal());
-			profile.setSleepGoalHours(formProfile.getSleepGoalHours());
-			profile.setAvatar(formProfile.getAvatar());
-			profileService.update(profile);
-			redirectAttributes.addFlashAttribute("message", profile.getName() + " のプロファイルを更新しました");
+			formProfile.setId(id);
+			Profile updatedProfile = profileService.update(formProfile);
+			redirectAttributes.addFlashAttribute("message", updatedProfile.getName() + " のプロファイルを更新しました");
 		} catch (BusinessException e) {
 			model.addAttribute("errorMessage", e.getMessage());
 			model.addAttribute("isFirstProfile", false);
+			model.addAttribute("isPrimary", Boolean.TRUE.equals(formProfile.getIsPrimary()));
 			model.addAttribute("avatars", AVATARS);
 			return "profile/profile-form";
 		}
 		return "redirect:/profile/profile-manage";
 	}
-	// ===== Delete =====
 
+	// ===== Delete =====
 	@PostMapping("/delete")
 	public String deleteProfile(@RequestParam Long profileId, HttpSession session,
 			RedirectAttributes redirectAttributes) {
-		User user = getLoginUser();
+		User user = authService.getCurrentUser();
 		try {
 			profileService.delete(user.getId(), profileId, session);
 			redirectAttributes.addFlashAttribute("message", "プロファイルを削除しました");
@@ -250,7 +240,6 @@ public class ProfileController {
 			bindingResult.rejectValue("relationship", "required", "続柄を選択してください");
 		}
 
-		// ===== 健康目標: すべて任意項目。入力された場合のみ0以上をチェック =====
 		if (profile.getTargetWeight() != null && profile.getTargetWeight().compareTo(java.math.BigDecimal.ZERO) <= 0) {
 			bindingResult.rejectValue("targetWeight", "invalid", "目標体重は0より大きい値を入力してください");
 		}
@@ -267,12 +256,5 @@ public class ProfileController {
 				|| profile.getSleepGoalHours().compareTo(java.math.BigDecimal.valueOf(24)) > 0)) {
 			bindingResult.rejectValue("sleepGoalHours", "invalid", "睡眠目標は0〜24の範囲で入力してください");
 		}
-	}
-
-	private User getLoginUser() {
-		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-		String email = authentication.getName();
-		return userRepository.findByEmail(email)
-				.orElseThrow(() -> new BusinessException(HttpStatus.UNAUTHORIZED, "ユーザーが見つかりません"));
 	}
 }

@@ -20,7 +20,7 @@ public class ProfileService {
 	private static final int MAX_PROFILES = 10;
 
 	// Relationships that can only exist once per user / 1ユーザーにつき1件のみ登録可能な続柄
-	private static final List<String> UNIQUE_RELATIONSHIPS = List.of("父", "母", "配偶者");
+	private static final List<String> UNIQUE_RELATIONSHIPS = List.of("父", "母", "配偶者", "祖父", "祖母");
 
 	private final ProfileRepository profileRepository;
 
@@ -69,12 +69,16 @@ public class ProfileService {
 		Profile dbProfile = profileRepository.findById(profile.getId())
 				.orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "プロファイルが見つかりません"));
 
+		// SỬA 1: Lấy userId an toàn từ dbProfile đã query
+		Long userId = dbProfile.getUser().getId();
+
 		// Keep the primary profile relationship unchanged / 本人プロファイルの続柄は変更しない
 		if (Boolean.TRUE.equals(dbProfile.getIsPrimary())) {
 			profile.setRelationship(dbProfile.getRelationship());
 		} else if (UNIQUE_RELATIONSHIPS.contains(profile.getRelationship())
-				&& !profile.getRelationship().equals(dbProfile.getRelationship()) && profileRepository
-						.existsByUser_IdAndRelationship(dbProfile.getUser().getId(), profile.getRelationship())) {
+				&& !profile.getRelationship().equals(dbProfile.getRelationship())
+				&& profileRepository.existsByUser_IdAndRelationship(userId, profile.getRelationship())) {
+
 			throw new BusinessException(HttpStatus.BAD_REQUEST, "「" + profile.getRelationship() + "」はすでに登録されています");
 		}
 
@@ -87,7 +91,6 @@ public class ProfileService {
 		dbProfile.setAvatar(profile.getAvatar());
 
 		// Update goals / 目標値を更新
-		// NULL means that the goal has not been set / NULLは目標未設定を表す
 		dbProfile.setTargetWeight(profile.getTargetWeight());
 		dbProfile.setWaterGoalMl(profile.getWaterGoalMl());
 		dbProfile.setStepGoal(profile.getStepGoal());
@@ -100,14 +103,19 @@ public class ProfileService {
 	public void delete(Long userId, Long profileId, HttpSession session) {
 		Profile profile = getProfile(userId, profileId);
 
+		// Chặn xóa nếu là Profile chính
 		if (Boolean.TRUE.equals(profile.getIsPrimary())) {
 			throw new BusinessException(HttpStatus.BAD_REQUEST, "本人のプロファイルは削除できません");
 		}
 
+		// SỬA 2: Chặn xóa nếu chỉ còn đúng 1 Profile duy nhất
+		long count = profileRepository.countByUser_Id(userId);
+		if (count <= 1) {
+			throw new BusinessException(HttpStatus.BAD_REQUEST, "最後のプロファイルは削除できません");
+		}
+
 		profileRepository.delete(profile);
-
 		Long currentId = (Long) session.getAttribute(SessionConstants.CURRENT_PROFILE_ID);
-
 		if (currentId != null && currentId.equals(profileId)) {
 			profileRepository.findByUser_IdAndIsPrimaryTrue(userId)
 					.ifPresent(primary -> session.setAttribute(SessionConstants.CURRENT_PROFILE_ID, primary.getId()));
@@ -132,9 +140,7 @@ public class ProfileService {
 		}
 
 		Optional<Profile> primary = profileRepository.findByUser_IdAndIsPrimaryTrue(userId);
-
 		primary.ifPresent(profile -> session.setAttribute(SessionConstants.CURRENT_PROFILE_ID, profile.getId()));
-
 		return primary.orElse(null);
 	}
 }
