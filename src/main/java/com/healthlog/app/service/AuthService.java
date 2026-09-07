@@ -30,7 +30,6 @@ import com.healthlog.app.entity.AuthToken;
 import com.healthlog.app.entity.User;
 import com.healthlog.app.exception.BusinessException;
 import com.healthlog.app.repository.AuthTokenRepository;
-import com.healthlog.app.repository.ProfileRepository;
 import com.healthlog.app.repository.UserRepository;
 
 @Service
@@ -61,8 +60,8 @@ public class AuthService {
 	private final SecurityContextRepository securityContextRepository = new HttpSessionSecurityContextRepository();
 	private final SecureRandom secureRandom = new SecureRandom();
 
-	public AuthService(UserRepository userRepository, ProfileRepository profileRepository,
-			AuthTokenRepository authTokenRepository, PasswordEncoder passwordEncoder, EmailService emailService) {
+	public AuthService(UserRepository userRepository, AuthTokenRepository authTokenRepository,
+			PasswordEncoder passwordEncoder, EmailService emailService) {
 		this.userRepository = userRepository;
 		this.authTokenRepository = authTokenRepository;
 		this.passwordEncoder = passwordEncoder;
