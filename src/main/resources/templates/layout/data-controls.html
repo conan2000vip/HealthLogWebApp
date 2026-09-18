@@ -45,13 +45,22 @@
 			th:text="${'今日のフィードバックをすべて見る（' + #lists.size(feedbackList) + '件）'}"> 今日のフィードバックをすべて見る </button>
 	</section>
 	<!-- ============ Chart Card ============-->
-	<section th:fragment="chartCard(title, canvasId, hasData, chartUrl)" class="chart-card" th:if="${hasData}" th:attr="data-chart-url=${chartUrl}">
+	<!-- ============ Chart Card ============-->
+	<section th:fragment="chartCard(title, canvasId, hasData, chartUrl, category, iconSrc)"
+		class="chart-card" th:classappend="'chart-card--' + ${category}"
+		th:if="${hasData}" th:attr="data-chart-url=${chartUrl}">
 		<div class="chart-card__header">
-			<h2 th:text="${title}">推移グラフ</h2>
+			<span class="chart-card__icon">
+				<img th:src="${iconSrc}" alt="" class="chart-card__icon-img" />
+			</span>
+			<h2>
+				<span th:text="${title}">グラフ</span>
+				<span class="chart-card__unit" th:if="${unit}" th:text="'(' + ${unit} + ')'"></span>
+			</h2>
 			<button type="button" class="link-btn" id="toggleChartBtn">非表示</button>
 		</div>
 		<div class="chart-card__body" id="chartWrapper">
-			<canvas th:id="${canvasId}" height="260"></canvas>
+		    <canvas th:id="${canvasId}" height="260"></canvas>
 		</div>
 	</section>
 </body>

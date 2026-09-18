@@ -20,10 +20,10 @@
 					th:src="@{/image/avatar/{name}.png(name=${currentProfile.avatar ?: 'avatar_01'})}"
 					th:alt="${currentProfile.name}" />
 				<div class="profile-card__info">
-					<div class="profile-card__title-row">
-						<span class="profile-card__label">現在のプロファイル</span>
-						<span class="profile-card__badge" th:if="${currentProfile.isPrimary}">本人</span>
-					</div>
+					<span class="profile-card__title-row">
+					    <span class="profile-card__label">現在のプロファイル</span>
+					    <span class="profile-card__badge">本人</span>
+					</span>
 					<h1 class="profile-card__name">
 						<span th:text="${currentProfile.name}">母</span>
 						<span class="profile-card__meta">（ <span

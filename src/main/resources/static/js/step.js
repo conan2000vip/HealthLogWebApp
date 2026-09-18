@@ -8,7 +8,14 @@ document.addEventListener("DOMContentLoaded", () => {
    Uses shared HealthChart / 共通のHealthChartを使用
 ========================================================= */
 function initChart() {
-    const isSearching = Boolean(document.getElementById("startDateInput")?.value || document.getElementById("endDateInput")?.value);
+    const isSearching = Boolean(
+        document.getElementById("startDateInput")?.value ||
+        document.getElementById("endDateInput")?.value
+    );
+
+    const targetStep = window.targetStep !== null && window.targetStep !== undefined
+        ? parseFloat(window.targetStep)
+        : null;
 
     const chart = HealthChart.create({
         canvasId: "stepChart",
@@ -16,7 +23,10 @@ function initChart() {
         unit: "歩",
         type: "bar",
         days: 7,
-        isSearching: isSearching
+        isSearching: isSearching,
+        color: "#e67e22",
+        showDataLabels: true,
+        targetValue: targetStep,
     });
 
     const wrapper = document.getElementById("chartWrapper");
@@ -28,7 +38,6 @@ function initChart() {
         initChartSwipe({ chart, wrapperEl: wrapper, chartUrl, initialFrom: from, initialTo: to });
     }
 }
-
 /* =========================================================
 2. Add / Edit Modal / 新規登録・編集モーダル
 ========================================================= */

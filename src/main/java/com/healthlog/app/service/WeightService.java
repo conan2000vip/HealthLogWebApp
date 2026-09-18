@@ -264,7 +264,6 @@ public class WeightService {
 		}
 		Map<String, Object> stats = new HashMap<>();
 		stats.put("latest", latest);
-		stats.put("latestDate", latestLog != null ? latestLog.getRecordedDate() : null);
 		stats.put("min", min);
 		stats.put("max", max);
 		stats.put("bmi", bmi);

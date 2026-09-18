@@ -138,11 +138,14 @@
 				</div>
 
 				<!-- Chart Card  -->
+				<!-- sleep.html -->
 				<div th:replace="~{layout/data-controls :: chartCard(
-					title='睡眠時間推移グラフ',
+					title='睡眠(時間)',
 					canvasId='sleepChart',
 					hasData=${not #lists.isEmpty(logs)},
-					chartUrl=@{/profile/{profileId}/sleep/chart-data(profileId=${profileId})})}">
+					chartUrl=@{/profile/{profileId}/sleep/chart-data(profileId=${profileId})},
+					category='sleep',
+					iconSrc=@{/image/sleep.png})}">
 				</div>
 
 				<!-- Table / Empty state -->
@@ -300,13 +303,8 @@
 		<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 		<script th:src="@{/js/common.js}"></script>
 		<script th:inline="javascript">
-		    window.sleepChartData = {
-		        labels: /*[[${labels}]]*/ [],
-		        values: /*[[${values}]]*/ [],
-		        chartMode: /*[[${chartMode}]]*/ "DAY",
-		        from: /*[[${chartFrom}]]*/ null,
-		        to: /*[[${chartTo}]]*/ null
-		    };
+		    window.targetSleep = /*[[${currentProfile != null ? currentProfile.sleepGoalHours : null}]]*/ null;
+		    window.sleepChartData = {labels: /*[[${labels}]]*/[], values: /*[[${values}]]*/[], chartMode: /*[[${chartMode}]]*/ "DAY", from: /*[[${chartFrom}]]*/ null, to: /*[[${chartTo}]]*/ null};
 		</script>
 		<script th:src="@{/js/sleep.js}"></script>
 

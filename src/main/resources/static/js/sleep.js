@@ -252,13 +252,19 @@ function initModal() {
            document.getElementById("endDateInput")?.value
        );
 
+       const targetSleep = window.targetSleep !== null && window.targetSleep !== undefined
+           ? parseFloat(window.targetSleep)
+           : null;
+
        const chart = HealthChart.create({
            canvasId: "sleepChart",
            data: window.sleepChartData,
            unit: "時間",
-           type: "bar",
+           type: "line",
            days: 7,
            isSearching: isSearching,
+           color: "#4a3b8c",
+           targetValue: targetSleep,
        });
 
        const wrapper = document.getElementById("chartWrapper");

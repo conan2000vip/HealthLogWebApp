@@ -99,10 +99,12 @@
 			</div>
 			<!-- Shared Chart Card / 共通グラフカード -->
 			<div th:replace="~{layout/data-controls :: chartCard(
-			    title='歩数推移',
-			    canvasId='stepChart',
-			    hasData=${not #lists.isEmpty(logs)},
-			    chartUrl=@{/profile/{profileId}/step/chart-data(profileId=${profileId})})}">
+				title='歩数(歩)',
+				canvasId='stepChart',
+				hasData=${not #lists.isEmpty(logs)},
+				chartUrl=@{/profile/{profileId}/step/chart-data(profileId=${profileId})},
+				category='step',
+				iconSrc=@{/image/footstep.png})}">
 			</div>
 			<!-- Data Table / データテーブル -->
 			<section class="table-card">
@@ -225,7 +227,8 @@
 	<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 	<script th:src="@{/js/common.js}"></script>
 	<script th:inline="javascript">
-		window.stepChartData = {labels: /*[[${labels}]]*/[], values: /*[[${values}]]*/[], chartMode: /*[[${chartMode}]]*/ "DAY", from: /*[[${chartFrom}]]*/ null, to: /*[[${chartTo}]]*/ null};
+	    window.targetStep = /*[[${currentProfile != null ? currentProfile.stepGoal : null}]]*/ null;
+	    window.stepChartData = {labels: /*[[${labels}]]*/[], values: /*[[${values}]]*/[], chartMode: /*[[${chartMode}]]*/ "DAY", from: /*[[${chartFrom}]]*/ null, to: /*[[${chartTo}]]*/ null};
 	</script>
 	<script th:src="@{/js/step.js}"></script>
 </body>

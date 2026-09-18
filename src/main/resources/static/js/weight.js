@@ -6,7 +6,6 @@ document.addEventListener("DOMContentLoaded", () => {
 /* =========================================================
    1) 体重推移グラフ
    共通の health-chart.js を使用する
-   （★変更なし。元のコードのまま）
    ========================================================= */
 function initChart() {
     const isSearching = Boolean(
@@ -14,13 +13,19 @@ function initChart() {
         document.getElementById("endDateInput")?.value
     );
 
+    // Ép kiểu về số thực (nếu không set targetWeight sẽ là null)
+    const targetWeight = window.targetWeight !== null && window.targetWeight !== undefined
+        ? parseFloat(window.targetWeight)
+        : null;
+
     const chart = HealthChart.create({
         canvasId: "weightChart",
         data: window.weightChartData,
         unit: "kg",
-        type: "bar",
+        type: "line",
         days: 7,
-        isSearching: isSearching
+        isSearching: isSearching,
+        targetValue: targetWeight // Truyền vạch mục tiêu vào biểu đồ
     });
 
     const wrapper = document.getElementById("chartWrapper");
@@ -32,7 +37,6 @@ function initChart() {
         initChartSwipe({ chart, wrapperEl: wrapper, chartUrl, initialFrom: from, initialTo: to });
     }
 }
-
 /* =========================================================
    2) モーダル（新規登録 / 編集）— weight ページ専用
    （diff-badge / chart-toggle / delete-confirm は common.js 側で

@@ -163,21 +163,15 @@ function initAutoHideAlerts() {
 
 window.HealthChart = (() => {
     const DEFAULT_DAYS = 7;
-    function create({
-        canvasId,
-        data,
-        unit = "",
-        type = "bar",
-        days = DEFAULT_DAYS,
-        isSearching = false,
-    }) {
+	function create({
+	    canvasId, data, unit = "", type = "bar", days = DEFAULT_DAYS,
+	    isSearching = false, targetValue = null, color = null,
+	    showDataLabels = false, labelColor = "#1e293b",
+	}) {
         const canvas = document.getElementById(canvasId);
-        if (!canvas || typeof Chart === "undefined") {
-            return;
-        }
-        if (!data || !data.labels || data.labels.length === 0) {
-            return;
-        }
+        if (!canvas || typeof Chart === "undefined") return;
+        if (!data || !data.labels || data.labels.length === 0) return;
+
         let labels = [];
         let values = [];
         if (!isSearching) {
@@ -197,39 +191,141 @@ window.HealthChart = (() => {
                 value == null ? null : parseFloat(value)
             );
         }
+
         const styles = getComputedStyle(document.documentElement);
-        const primary = styles.getPropertyValue("--chart-primary").trim() || "#4caf50";
-        return new Chart(canvas, {
-            type: type,
-            data: {
-                labels: labels,
-                datasets: [
-                    {
-                        data: values,
+        const primary = color || styles.getPropertyValue("--chart-primary").trim() || "#e11d48";
+        const isLine = type === "line";
+
+        const validValues = values.filter((v) => v !== null && !isNaN(v));
+        let yMin, yMax;
+        if (validValues.length > 0) {
+            const allVals = (targetValue !== null && targetValue !== undefined && targetValue !== "")
+                ? [...validValues, parseFloat(targetValue)]
+                : validValues;
+            const minVal = Math.min(...allVals);
+            const maxVal = Math.max(...allVals);
+            const diff = maxVal - minVal;
+            const margin = diff < 1 ? 0.8 : (diff <= 3 ? 1.5 : 2.5);
+            yMin = Math.floor(minVal - margin);
+            yMax = Math.ceil(maxVal + margin);
+        }
+		let isHovering = false;
+        // Chỉ giữ 1 dataset duy nhất cho đường cân nặng
+        const datasets = [
+            {
+                data: values,
+                borderColor: primary,
+                borderWidth: isLine ? 2.5 : 1,
+                spanGaps: true,
+                ...(isLine
+                    ? {
+                        tension: 0,
+                        fill: false,
+                        pointRadius: 5,
+                        pointHoverRadius: 7,
+                        pointBackgroundColor: primary,
+                        pointBorderColor: "#ffffff",
+                        pointBorderWidth: 2,
+                    }
+                    : {
                         backgroundColor: hexToRgba(primary, 0.75),
-                        borderColor: primary,
-                        borderWidth: 1,
                         borderRadius: 8,
                         maxBarThickness: 40,
-                    },
-                ],
+                    }),
             },
+        ];
+
+        return new Chart(canvas, {
+            type: type,
+            data: { labels, datasets },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false },
-                    tooltip: {
-                        callbacks: {
-                            label: (ctx) => `${ctx.parsed.y} ${unit}`,
+                layout: {
+                    padding: { left: 15, right: 25, top: 25, bottom: 10 },
+                },
+				plugins: {
+				    legend: { display: false },
+				    tooltip: { enabled: false },
+				},
+                scales: {
+                    x: {
+                        grid: {
+                            display: true,
+                            color: "#f1f5f9",
+                            drawTicks: false // ★ Triệt tiêu mấu nhỏ nhô ra khỏi trục X
                         },
+                        border: { display: true, color: "#94a3b8", width: 1.5 },
+                        offset: true,
+                        ticks: {
+                            padding: 8,
+                            color: "#475569",
+                            font: { weight: "bold" }
+                        }
+                    },
+                    y: {
+                        grid: {
+                            display: true,
+                            color: "#f1f5f9",
+                            drawTicks: false // ★ Triệt tiêu mấu nhỏ nhô ra khỏi trục Y
+                        },
+                        border: { display: true, color: "#94a3b8", width: 1.5 },
+                        beginAtZero: false,
+                        suggestedMin: yMin,
+                        suggestedMax: yMax,
+                        ticks: {
+                            padding: 10,
+                            color: "#475569",
+                            font: { weight: "bold" }
+                        }
                     },
                 },
-                scales: {
-                    x: { grid: { display: false } },
-                    y: { grid: { color: "#f1f5f9" } },
-                },
             },
+			plugins: (isLine || showDataLabels) ? [
+			    {
+			        id: "customLabelsAndTargetPlugin",
+			        afterDatasetsDraw(chart) {
+			            const { ctx, chartArea, scales: { y } } = chart;
+
+			            if (targetValue !== null && targetValue !== undefined && targetValue !== "") {
+			                const targetNum = parseFloat(targetValue);
+			                const yPos = y.getPixelForValue(targetNum);
+			                if (yPos >= chartArea.top && yPos <= chartArea.bottom) {
+			                    ctx.save();
+								ctx.globalAlpha = isHovering ? 1 : 0.35;
+			                    ctx.beginPath();
+			                    ctx.setLineDash([6, 4]);
+			                    ctx.strokeStyle = "#0284c7";
+			                    ctx.lineWidth = 1.5;
+			                    ctx.moveTo(chartArea.left, yPos);
+			                    ctx.lineTo(chartArea.right, yPos);
+			                    ctx.stroke();
+			                    ctx.fillStyle = labelColor;
+			                    ctx.font = "bold 12px sans-serif";
+			                    ctx.textAlign = "right";
+			                    ctx.textBaseline = "bottom";
+			                    ctx.fillText(`目標: ${targetNum} ${unit}`, chartArea.right - 5, yPos - 3);
+			                    ctx.restore();
+			                }
+			            }
+
+			            const meta = chart.getDatasetMeta(0);
+			            meta.data.forEach((element, index) => {
+			                const val = chart.data.datasets[0].data[index];
+			                if (val !== null && val !== undefined) {
+			                    ctx.save();
+			                    ctx.fillStyle = "#1e293b";
+			                    ctx.font = "bold 12px sans-serif";
+			                    ctx.textAlign = "center";
+			                    ctx.textBaseline = "bottom";
+			                    const offsetY = isLine ? -7 : -6;
+			                    ctx.fillText(`${val}`, element.x, element.y + offsetY);
+			                    ctx.restore();
+			                }
+			            });
+			        },
+			    },
+			] : [],
         });
     }
 
@@ -260,12 +356,17 @@ window.HealthChart = (() => {
             return `${date.getDate()}(${weekdays[date.getDay()]})`;
         }
         if (mode === "WEEK") {
-            const date = new Date(value + "T00:00:00");
-            return `${date.getMonth() + 1}/${date.getDate()}`;
-        }
-        if (mode === "MONTH") {
-            const month = value.substring(5, 7);
-            return `${Number(month)}月`;
+            const start = new Date(value + "T00:00:00");
+            const end = new Date(start);
+            end.setDate(start.getDate() + 6);
+
+            const today = new Date();
+            const finalEnd = end > today ? today : end; // Nếu vượt quá hôm nay thì ngắt ở hôm nay
+
+            const startStr = `${start.getMonth() + 1}/${start.getDate()}`;
+            const endStr = `${finalEnd.getMonth() + 1}/${finalEnd.getDate()}`;
+
+            return `${startStr}~${endStr}`;
         }
         return value;
     }
@@ -278,7 +379,7 @@ window.HealthChart = (() => {
         const b = bigint & 255;
         return `rgba(${r}, ${g}, ${b}, ${alpha})`;
     }
-    return { create };
+    return { create, formatLabel };
 })();
 
 function initChartToggle() {

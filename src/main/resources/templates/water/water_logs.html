@@ -104,10 +104,12 @@
 
 				<!-- Shared Chart Card / 共通グラフカード -->
 				<div th:replace="~{layout/data-controls :: chartCard(
-				title='水分摂取量推移',
-				canvasId='waterChart',
-				hasData=${not #lists.isEmpty(logs)},
-				chartUrl=@{/profile/{profileId}/water/chart-data(profileId=${profileId})})}">
+					title='水分摂取(ml)',
+					canvasId='waterChart',
+					hasData=${not #lists.isEmpty(logs)},
+					chartUrl=@{/profile/{profileId}/water/chart-data(profileId=${profileId})},
+					category='water',
+					iconSrc=@{/image/water.png})}">
 				</div>
 
 				<!-- Table / Empty State / テーブル・空状態 -->
@@ -264,13 +266,8 @@
 		<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 		<script th:src="@{/js/common.js}"></script>
 		<script th:inline="javascript">
-			window.waterChartData = {
-				labels: /*[[${labels}]]*/[],
-				values: /*[[${values}]]*/[],
-				chartMode: /*[[${chartMode}]]*/ "DAY",
-				from: /*[[${chartFrom}]]*/ null,
-				to: /*[[${chartTo}]]*/ null
-			};
+		    window.targetWater = /*[[${currentProfile != null ? currentProfile.waterGoalMl : null}]]*/ null;
+		    window.waterChartData = {labels: /*[[${labels}]]*/[], values: /*[[${values}]]*/[], chartMode: /*[[${chartMode}]]*/ "DAY", from: /*[[${chartFrom}]]*/ null, to: /*[[${chartTo}]]*/ null};
 		</script>
 		<script th:src="@{/js/water.js}"></script>
 

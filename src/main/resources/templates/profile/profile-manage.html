@@ -59,7 +59,6 @@
 
 							<span class="badge badge--primary" th:if="${p.isPrimary}">本人</span>
 							<span class="badge badge--relation" th:unless="${p.isPrimary}" th:text="${p.relationship}">父</span>
-							<img th:src="@{/image/shield.png}" alt="" class="profile-manage__admin-icon" th:if="${p.isPrimary}" />
 							<span class="badge badge--selected"
 								  th:if="${currentProfile != null and p.id == currentProfile.id}">選択中</span>
 						</div>

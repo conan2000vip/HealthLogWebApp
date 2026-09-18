@@ -13,6 +13,10 @@ document.addEventListener( "DOMContentLoaded", () => {
            document.getElementById("endDateInput")?.value
        );
 
+       const targetWater = window.targetWater !== null && window.targetWater !== undefined
+           ? parseFloat(window.targetWater)
+           : null;
+
        const chart = HealthChart.create({
            canvasId: "waterChart",
            data: window.waterChartData,
@@ -20,6 +24,9 @@ document.addEventListener( "DOMContentLoaded", () => {
            type: "bar",
            days: 7,
            isSearching: isSearching,
+           color: "#2196f3",
+           showDataLabels: true,
+           targetValue: targetWater,
        });
 
        const wrapper = document.getElementById("chartWrapper");

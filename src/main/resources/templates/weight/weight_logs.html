@@ -116,10 +116,12 @@
 
 				<!-- Chart Card  -->
 				<div th:replace="~{layout/data-controls :: chartCard(
-				    title='体重推移グラフ',
+				    title='体重(Kg)',
 				    canvasId='weightChart',
 				    hasData=${not #lists.isEmpty(logs)},
-				    chartUrl=@{/profile/{profileId}/weight/chart-data(profileId=${profileId})})}">
+				    chartUrl=@{/profile/{profileId}/weight/chart-data(profileId=${profileId})},
+				    category='weight',
+				    iconSrc=@{/image/scales.png})}">
 				</div>
 
 				<!-- Table / Empty state -->
@@ -275,6 +277,7 @@
 		<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 		<script th:src="@{/js/common.js}"></script>
 		<script th:inline="javascript">
+			window.targetWeight = /*[[${currentProfile != null ? currentProfile.targetWeight : null}]]*/ null;
 			window.weightChartData = {labels: /*[[${labels}]]*/[], values: /*[[${values}]]*/[], chartMode: /*[[${chartMode}]]*/ "DAY", from: /*[[${chartFrom}]]*/ null, to: /*[[${chartTo}]]*/ null};
 			window.profileHeight = /*[[${currentProfile.height}]]*/ null;
 		</script>
